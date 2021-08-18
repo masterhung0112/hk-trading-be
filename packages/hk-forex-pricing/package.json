@@ -1,0 +1,10 @@
+{
+  "name": "hk-forex-pricing",
+  "version": "0.0.1",
+  "description": "Example of creating a function that runs as a cron job using the serverless `schedule` event",
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "rxjs": "^7.3.0"
+  }
+}

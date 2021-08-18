@@ -1,0 +1,12 @@
+{
+  "name": "trading",
+  "version": "0.01",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "bootstrap": "lerna bootstrap"
+  },
+  "dependencies": {
+    "lerna": "^3.22.1"
+  }
+}
