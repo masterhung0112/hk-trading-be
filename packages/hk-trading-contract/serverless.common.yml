@@ -1,0 +1,2 @@
+plugins:
+  - serverless-plugin-typescript

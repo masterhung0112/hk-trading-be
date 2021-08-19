@@ -5,6 +5,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "rxjs": "^7.3.0"
+    "rxjs": "^7.3.0",
+    "hk-trading-contract": "^0.0.1"
   }
 }

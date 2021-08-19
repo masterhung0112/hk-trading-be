@@ -1,0 +1,10 @@
+syntax = "proto3";
+
+message SpotPriceDto {
+    string symbol = 1;
+    int32 bid = 2;
+    int32 ask = 3;
+    int32 mid = 4;
+    int64 value_date = 5;
+    int64 creation_timestamp = 6;
+}

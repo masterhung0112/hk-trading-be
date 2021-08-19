@@ -1,7 +1,28 @@
+import { CurrencyPair } from "../constracts/CurrencyPair";
 import { IMarketDataAdapter } from "../constracts/IMarketDataAdapter";
+import { IPriceGenerator } from "../constracts/IPriceGenerator";
+import { HardCodedSourceName } from "../contants/PriceSource";
+import { MeanReversionRandomWalkPriceGenerator } from "../PriceGenerator/MeanReversionRandomWalkPriceGenerator";
 
 export class PriceSource {
     _marketAdapters: IMarketDataAdapter[]
+    _priceGenerators: Map<string, IPriceGenerator>
+
+    constructor() {
+        this._priceGenerators = new Map<string, IPriceGenerator>()
+
+        const createPriceGenerator = (baseCcy: string, quoteCcy: string, initial: number, precision: number): IPriceGenerator =>
+        {
+            return new MeanReversionRandomWalkPriceGenerator(new CurrencyPair(baseCcy, quoteCcy), initial, precision);
+        }
+
+        [
+            createPriceGenerator("EUR","USD", 1.09443, 5),
+            createPriceGenerator("USD","JPY", 121.656, 3),
+        ].forEach((item) => {
+            this._priceGenerators.set(item.CurrencyPair.Symbol, item)
+        })
+    }
 
     /*
         - Iterate market data adapter
@@ -16,14 +37,15 @@ export class PriceSource {
             try
             {
                 var marketData = await adapter.GetMarketData();
-                for (let item in marketData)
+                for (let item of marketData)
                 {
-                    //Any item older than 10 minutes is considered available to update, this way if the preceeding adapters did not update the rate then perhaps the next adapter will
+                    const priceGenerator = this._priceGenerators.get(item.CurrencyPair.Symbol)
+                    // Any item older than 10 minutes is considered available to update, this way if the preceeding adapters did not update the rate then perhaps the next adapter will
                     if (
-                    PriceGenerators.TryGetValue(item.CurrencyPair.Symbol, out IPriceGenerator priceGenerator) &&
-                    (DateTime.UtcNow - priceGenerator.EffectiveDate).TotalMinutes > 10)
+                        priceGenerator &&
+                        (Date.now() - priceGenerator.EffectiveDate.getTime()) > (10 * 60 * 1000))
                     {
-                    priceGenerator.UpdateInitialValue(item.SampleRate, item.Date, item.Source);
+                        priceGenerator.UpdateInitialValue(item.SampleRate, new Date(item.Date), item.Source);
                     }
                 }
             }
@@ -32,7 +54,19 @@ export class PriceSource {
                 // Log.Error(ex, $"Adapter for {adapter.RequestUriString} threw an unhandled exception");
             }
         }
-        ComputeMissingReciprocals();
-        _lastMarketUpdate = refreshDateTime;
+        this.computeMissingReciprocals();
+        // _lastMarketUpdate = refreshDateTime;
+    }
+
+    // Currency pairs are typically listed only as Major/Minor CCY codes. This method computes the reciprocal rate for missing Minor/Majors
+    computeMissingReciprocals() {
+        for (let [_, value] of this._priceGenerators) {
+            if (value.SourceName === HardCodedSourceName || value.SourceName.indexOf("1/") !== -1) {
+                const other = this._priceGenerators.get(value.CurrencyPair.ReciprocalSymbol)
+                if (other && other.SourceName !== HardCodedSourceName) {
+                    value.UpdateInitialValue(1 / other.SampleRate, other.EffectiveDate, `1/ ${other.SourceName}`)
+                }   
+            }
+        }
     }
 }
