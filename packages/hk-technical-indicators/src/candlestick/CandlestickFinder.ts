@@ -1,22 +1,17 @@
 import StockData from "../StockData";
 
 export class CandlestickFinder {
-    requiredCount: number
-    name: string
-    constructor() {
+    
+    constructor(public name: string, public requiredCount: number) {
         // if (new.target === Abstract) {
         //     throw new TypeError("Abstract class");
         // }
-    }
-    approximateEqual(a: number, b: number): boolean {
-        let left = parseFloat(Math.abs(a - b).toPrecision(4)) * 1;
-        let right = parseFloat((a * 0.001).toPrecision(4)) * 1;
-        return left <= right
     }
 
     logic(data: StockData): boolean {
         throw "this has to be implemented";
     }
+
     getAllPatternIndex(data: StockData) {
         if (data.close.length < this.requiredCount) {
             console.warn('Data count less than data required for the strategy ', this.name);
@@ -57,12 +52,12 @@ export class CandlestickFinder {
         if (data.close.length === requiredCount) {
             return data;
         } else {
-            let returnVal = {
+            let returnVal: StockData = {
                 open: [],
                 high: [],
                 low: [],
                 close: []
-            } as StockData;
+            }
             let i = 0;
             let index = data.close.length - requiredCount;
             while (i < requiredCount) {

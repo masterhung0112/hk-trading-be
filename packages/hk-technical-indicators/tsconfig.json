@@ -1,7 +1,10 @@
 {
     "compilerOptions": {
         "moduleResolution": "node",
-        "target": "esnext"
+        "target": "esnext",
+        "rootDir": "src",
+        "outDir": "dist",
+        "declaration": true
     },
     "types": ["jest"]
 }

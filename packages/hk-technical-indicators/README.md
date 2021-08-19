@@ -1,0 +1,1 @@
+Inspire from https://github.com/anandanand84/technicalindicators
