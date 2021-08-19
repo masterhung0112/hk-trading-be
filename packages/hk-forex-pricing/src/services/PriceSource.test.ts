@@ -12,7 +12,7 @@ class TestNarketDataAdapter implements IMarketDataAdapter {
 
     async GetMarketData(): Promise<MarketData[]> {
         return [new MarketData(
-            new CurrencyPair("USDGBP"), 1.112, Date.now(), ""
+            new CurrencyPair("EURUSD"), 1 + Math.random(), Date.now(), ""
         )]
     }
 
