@@ -5,10 +5,11 @@ import { HardCodedSourceName } from "../contants/PriceSource";
 import { MeanReversionRandomWalkPriceGenerator } from "../PriceGenerator/MeanReversionRandomWalkPriceGenerator";
 
 export class PriceSource {
-    _marketAdapters: IMarketDataAdapter[]
-    _priceGenerators: Map<string, IPriceGenerator>
+    private _marketAdapters: IMarketDataAdapter[]
+    private _priceGenerators: Map<string, IPriceGenerator>
 
-    constructor() {
+    constructor(marketAdapters: IMarketDataAdapter[]) {
+        this._marketAdapters = marketAdapters
         this._priceGenerators = new Map<string, IPriceGenerator>()
 
         const createPriceGenerator = (baseCcy: string, quoteCcy: string, initial: number, precision: number): IPriceGenerator =>
@@ -51,7 +52,7 @@ export class PriceSource {
             }
             catch(ex)
             {
-                // Log.Error(ex, $"Adapter for {adapter.RequestUriString} threw an unhandled exception");
+                console.error(ex, `Adapter for ${adapter.RequestUriString} threw an unhandled exception`);
             }
         }
         this.computeMissingReciprocals();
@@ -60,7 +61,7 @@ export class PriceSource {
 
     // Currency pairs are typically listed only as Major/Minor CCY codes. This method computes the reciprocal rate for missing Minor/Majors
     computeMissingReciprocals() {
-        for (let [_, value] of this._priceGenerators) {
+        for (let value of Array.from(this._priceGenerators.values())) {
             if (value.SourceName === HardCodedSourceName || value.SourceName.indexOf("1/") !== -1) {
                 const other = this._priceGenerators.get(value.CurrencyPair.ReciprocalSymbol)
                 if (other && other.SourceName !== HardCodedSourceName) {
