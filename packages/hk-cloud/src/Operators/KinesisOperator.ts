@@ -1,6 +1,7 @@
 import { from, pipe } from 'rxjs'
 import { map, mergeMap, toArray } from 'rxjs/operators'
 import { KinesisConnector } from "../Connectors/KinesisConnector"
+import { rejectWithFault } from './fault';
 
 export const publishToKinesis = ({ streamName, eventField = 'event', handleErrors = true }: {
     streamName: string,
@@ -17,11 +18,15 @@ export const publishToKinesis = ({ streamName, eventField = 'event', handleError
       })
 
     const putRecords = async (batchUow) => {
+        try {
         const publishResponse = await kinesisConnector.putRecords(batchUow.inputParams)
         return {
             ...batchUow,
             publishResponse
         }
+    } catch (e) {
+        return rejectWithFault(batchUow, !handleErrors)(e)
+    }
             // publishResponse store the returned value of putRecords
             // .then((publishResponse) => ({ ...batchUow, publishResponse }))
             // .catch(rejectWithFault(batchUow, !handleErrors));
@@ -29,7 +34,7 @@ export const publishToKinesis = ({ streamName, eventField = 'event', handleError
         // return from(p) // wrap promise in a stream
     }
     return pipe(
-        toArray(),
+        // toArray(),
         // map(toBatchUow),
         map(toInputParams),
         // Push data to Kinesis in parallel
