@@ -7,6 +7,7 @@
         "declaration": true,
         "sourceMap": true,
         "allowJs": true,
+        "allowSyntheticDefaultImports": true
     },
     "types": ["aws-sdk-mock", "jest"]
 }
