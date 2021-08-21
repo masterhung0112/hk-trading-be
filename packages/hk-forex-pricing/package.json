@@ -7,13 +7,15 @@
   "dependencies": {
     "rxjs": "^7.3.0",
     "hk-trading-contract": "^0.0.1",
+    "hk-cloud": "^0.0.1",
     "finnhub": "^1.2.6",
-    "socket.io-client": "^1.7.3"
+    "socket.io-client": "^2.4.0"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.15.0",
     "@babel/preset-typescript": "^7.15.0",
     "@types/jest": "^27.0.1",
-    "jest": "^27.0.6"
+    "jest": "^27.0.6",
+    "@types/socket.io-client": "^1.4.36"
   }
 }

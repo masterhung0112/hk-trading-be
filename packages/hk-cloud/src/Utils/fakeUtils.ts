@@ -42,10 +42,10 @@ export interface BatchProcessingOptions {
 }
 
 export const defaultBatchProcessingOptions: BatchProcessingOptions = {
-    batchSize: 5,
-    maxQueueSize: 15,
+    batchSize: 10,
+    maxQueueSize: 20,
     retrieveCompaniesConcurrency: 1,
-    retrieveOrdersConcurrency: 5,
+    retrieveOrdersConcurrency: 10,
     bulkEmailConcurrency: 5,
     maxBulkEmailCount: 5,
 };

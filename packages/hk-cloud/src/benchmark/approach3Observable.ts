@@ -42,17 +42,18 @@ export const approach3Observable = async (options?: BatchProcessingOptions) => {
             /**
              * Accumulate the companies processed for the current batch.
              * When the entire batch has been processed,
-             *  send the bulk emails and proceed to the next batch.
+             * send the bulk emails and proceed to the next batch.
              */
             mergeScan(
                 async (acc: any, company) => {
                     acc.curBatchProcessed.push(company)
 
                     if (acc.curBatchProcessed.length === curBatchReceivedCount) {
-                        await sendBulkEmails(acc.curBatchProcessed);
-                        acc.curBatchProcessed = [];
                         acc.curOffset += curBatchReceivedCount;
                         controller$.next(acc.curOffset);
+                        await sendBulkEmails(acc.curBatchProcessed);
+                        acc.curBatchProcessed = [];
+
                     }
                     return acc
                 },

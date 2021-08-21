@@ -14,6 +14,21 @@ authorAvatar: 'https://avatars3.githubusercontent.com/u/5679763?v=4&s=140'
 
 This template demonstrates how to develop and deploy a simple cron-like service running on AWS Lambda using the traditional Serverless Framework.
 
+# Basic Tasks
+[] Control the enable/disable status of each pair for each exchange
+[] Websocket to fetch the latest price for each pair of each exchange
+[] When the service is down, sync the missing data from the last retrieval
+[] Retrieve historical data for each exchange, [m1, m5, m15, m30, h1, h2, h4, h6, h8, D1, W1, M1]
+
+# Controller
+- History
+- Quotes
+Partitions: BySymbol, By date, by hour
+
+# Database
+- Forex data is stored in MySQL
+- Cache by Redis
+
 ## Schedule event type
 
 This examples defines two functions, `cron` and `secondCron`, both of which are triggered by an event of `schedule` type, which is used for configuring functions to be executed at specific time or in specific intervals. For detailed information about `schedule` event, please refer to corresponding section of Serverless [docs](https://serverless.com/framework/docs/providers/aws/events/schedule/).

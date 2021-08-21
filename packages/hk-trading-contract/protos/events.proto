@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+message CurrencyPairCreatedEvent {
+    string symbol = 1;
+    int32 pips_position = 2;
+    int32 rate_position = 3;
+    // double sample_rate = 4;
+    string display_symbol = 5;
+    string description = 6;
+}
+
+message CurrencyPairActivatedEvent {
+    string symbol = 1;
+}
+
+message CurrencyPairDeactivatedEvent {
+    string symbol = 1;
+}

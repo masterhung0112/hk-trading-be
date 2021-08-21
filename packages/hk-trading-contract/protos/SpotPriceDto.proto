@@ -1,5 +1,30 @@
 syntax = "proto3";
 
+message ForexExchange {
+    string name = 1;
+}
+
+message ForexSymbol {
+    string symbol = 1;
+    string display_symbol = 2;
+    string description = 3;
+}
+
+message ForexCandles {
+    repeated double bc = 5; // Bid Closed
+    repeated double bh = 6; // Bid High
+    repeated double bl = 7; // Bid Low
+    repeated double bo = 8; // Bid Open
+    
+    repeated double ac = 5; // Ask Closed
+    repeated double ah = 6; // Ask High
+    repeated double al = 7; // Ask Low
+    repeated double ao = 8; // Ask Open
+
+    repeated double t = 9; // Timestamp
+    repeated double v = 10; // Volume
+}
+
 message SpotPriceDto {
     string symbol = 1;
     int32 bid = 2;

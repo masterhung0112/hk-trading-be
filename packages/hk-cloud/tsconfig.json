@@ -1,13 +1,12 @@
 {
     "compilerOptions": {
         "moduleResolution": "node",
-        "module": "esnext",
+        "target": "esnext",
         "rootDir": "src",
         "outDir": "dist",
         "declaration": true,
         "sourceMap": true,
-        "allowJs": true,
+        "allowJs": false,
         "allowSyntheticDefaultImports": true
     },
-    "types": ["aws-sdk-mock", "jest"]
 }

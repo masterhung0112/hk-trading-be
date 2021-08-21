@@ -2,7 +2,7 @@ import { benchmark } from "../Utils/fakeUtils";
 import { approach1AsyncAwait } from "./approach1AsyncAwait";
 import { approach2PromiseAll } from "./approach2PromiseAll";
 import { approach3Observable } from "./approach3Observable";
-import { approach4ObservableEnhanced } from "./approach4Enhanced";
+import { approach4ObservableBuffer } from "./approach4ObservableBuffer";
 
 const DEFAULT_RUN_TIMES = 3
 
@@ -12,8 +12,8 @@ export const benchmarkAllCompanies = async () => {
     const avg2 = await benchmark("2-PromiseAll", approach2PromiseAll, runTimes);
     const avg3 = await benchmark("3-Observable", approach3Observable, runTimes);
     const avg4 = await benchmark(
-      "4-approach4ObservableEnhanced",
-      approach4ObservableEnhanced,
+      "4-approach4ObservableBuffer",
+      approach4ObservableBuffer,
       runTimes,
     );
     console.log(`2 vs 1 speed-up: ${(avg1 / avg2).toFixed(2)}x`);

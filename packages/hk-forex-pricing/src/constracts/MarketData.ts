@@ -2,13 +2,13 @@ import { CurrencyPair } from "./CurrencyPair"
 
 export class MarketData {
     _currencyPair: CurrencyPair
-    _sampleRate: number
+    _bid: number
     _date: number
     _source: string
 
-    constructor(currencyPair: CurrencyPair, sampleRate: number, date: number, source: string) {
+    constructor(currencyPair: CurrencyPair, bid: number, date: number, source: string) {
         this._currencyPair = currencyPair
-        this._sampleRate = sampleRate
+        this._bid = bid
         this._date = date
         this._source = source
     }
@@ -17,8 +17,8 @@ export class MarketData {
         return this._currencyPair
     }
 
-    get SampleRate() {
-        return this._sampleRate
+    get Bid() {
+        return this._bid
     }
 
     get Date() {
@@ -30,6 +30,6 @@ export class MarketData {
     }
 
     ToString() {
-        return `${this._currencyPair.Symbol} | ${this._sampleRate} | ${this._date} | ${this._source}`
+        return `${this._currencyPair.Symbol} | ${this._bid} | ${this._date} | ${this._source}`
     }
 }

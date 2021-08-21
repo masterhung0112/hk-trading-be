@@ -10,10 +10,13 @@ export const approach2PromiseAll = async (options?: BatchProcessingOptions) => {
     let retrieveCompaniesPromises = []
     for (let currentOffset = 0; currentOffset < TOTAL_COMPANY_COUNT; currentOffset += options.batchSize) {
         retrieveCompaniesPromises.push(retrieveCompanies(options.batchSize, currentOffset).then(async (companyBatch) => {
-            await Promise.all(companyBatch.map(async (company) => {
-                company.orders = await retrieveCompanyOrders(company)
-            }))
-            await sendBulkEmails(companyBatch)
+            await Promise.all([
+                ...companyBatch.map(async (company) => {
+                    company.orders = await retrieveCompanyOrders(company)
+                }),
+                sendBulkEmails(companyBatch)
+            ]
+            )
         }))
     }
     await Promise.all(retrieveCompaniesPromises)

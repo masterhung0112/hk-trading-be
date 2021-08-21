@@ -1,16 +1,40 @@
+import { catchError, of, take, timeout } from "rxjs"
+import { MarketData } from "../constracts/MarketData"
 import { FxcmAdapter } from "./FxcmAdapter"
 
 jest.setTimeout(30000)
 
-describe('FxcmAdapter', () => {
-    it('FxcmAdapter run OK', async () => {
-        await new Promise(res => setTimeout(() => {
-            const adapter = new FxcmAdapter()
-            adapter.authenticate()
+test('FxcmAdapter run OK', (done) => {
+    const adapter = new FxcmAdapter()
 
-            setTimeout(() => {
-                adapter.subscribe({ "pairs": "EUR/USD" })
-            }, 5000)
-        }, 30000))
+    adapter.marketDataObservable.subscribe((marketDatas) => {
+        console.log(marketDatas)
     })
+
+    adapter.createQuote("EUR/USD").pipe(
+        timeout({
+            first: 20000,
+            with: () => {
+                done(new Error('timeout'))
+                throw new Error('timeout')
+            }
+        }),
+        catchError((err => {
+            if (err.message != 'timeout') {
+                done(err)
+            }
+            return of()
+        })),
+        take(10)
+    ).subscribe((data) => {
+        if (data) {
+            console.log(data)
+            done()
+        }
+    })
+
+    // await new Promise(resolve =>
+    //     setTimeout(resolve, 15000),
+    // )
+    // adapter.unsubscribe("EUR/USD")
 })
