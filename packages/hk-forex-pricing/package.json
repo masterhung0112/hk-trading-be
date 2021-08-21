@@ -9,13 +9,21 @@
     "hk-trading-contract": "^0.0.1",
     "hk-cloud": "^0.0.1",
     "finnhub": "^1.2.6",
-    "socket.io-client": "^2.4.0"
+    "socket.io-client": "^2.4.0",
+    "data-forge": "^1.8.17",
+    "data-forge-fs": "^0.0.9",
+    "tasksfile": "5.1.1",
+    "mysql": "2.18.1"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.15.0",
     "@babel/preset-typescript": "^7.15.0",
     "@types/jest": "^27.0.1",
     "jest": "^27.0.6",
-    "@types/socket.io-client": "^1.4.36"
+    "@types/socket.io-client": "^1.4.36",
+    "@types/mysql": "^2.15.19",
+    "eslint-config-hk": "^1.0.0",
+    "@rushstack/eslint-patch": "^1.0.6",
+    "eslint": "^7.32.0"
   }
 }

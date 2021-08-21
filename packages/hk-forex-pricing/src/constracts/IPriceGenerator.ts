@@ -1,7 +1,7 @@
 import { Observable } from 'rxjs'
 import { SpotPriceDto } from 'hk-trading-contract'
 
-import { CurrencyPair } from "./CurrencyPair";
+import { CurrencyPair } from "./CurrencyPair"
 
 export interface IPriceGenerator {
     get CurrencyPair(): CurrencyPair

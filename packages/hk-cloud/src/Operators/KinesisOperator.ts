@@ -1,5 +1,5 @@
-import { from, pipe } from 'rxjs'
-import { map, mergeMap, toArray } from 'rxjs/operators'
+import { pipe } from 'rxjs'
+import { map, mergeMap } from 'rxjs/operators'
 import { KinesisConnector } from "../Connectors/KinesisConnector"
 import { rejectWithFault } from './fault';
 

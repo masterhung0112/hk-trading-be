@@ -1,15 +1,15 @@
-import { IMarketDataAdapter } from "../constracts/IMarketDataAdapter";
-import { MarketData } from "../constracts/MarketData";
+import { IMarketDataAdapter } from "../constracts/IMarketDataAdapter"
+import { MarketData } from "../constracts/MarketData"
 import io from 'socket.io-client'
 import * as querystring from 'querystring'
-import { fromEvent, map, mergeMap, Observable, of, Subject, switchMap, takeUntil, tap } from "rxjs";
-import { CurrencyPair } from "../constracts/CurrencyPair";
-import { RxHttpClient, RequestInit } from "hk-cloud";
+import { fromEvent, map, mergeMap, Observable, of, Subject, switchMap, takeUntil, tap } from "rxjs"
+import { CurrencyPair } from "../constracts/CurrencyPair"
+import { RxHttpClient, RequestInit } from "hk-cloud"
 
-const token = "a43dbe2baa2cf75b900b7a48fa6ce2fd2a681b6d"; // get this from http://tradingstation.fxcm.com/
-const trading_api_host = 'api-demo.fxcm.com';
-const trading_api_port = 443;
-const trading_api_proto = 'https'; // http or https
+const token = "0ddf14082b58fcaf076c6ae899ddf950607d721d" // get this from http://tradingstation.fxcm.com/
+const trading_api_host = 'api-demo.fxcm.com'
+const trading_api_port = 443
+const trading_api_proto = 'https' // http or https
 
 export type FxcmSymboInfo = {
     Updated: number,
@@ -43,18 +43,18 @@ export class FxcmAdapter implements IMarketDataAdapter {
     }
 
     getNextRequestID() {
-        return this.globalRequestID++;
+        return this.globalRequestID++
     }
 
     sendRequest(method: string, resource: string, params) {
-        var requestID = this.getNextRequestID()
+        const requestID = this.getNextRequestID()
         if (typeof (method) === 'undefined') {
-            method = "GET";
+            method = "GET"
         }
 
         // GET HTTP(S) requests have parameters encoded in URL
         if (method === "GET") {
-            resource += '/?' + querystring.stringify(params);
+            resource += '/?' + querystring.stringify(params)
         }
 
         const requestConfig: RequestInit = {
@@ -121,13 +121,13 @@ export class FxcmAdapter implements IMarketDataAdapter {
     // }
     priceUpdate(update, s: Subject<MarketData>) {
         try {
-            var jsonData = JSON.parse(update);
+            const jsonData = JSON.parse(update)
             // JavaScript floating point arithmetic is not accurate, so we need to round rates to 5 digits
             // Be aware that .toFixed returns a String
             const [bid, ask, _, __] = jsonData.Rates
             jsonData.Rates = jsonData.Rates.map(function (element) {
-                return element.toFixed(5);
-            });
+                return element.toFixed(5)
+            })
             const symbol = jsonData.Symbol.replace('/', '')
             
             s.next(new MarketData(new CurrencyPair(symbol), (bid + ask) / 2, jsonData.Updated, "FXCM"))
@@ -135,8 +135,8 @@ export class FxcmAdapter implements IMarketDataAdapter {
             // this._marketDataSubject.next([new MarketData(new CurrencyPair(symbol), (bid + ask) / 2, jsonData.Updated, "FXCM")])
             // console.log(`@${jsonData.Updated} Price update of [${jsonData.Symbol}]: ${jsonData.Rates}`);
         } catch (e) {
-            console.log('price update JSON parse error: ', e);
-            return;
+            console.log('price update JSON parse error: ', e)
+            return
         }
     }
     // subscribe(pair: string) {
@@ -196,28 +196,28 @@ export class FxcmAdapter implements IMarketDataAdapter {
     // }
 
     async unsubscribe(pair: string) {
-        var callback = (statusCode, requestID, data) => {
+        const callback = (statusCode, requestID, data) => {
             if (statusCode === 200) {
                 try {
-                    var jsonData = JSON.parse(data);
+                    var jsonData = JSON.parse(data)
                 } catch (e) {
-                    console.log('unsubscribe request #', requestID, ' JSON parse error: ', e);
-                    return;
+                    console.log('unsubscribe request #', requestID, ' JSON parse error: ', e)
+                    return
                 }
                 if (jsonData.response.executed) {
                     try {
-                        for (var i in jsonData.pairs) {
+                        for (const i in jsonData.pairs) {
                             // this.socket.off(jsonData.pairs[i], this.priceUpdate);
                         }
                     } catch (e) {
-                        console.log('unsubscribe request #', requestID, ' "pairs" JSON parse error: ', e);
-                        return;
+                        console.log('unsubscribe request #', requestID, ' "pairs" JSON parse error: ', e)
+                        return
                     }
                 } else {
-                    console.log('unsubscribe request #', requestID, ' not executed: ', jsonData);
+                    console.log('unsubscribe request #', requestID, ' not executed: ', jsonData)
                 }
             } else {
-                console.log('unsubscribe request #', requestID, ' execution error: ', statusCode, ' : ', data);
+                console.log('unsubscribe request #', requestID, ' execution error: ', statusCode, ' : ', data)
             }
         }
         // this.send({ "method": "POST", "resource": "/unsubscribe", "params": { "pairs": pair }, "callback": callback })
@@ -253,7 +253,7 @@ export class FxcmAdapter implements IMarketDataAdapter {
                 switchMap(socket =>
                     fromEvent(socket, 'connect').pipe(
                         tap(() => {
-                            this.request_headers.Authorization = 'Bearer ' + socket.id + token;
+                            this.request_headers.Authorization = 'Bearer ' + socket.id + token
                             socket.on('connect_error', () => {
                                 console.log('connect_error')
                             })
@@ -318,7 +318,7 @@ export class FxcmAdapter implements IMarketDataAdapter {
         const s = new Subject<MarketData>()
         this._quoteMap.set(symbol, s)
 
-        let self = this
+        const self = this
         return this.authenticate().pipe(
             mergeMap((socket) => {
                 /* Call /subscribe to FXCM. After subscribing, market price updates will be pushed to the client via the socket

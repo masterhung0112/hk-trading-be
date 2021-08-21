@@ -1,25 +1,25 @@
-import { CurrencyPair } from "./../constracts/CurrencyPair";
-import { BaseWalkPriceGenerator } from "./BaseWalkPriceGenerator";
+import { CurrencyPair } from "./../constracts/CurrencyPair"
+import { BaseWalkPriceGenerator } from "./BaseWalkPriceGenerator"
 
 export class MeanReversionRandomWalkPriceGenerator extends BaseWalkPriceGenerator {
     _halfSpreadPercentage: number;
     _reversion: number;
     _vol: number;
 
-    constructor(currencyPair: CurrencyPair, initial: number, precision: number, reversionCoefficient: number = 0.001, volatility: number = 5) {
+    constructor(currencyPair: CurrencyPair, initial: number, precision: number, reversionCoefficient = 0.001, volatility = 5) {
         super(currencyPair, initial, precision)
 
         this._reversion = reversionCoefficient
 
-        let power = Math.pow(10, precision)
+        const power = Math.pow(10, precision)
         this._vol = volatility * 1 / power
     }
 
     UpdateWalkPrice() {
-        var random = Math.random()
+        const random = Math.random()
     //   lock (_lock)
     //   {
-        this._previousMid += this._reversion * (this._initial - this._previousMid) + random * this._vol;
+        this._previousMid += this._reversion * (this._initial - this._previousMid) + random * this._vol
     //   }
         
       this._priceChanges.next({
@@ -34,8 +34,8 @@ export class MeanReversionRandomWalkPriceGenerator extends BaseWalkPriceGenerato
 
     format(price: number): number
     {
-      let power = Math.pow(10, this._precision);
-      let mid = (price * power);
-      return mid / power;
+      const power = Math.pow(10, this._precision)
+      const mid = (price * power)
+      return mid / power
     }
 }

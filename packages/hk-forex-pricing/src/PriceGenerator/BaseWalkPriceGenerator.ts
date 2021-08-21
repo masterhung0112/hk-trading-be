@@ -1,8 +1,8 @@
-import { Observable, Subject } from "rxjs";
-import { CurrencyPair } from "../constracts/CurrencyPair";
+import { Observable, Subject } from "rxjs"
+import { CurrencyPair } from "../constracts/CurrencyPair"
 import { SpotPriceDto } from 'hk-trading-contract'
-import { IPriceGenerator } from "../constracts/IPriceGenerator";
-import { HardCodedSourceName } from "../contants/PriceSource";
+import { IPriceGenerator } from "../constracts/IPriceGenerator"
+import { HardCodedSourceName } from "../contants/PriceSource"
 
 export abstract class BaseWalkPriceGenerator implements IPriceGenerator {
     _priceChanges: Subject<SpotPriceDto>

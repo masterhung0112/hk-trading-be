@@ -1,5 +1,5 @@
-import { ForexCandleEntity } from "../Entities/ForexCandleEntity";
-import { ResolutionType } from "../Models/ResolutionType";
+import { ForexCandleEntity } from "../Entities/ForexCandleEntity"
+import { ResolutionType } from "../Models/ResolutionType"
 
 export interface IForexCandlesStore {
     getCandles(options: {

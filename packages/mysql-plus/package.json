@@ -1,5 +1,5 @@
 {
-  "name": "hk-cloud",
+  "name": "mysql-plus",
   "version": "0.0.1",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -8,21 +8,17 @@
     "build": "tsc"
   },
   "dependencies": {
-    "rxjs": "^7.3.0",
-    "aws-sdk": "^2.972.0",
-    "faker": "^5.5.3",
-    "node-fetch": "^2.6.1",
+    "@types/jest": "^27.0.1",
+    "jest": "^27.0.6",
     "mysql": "2.18.1"
   },
   "devDependencies": {
-    "@types/faker": "^5.5.8",
     "@babel/preset-env": "^7.15.0",
     "@babel/preset-typescript": "^7.15.0",
-    "jest": "^27.0.6",
-    "@types/jest": "^27.0.1",
+    "@types/mysql": "^2.15.19",
     "typescript": "^4.3.5",
-    "aws-sdk-mock": "^5.2.2",
-    "@types/node-fetch": "^2.5.12",
-    "@types/mysql": "^2.15.19"
+    "eslint-config-hk": "^1.0.0",
+    "@rushstack/eslint-patch": "^1.0.6",
+    "eslint": "^7.32.0"
   }
 }

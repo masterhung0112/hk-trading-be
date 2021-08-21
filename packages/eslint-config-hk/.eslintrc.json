@@ -1,0 +1,54 @@
+{
+    "extends": [
+        "plugin:@typescript-eslint/recommended"
+    ],
+    "parser": "@typescript-eslint/parser",
+    "plugins": [
+        "@typescript-eslint"
+    ],
+    "rules": {
+        "camelcase": 0,
+        "no-shadow": 0,
+        "no-undefined": 0,
+        "no-use-before-define": 0,
+        "@typescript-eslint/naming-convention": [
+            2,
+            {
+                "selector": "variableLike",
+                "format": ["camelCase", "PascalCase", "UPPER_CASE"]
+            },
+            {
+                "selector": "memberLike",
+                "format": null
+            }
+        ],
+        "@typescript-eslint/no-non-null-assertion": 0,
+        "@typescript-eslint/no-shadow": 2,
+        "@typescript-eslint/no-unused-vars": [
+            2,
+            {
+                "vars": "all",
+                "args": "after-used"
+            }
+        ],
+        "@typescript-eslint/no-explicit-any": "warn",
+        "@typescript-eslint/no-use-before-define": 0,
+        "@typescript-eslint/no-var-requires": 0,
+        "@typescript-eslint/explicit-function-return-type": 0,
+        "linebreak-style": "off",
+        "max-lines": "off",
+        "header/header": "off",
+        "@typescript-eslint/explicit-module-boundary-types": "off",
+        "semi": [2, "never"]
+    },
+    "overrides": [
+        {
+            "files": [
+                "*.test.js"
+            ],
+            "env": {
+                "jest": true
+            }
+        }
+    ]
+}

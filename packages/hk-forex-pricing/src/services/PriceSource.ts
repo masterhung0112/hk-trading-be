@@ -1,9 +1,9 @@
-import { Subscription } from "rxjs";
-import { CurrencyPair } from "../constracts/CurrencyPair";
-import { IMarketDataAdapter } from "../constracts/IMarketDataAdapter";
-import { IPriceGenerator } from "../constracts/IPriceGenerator";
-import { HardCodedSourceName } from "../contants/PriceSource";
-import { MeanReversionRandomWalkPriceGenerator } from "../PriceGenerator/MeanReversionRandomWalkPriceGenerator";
+import { Subscription } from "rxjs"
+import { CurrencyPair } from "../constracts/CurrencyPair"
+import { IMarketDataAdapter } from "../constracts/IMarketDataAdapter"
+import { IPriceGenerator } from "../constracts/IPriceGenerator"
+import { HardCodedSourceName } from "../contants/PriceSource"
+import { MeanReversionRandomWalkPriceGenerator } from "../PriceGenerator/MeanReversionRandomWalkPriceGenerator"
 
 export class PriceSource {
     private _marketAdapters: IMarketDataAdapter[]
@@ -15,7 +15,7 @@ export class PriceSource {
         this._priceGenerators = new Map<string, IPriceGenerator>()
 
         const createPriceGenerator = (baseCcy: string, quoteCcy: string, initial: number, precision: number): IPriceGenerator => {
-            return new MeanReversionRandomWalkPriceGenerator(new CurrencyPair(baseCcy, quoteCcy), initial, precision);
+            return new MeanReversionRandomWalkPriceGenerator(new CurrencyPair(baseCcy, quoteCcy), initial, precision)
         }
 
         [
@@ -27,7 +27,7 @@ export class PriceSource {
     }
 
     startFetchingMarketRates() {
-        for (let adapter of this._marketAdapters) {
+        for (const adapter of this._marketAdapters) {
             const subscription = adapter.marketDataObservable.subscribe({
                 next: (marketDatas) => {
                     for (const marketData of marketDatas) {
@@ -36,7 +36,7 @@ export class PriceSource {
                         if (
                             priceGenerator &&
                             (Date.now() - priceGenerator.EffectiveDate.getTime()) > (10 * 60 * 1000)) {
-                            priceGenerator.UpdateInitialValue(marketData.Bid, new Date(marketData.Date), marketData.Source);
+                            priceGenerator.UpdateInitialValue(marketData.Bid, new Date(marketData.Date), marketData.Source)
                         }
                     }
                 },
@@ -97,7 +97,7 @@ export class PriceSource {
 
     // Currency pairs are typically listed only as Major/Minor CCY codes. This method computes the reciprocal rate for missing Minor/Majors
     computeMissingReciprocals() {
-        for (let value of Array.from(this._priceGenerators.values())) {
+        for (const value of Array.from(this._priceGenerators.values())) {
             if (value.SourceName === HardCodedSourceName || value.SourceName.indexOf("1/") !== -1) {
                 const other = this._priceGenerators.get(value.CurrencyPair.ReciprocalSymbol)
                 if (other && other.SourceName !== HardCodedSourceName) {
