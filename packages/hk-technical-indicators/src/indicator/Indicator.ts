@@ -1,4 +1,4 @@
-import { numberFormat } from '../utils/numberFormat';
+import { numberFormat } from '../utils/numberFormat'
 
 export class IndicatorInput {
     reversedInput?: boolean;
@@ -15,25 +15,27 @@ export class AllInputs {
     timestamp?: number[]
 }
 
-export class Indicator {
-    result: any;
-    format: (data: number) => number;
+export class Indicator<R> {
+    result: R[]
+    format: (data: number) => number
+
     constructor(input: IndicatorInput) {
-        this.format = input.format || numberFormat;
+        this.format = input.format || numberFormat
     }
+
     static reverseInputs(input: any): void {
         if (input.reversedInput) {
-            input.values ? input.values.reverse() : undefined;
-            input.open ? input.open.reverse() : undefined;
-            input.high ? input.high.reverse() : undefined;
-            input.low ? input.low.reverse() : undefined;
-            input.close ? input.close.reverse() : undefined;
-            input.volume ? input.volume.reverse() : undefined;
-            input.timestamp ? input.timestamp.reverse() : undefined;
+            input.values ? input.values.reverse() : undefined
+            input.open ? input.open.reverse() : undefined
+            input.high ? input.high.reverse() : undefined
+            input.low ? input.low.reverse() : undefined
+            input.close ? input.close.reverse() : undefined
+            input.volume ? input.volume.reverse() : undefined
+            input.timestamp ? input.timestamp.reverse() : undefined
         }
     }
 
     getResult() {
-        return this.result;
+        return this.result
     }
 }

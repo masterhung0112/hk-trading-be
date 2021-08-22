@@ -1,71 +1,79 @@
-import { Indicator, IndicatorInput } from "../indicator/indicator";
+import { Indicator, IndicatorInput } from '../indicator/indicator'
 
-export class AvgGainInput extends IndicatorInput {
+export class AverageGainInput extends IndicatorInput {
     period: number
     values: number[]
 }
 
-export class AverageGain extends Indicator {
-    generator: Iterator<number | undefined, any, number>;
-    constructor(input: AvgGainInput) {
-        super(input);
-        let values = input.values;
-        let period = input.period;
-        let format = this.format;
+export class AverageGain extends Indicator<number> {
+    generator: Generator<number | undefined, number, number>;
+    constructor(input: AverageGainInput) {
+        super(input)
+        const values = input.values
+        const periodVal = input.period
+        const format = this.format
 
         this.generator = (function* (period) {
-            var currentValue = yield;
-            var counter = 1;
-            var gainSum = 0;
-            var avgGain;
-            var gain;
-            var lastValue = currentValue;
+            let currentValue = yield
+            let counter = 1
+            let gainSum = 0
+            let avgGain
+            let gain
+            let lastValue = currentValue
             currentValue = yield
             while (true) {
-                gain = currentValue - lastValue;
-                gain = gain > 0 ? gain : 0;
+                gain = currentValue - lastValue
+                gain = gain > 0 ? gain : 0
                 if (gain > 0) {
-                    gainSum = gainSum + gain;
+                    gainSum = gainSum + gain
                 }
                 if (counter < period) {
-                    counter++;
+                    counter++
                 }
                 else if (avgGain === undefined) {
-                    avgGain = gainSum / period;
+                    avgGain = gainSum / period
                 } else {
-                    avgGain = ((avgGain * (period - 1)) + gain) / period;
+                    avgGain = ((avgGain * (period - 1)) + gain) / period
                 }
-                lastValue = currentValue;
-                avgGain = (avgGain !== undefined) ? format(avgGain) : undefined;
-                currentValue = yield avgGain;
+                lastValue = currentValue
+                avgGain = (avgGain !== undefined) ? format(avgGain) : undefined
+                currentValue = yield avgGain
             }
-        })(period);
+        })(periodVal)
 
-        this.generator.next();
+        this.generator.next()
 
-        this.result = [];
+        this.result = []
 
         values.forEach((tick: number) => {
-            var result = this.generator.next(tick);
+            const result = this.generator.next(tick)
             if (result.value !== undefined) {
-                this.result.push(result.value);
+                this.result.push(result.value)
             }
-        });
+        })
     }
 
-    static calculate = averageGain;
+    static calculate(input: AverageGainInput): number[] {
+        Indicator.reverseInputs(input)
+        const result = new AverageGain(input).result
+        if (input.reversedInput) {
+            result.reverse()
+        }
+        Indicator.reverseInputs(input)
+        return result
+    }
 
     nextValue(price: number): number | undefined {
-        return this.generator.next(price).value;
-    };
+        return this.generator.next(price).value
+    }
 }
 
-export function averageGain(input: AvgGainInput): number[] {
-    Indicator.reverseInputs(input);
-    var result = new AverageGain(input).result;
-    if (input.reversedInput) {
-        result.reverse();
-    }
-    Indicator.reverseInputs(input);
-    return result;
-};
+// export function averageGain(input: AverageGainInput): number[] {
+//     Indicator.reverseInputs(input)
+//     const result = new AverageGain(input).result
+//     if (input.reversedInput) {
+//         result.reverse()
+//     }
+//     Indicator.reverseInputs(input)
+//     return result
+// }

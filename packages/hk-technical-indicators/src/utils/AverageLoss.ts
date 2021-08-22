@@ -1,71 +1,79 @@
-import { Indicator, IndicatorInput } from '../indicator/indicator';
+import { Indicator, IndicatorInput } from '../indicator/indicator'
 export class AvgLossInput extends IndicatorInput {
     values: number[]
     period: number
 }
 
-export class AverageLoss extends Indicator {
-    generator: Iterator<number | undefined, any, number>
+export class AverageLoss extends Indicator<number> {
+    generator: Iterator<number | undefined, number, number>
 
     constructor(input: AvgLossInput) {
-        super(input);
-        let values = input.values;
-        let period = input.period;
-        let format = this.format;
+        super(input)
+        const values = input.values
+        const periodVal = input.period
+        const format = this.format
 
         this.generator = (function* (period) {
-            var currentValue = yield;
-            var counter = 1;
-            var lossSum = 0;
-            var avgLoss;
-            var loss;
-            var lastValue = currentValue;
+            let currentValue = yield
+            let counter = 1
+            let lossSum = 0
+            let avgLoss
+            let loss
+            let lastValue = currentValue
             currentValue = yield
             while (true) {
-                loss = lastValue - currentValue;
-                loss = loss > 0 ? loss : 0;
+                loss = lastValue - currentValue
+                loss = loss > 0 ? loss : 0
                 if (loss > 0) {
-                    lossSum = lossSum + loss;
+                    lossSum = lossSum + loss
                 }
                 if (counter < period) {
-                    counter++;
+                    counter++
                 }
                 else if (avgLoss === undefined) {
-                    avgLoss = lossSum / period;
+                    avgLoss = lossSum / period
                 } else {
-                    avgLoss = ((avgLoss * (period - 1)) + loss) / period;
+                    avgLoss = ((avgLoss * (period - 1)) + loss) / period
                 }
-                lastValue = currentValue;
-                avgLoss = (avgLoss !== undefined) ? format(avgLoss) : undefined;
-                currentValue = yield avgLoss;
+                lastValue = currentValue
+                avgLoss = (avgLoss !== undefined) ? format(avgLoss) : undefined
+                currentValue = yield avgLoss
             }
-        })(period);
+        })(periodVal)
 
-        this.generator.next();
+        this.generator.next()
 
-        this.result = [];
+        this.result = []
 
         values.forEach((tick: number) => {
-            var result = this.generator.next(tick);
+            const result = this.generator.next(tick)
             if (result.value !== undefined) {
-                this.result.push(result.value);
+                this.result.push(result.value)
             }
-        });
+        })
     }
 
-    static calculate = averageLoss;
+    static calculate(input: AvgLossInput): number[] {
+        Indicator.reverseInputs(input)
+        const result = new AverageLoss(input).result
+        if (input.reversedInput) {
+            result.reverse()
+        }
+        Indicator.reverseInputs(input)
+        return result
+    }
 
     nextValue(price: number): number | undefined {
-        return this.generator.next(price).value;
-    };
+        return this.generator.next(price).value
+    }
 }
 
-export function averageLoss(input: AvgLossInput): number[] {
-    Indicator.reverseInputs(input);
-    var result = new AverageLoss(input).result;
-    if (input.reversedInput) {
-        result.reverse();
-    }
-    Indicator.reverseInputs(input);
-    return result;
-};
+// export function averageLoss(input: AvgLossInput): number[] {
+//     Indicator.reverseInputs(input)
+//     const result = new AverageLoss(input).result
+//     if (input.reversedInput) {
+//         result.reverse()
+//     }
+//     Indicator.reverseInputs(input)
+//     return result
+// }

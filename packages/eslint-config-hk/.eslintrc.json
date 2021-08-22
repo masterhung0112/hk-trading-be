@@ -39,7 +39,8 @@
         "max-lines": "off",
         "header/header": "off",
         "@typescript-eslint/explicit-module-boundary-types": "off",
-        "semi": [2, "never"]
+        "semi": [2, "never"],
+        "quotes": ["error", "single"]
     },
     "overrides": [
         {

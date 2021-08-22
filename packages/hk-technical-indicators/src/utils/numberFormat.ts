@@ -1,7 +1,7 @@
 export function numberFormat(v: number): number {
-    let precision: number = 10;
+    const precision = 10
     if (precision) {
-        return parseFloat(v.toPrecision(precision));
+        return parseFloat(v.toPrecision(precision))
     }
-    return v;
+    return v
 }

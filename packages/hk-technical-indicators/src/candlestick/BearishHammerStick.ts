@@ -1,6 +1,6 @@
-import StockData from "../StockData";
-import { approximateEqual } from "../utils/approximateEqual";
-import { CandlestickFinder } from "./CandlestickFinder";
+import StockData from '../StockData'
+import { approximateEqual } from '../utils/approximateEqual'
+import { CandlestickFinder } from './CandlestickFinder'
 
 export class BearishHammerStick extends CandlestickFinder {
     constructor() {
@@ -8,19 +8,19 @@ export class BearishHammerStick extends CandlestickFinder {
     }
 
     logic(data: StockData) {
-        let daysOpen = data.open[0];
-        let daysClose = data.close[0];
-        let daysHigh = data.high[0];
-        let daysLow = data.low[0];
+        const daysOpen = data.open[0]
+        const daysClose = data.close[0]
+        const daysHigh = data.high[0]
+        const daysLow = data.low[0]
 
-        let isBearishHammer = daysOpen > daysClose;
-        isBearishHammer = isBearishHammer && approximateEqual(daysOpen, daysHigh);
-        isBearishHammer = isBearishHammer && (daysOpen - daysClose) <= 2 * (daysClose - daysLow);
+        let isBearishHammer = daysOpen > daysClose
+        isBearishHammer = isBearishHammer && approximateEqual(daysOpen, daysHigh)
+        isBearishHammer = isBearishHammer && (daysOpen - daysClose) <= 2 * (daysClose - daysLow)
 
-        return isBearishHammer;
+        return isBearishHammer
     }
 }
 
 export function hasBearishHammerStick(data: StockData) {
-    return new BearishHammerStick().hasPattern(data);
+    return new BearishHammerStick().hasPattern(data)
 }
