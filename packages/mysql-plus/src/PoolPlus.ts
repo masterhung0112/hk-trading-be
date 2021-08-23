@@ -1,8 +1,8 @@
-import PoolConfigInternal from 'mysql/lib/PoolConfig'
-import { PoolConfig } from 'mysql'
-import PoolInternal from 'mysql/lib/Pool'
+import PoolConfigInternal from 'mysql2/lib/pool_config'
+import { PoolOptions } from 'mysql2'
+import PoolInternal from 'mysql2/lib/Pool'
 
-export interface PoolPlusConfig extends PoolConfig {
+export interface PoolPlusConfig extends PoolOptions {
     plusOptions?: {
         debug: boolean
         migrationStrategy: string

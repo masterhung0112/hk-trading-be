@@ -1,4 +1,4 @@
-import { Connection, queryCallback } from 'mysql'
+import { Connection, OkPacket } from 'mysql'
 
 /**
  * A class that provides convenient methods for performing queries.<br>To create
@@ -19,7 +19,7 @@ export class MySQLTable {
         this._escapedName = this._db.escapeId(name)
     }
 
-    select(columns: string | string[], sqlString: string, values: any, cb?: queryCallback) {
+    select(columns: string | string[], sqlString: string, values: any) {
         if (typeof columns !== 'string') {
             columns = columns.map((col) => this._db.escapeId(col))
         }
@@ -32,7 +32,6 @@ export class MySQLTable {
         return this._db.pquery(
             `SELECT ${columns} FROM ${this._escapedName} ${sqlString}`,
             values,
-            cb
         )
     }
 
@@ -85,7 +84,7 @@ export class MySQLTable {
      * // ('jane@email.com', 'Jane Brown');
      */
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    insert(data: string | Record<string, string> | string[], sqlString?: string, values?: any[], cb?: queryCallback) {
+    insert(data: string | Record<string | number, any> | string[], sqlString?: string, values?: any | any[]): Promise<OkPacket> {
         // insert('SET `location` = POINT(0, 0)')
         if (typeof data === 'string') {
             return this._db.pquery(
@@ -94,16 +93,15 @@ export class MySQLTable {
             )
         }
 
-        // insert(data, 'ON DUPLICATE KEY UPDATE `points` = `points` + ?', [data.points])
+        // insert({id: 5, points: 100}, 'ON DUPLICATE KEY UPDATE `points` = `points` + ?', [data.points])
         if (typeof sqlString === 'string') {
             if (typeof values === 'object') {
                 sqlString = this._db.format(sqlString, values)
             } else {
-                cb = values
+                throw new Error(`unknown type for values, type: ${typeof(values)}, value ${values}`)    
             }
         } else {
-            cb = sqlString
-            sqlString = ''
+            throw new Error(`unknown type for sqlString, type: ${typeof(sqlString)}, value ${sqlString}`)
         }
 
         /*
@@ -126,7 +124,6 @@ export class MySQLTable {
 
             return this._db.pquery(
                 `INSERT INTO ${this._escapedName}${data} ${sqlString}`,
-                cb
             )
         }
 
@@ -135,8 +132,7 @@ export class MySQLTable {
         // INSERT INTO `user`
         // SET `email` = 'email@example.com', `name` = 'John Doe';
         return this._db.pquery(
-            `INSERT INTO ${this._escapedName} SET ${this._db.escape(data)} ${sqlString}`,
-            cb
+            `INSERT INTO ${this._escapedName} SET ${this._db.escape(data)} ${sqlString}`
         )
     }
 }

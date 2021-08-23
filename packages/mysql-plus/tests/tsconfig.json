@@ -1,14 +1,15 @@
 {
+    "extends": "../tsconfig.json",
     "compilerOptions": {
         "moduleResolution": "node",
         "module": "esnext",
-        "rootDir": "./src",
-        "outDir": "dist",
+        "baseUrl": "./",
         "declaration": true,
         "sourceMap": true,
         "allowJs": true,
         "allowSyntheticDefaultImports": true,
+        "types": ["jest"]
     },
-    "include": ["src/**/*", "mysql.d.ts"],
-    "exclude": ["dist", "node_modules"]
+    "include": ["./**/*", "../mysql.d.ts"],
+    "exclude": ["../dist", "../node_modules"]
 }
