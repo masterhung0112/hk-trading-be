@@ -1,4 +1,5 @@
-import { Connection, OkPacket } from 'mysql'
+import { Connection } from 'mysql2'
+import './Connection'
 
 /**
  * A class that provides convenient methods for performing queries.<br>To create
@@ -84,7 +85,7 @@ export class MySQLTable {
      * // ('jane@email.com', 'Jane Brown');
      */
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    insert(data: string | Record<string | number, any> | string[], sqlString?: string, values?: any | any[]): Promise<OkPacket> {
+    insert(data: string | Record<string | number, any> | string[], sqlString?: string, values?: any | any[]) {
         // insert('SET `location` = POINT(0, 0)')
         if (typeof data === 'string') {
             return this._db.pquery(
@@ -97,12 +98,18 @@ export class MySQLTable {
         if (typeof sqlString === 'string') {
             if (typeof values === 'object') {
                 sqlString = this._db.format(sqlString, values)
+            } else if (Array.isArray(values) || typeof values === 'undefined') {
+
             } else {
                 throw new Error(`unknown type for values, type: ${typeof(values)}, value ${values}`)    
             }
+        } else if (typeof sqlString === 'undefined') {
+            // No need to process
         } else {
             throw new Error(`unknown type for sqlString, type: ${typeof(sqlString)}, value ${sqlString}`)
         }
+
+        sqlString = sqlString || ''
 
         /*
         * const users = [
@@ -124,6 +131,7 @@ export class MySQLTable {
 
             return this._db.pquery(
                 `INSERT INTO ${this._escapedName}${data} ${sqlString}`,
+                values
             )
         }
 
@@ -132,7 +140,19 @@ export class MySQLTable {
         // INSERT INTO `user`
         // SET `email` = 'email@example.com', `name` = 'John Doe';
         return this._db.pquery(
-            `INSERT INTO ${this._escapedName} SET ${this._db.escape(data)} ${sqlString}`
+            `INSERT INTO ${this._escapedName} SET ${this._db.escape(data)} ${sqlString}`,
+            values
         )
     }
+
+    delete(sqlString, values?: any | any[]) {
+        if (sqlString === undefined || typeof sqlString === 'function') {
+          values = sqlString
+          sqlString = ''
+        }
+        return this._db.pquery(
+          'DELETE FROM ' + this._escapedName + ' ' + sqlString,
+          values
+        )
+      }
 }

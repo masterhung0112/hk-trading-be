@@ -4,8 +4,8 @@ import { PoolPlusConfig } from '../src/PoolPlus'
 
 const config: PoolPlusConfig = {
     host: 'localhost',
-    user: 'hkuser',
-    password: 'mostest',
+    user: '',
+    password: '',
     database: 'mysqlplustest'
 }
 
@@ -15,21 +15,35 @@ describe('MySQLTable', () => {
     const mockTableSchema = {}
     const testTable = new MySQLTable('mysql_table_test_table', mockTableSchema, pool)
 
-    beforeAll((done) => {
-        pool.query(`
-          CREATE TABLE \`mysql_table_test_table\` (
+    function resetTable() {
+        testTable.delete((err) => {
+            if (err) throw err
+            pool.query('ALTER TABLE `mysql_table_test_table` AUTO_INCREMENT=1')
+        })
+    }
+
+
+    beforeAll(async () => {
+        try {
+            await pool.pquery(`
+          CREATE TABLE IF NOT EXISTS \`mysql_table_test_table\` (
             \`id\` BIGINT UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT,
             \`email\` VARCHAR(255) NOT NULL UNIQUE,
             \`letter\` CHAR(1)
           )
-        `, done)
+        `)
+        } finally {
+            // done()
+        }
     })
 
-    afterAll((done) => {
-        pool.end(done)
-    })
+    // afterEach((done) => {
+    // pool.end(done)
+    // })
 
     describe('insert', () => {
+        afterAll(resetTable)
+
         it('should insert the specified data into the table', () => {
             return testTable.insert({ email: 'one@email.com' })
                 .then((result) => {

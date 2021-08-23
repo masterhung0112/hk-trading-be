@@ -1,6 +1,5 @@
-import { Query, QueryOptions, OkPacket, RowDataPacket, ResultSetHeader } from 'mysql2'
-import { Connection as InternalConnection } from 'mysql2/lib/Connection'
-import Connection from 'mysql2/typings/mysql/lib/Connection'
+import { Connection, Query, QueryOptions, OkPacket, RowDataPacket, ResultSetHeader } from 'mysql2'
+import InternalConnection from 'mysql2/lib/connection'
 
 declare module 'mysql2' {
     export interface PQueryFunction {
@@ -12,7 +11,7 @@ declare module 'mysql2' {
     }
 
     // Extends existing Connection interface
-    export interface Connection {
+    interface Connection {
         pquery: PQueryFunction
     }
 }
