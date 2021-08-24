@@ -1,4 +1,4 @@
-import { CurrencyPair } from "./CurrencyPair"
+import { CurrencyPair } from './CurrencyPair'
 
 export class MarketData {
     _currencyPair: CurrencyPair

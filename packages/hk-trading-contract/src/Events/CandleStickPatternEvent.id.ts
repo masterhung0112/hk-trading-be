@@ -1,0 +1,1 @@
+export type CandleStickPatternEventIdType = 'CANDLESTICK_PATTERN_EVENT_NEW' | 'CANDLESTICK_PATTERN_EVENT_REMOVE'

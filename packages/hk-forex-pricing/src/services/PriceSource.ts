@@ -1,9 +1,9 @@
-import { Subscription } from "rxjs"
-import { CurrencyPair } from "../constracts/CurrencyPair"
-import { IMarketDataAdapter } from "../constracts/IMarketDataAdapter"
-import { IPriceGenerator } from "../constracts/IPriceGenerator"
-import { HardCodedSourceName } from "../contants/PriceSource"
-import { MeanReversionRandomWalkPriceGenerator } from "../PriceGenerator/MeanReversionRandomWalkPriceGenerator"
+import { Subscription } from 'rxjs'
+import { CurrencyPair } from '../constracts/CurrencyPair'
+import { IMarketDataAdapter } from '../constracts/IMarketDataAdapter'
+import { IPriceGenerator } from '../constracts/IPriceGenerator'
+import { HardCodedSourceName } from '../contants/PriceSource'
+import { MeanReversionRandomWalkPriceGenerator } from '../PriceGenerator/MeanReversionRandomWalkPriceGenerator'
 
 export class PriceSource {
     private _marketAdapters: IMarketDataAdapter[]
@@ -19,8 +19,8 @@ export class PriceSource {
         }
 
         [
-            createPriceGenerator("EUR", "USD", 1.09443, 5),
-            createPriceGenerator("USD", "JPY", 121.656, 3),
+            createPriceGenerator('EUR', 'USD', 1.09443, 5),
+            createPriceGenerator('USD', 'JPY', 121.656, 3),
         ].forEach((item) => {
             this._priceGenerators.set(item.CurrencyPair.Symbol, item)
         })
@@ -98,7 +98,7 @@ export class PriceSource {
     // Currency pairs are typically listed only as Major/Minor CCY codes. This method computes the reciprocal rate for missing Minor/Majors
     computeMissingReciprocals() {
         for (const value of Array.from(this._priceGenerators.values())) {
-            if (value.SourceName === HardCodedSourceName || value.SourceName.indexOf("1/") !== -1) {
+            if (value.SourceName === HardCodedSourceName || value.SourceName.indexOf('1/') !== -1) {
                 const other = this._priceGenerators.get(value.CurrencyPair.ReciprocalSymbol)
                 if (other && other.SourceName !== HardCodedSourceName) {
                     value.UpdateInitialValue(1 / other.SampleRate, other.EffectiveDate, `1/ ${other.SourceName}`)

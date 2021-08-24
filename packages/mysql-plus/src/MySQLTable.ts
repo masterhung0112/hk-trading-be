@@ -1,4 +1,4 @@
-import { Connection } from 'mysql2'
+import { Connection, OkPacket } from 'mysql2'
 import './Connection'
 
 /**
@@ -85,7 +85,7 @@ export class MySQLTable {
      * // ('jane@email.com', 'Jane Brown');
      */
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    insert(data: string | Record<string | number, any> | string[], sqlString?: string, values?: any | any[]) {
+    insert(data: string | Record<string | number, any> | string[], sqlString?: string, values?: any | any[]): Promise<OkPacket> {
         // insert('SET `location` = POINT(0, 0)')
         if (typeof data === 'string') {
             return this._db.pquery(

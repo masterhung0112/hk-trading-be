@@ -1,7 +1,8 @@
 // This entity can be partition by day, by hour
-export type ForexCandleEntity = {
+export type CandleStickEntity = {
     symbol: string
-    ts: number
+    start: number
+    stop: number
     bidOpen: number
     bidHigh: number
     bidLow: number

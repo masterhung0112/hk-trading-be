@@ -1,2 +1,2 @@
-export * from './ForexCandleEntity'
+export * from './CandleStickEntity'
 export * from './ForexTickData'

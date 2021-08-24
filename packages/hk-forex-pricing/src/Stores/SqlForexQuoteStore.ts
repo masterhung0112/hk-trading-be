@@ -1,26 +1,41 @@
-import { ForexTickData, IForexQuoteStore } from "hk-trading-contract"
-import { Connection } from "mysql"
+import { ForexTickData, IForexQuoteStore } from 'hk-trading-contract'
+import { MySQLTable, PoolPlus } from 'mysql-plus'
 
 export class SqlForexQuoteStore implements IForexQuoteStore {
-    constructor(private _mysqlConnection: Connection) {
-
+    private forexQuoteTable: MySQLTable
+    constructor(private _poolPlus: PoolPlus) {
+        this.forexQuoteTable = new MySQLTable('forex_quote', {}, this._poolPlus)
+        
     }
 
-    private initializeSchema() {
-        this._mysqlConnection.query(`
-        CREATE TABLE forex_quote(
-            
+    async init() {
+        await this._poolPlus.pquery(`
+        CREATE TABLE IF NOT EXISTS forex_quote(
+            symbol VARCHAR(32),
+            start TIMESTAMP(3),
+            bid DECIMAL(16, 6),
+            ask DECIMAL(16, 6),
+            PRIMARY KEY (symbol, start)
         )`)
     }
 
-    GetTicks(options: { symbol: string; fromTime: number; toTime?: number; limit?: number; }): ForexTickData[] {
-        throw new Error("Method not implemented.")
+    async GetTicks(options: { symbol: string; fromTime: number; toTime?: number; limit?: number; }): Promise<ForexTickData[]> {
+        return []
     }
-    saveTick(candle: ForexTickData) {
-        throw new Error("Method not implemented.")
+
+    async saveTick(candle: ForexTickData) {
+        await this.forexQuoteTable.insert(
+            {symbol: candle.symbol, start: new Date(candle.start), bid: candle.bid, ask: candle.ask}
+        )
     }
-    saveManyTicks(candles: ForexTickData[]) {
-        throw new Error("Method not implemented.")
+
+    async saveManyTicks(candles: ForexTickData[]) {
+        candles.forEach(async (tick) => {
+            await this.forexQuoteTable.insert(
+                [['symbol', 'start', 'bid', 'ask'],
+                [tick.symbol, tick.start, tick.bid, tick.ask]]
+            )
+        })
     }
 
 }

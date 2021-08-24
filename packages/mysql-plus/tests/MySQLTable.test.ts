@@ -4,8 +4,8 @@ import { PoolPlusConfig } from '../src/PoolPlus'
 
 const config: PoolPlusConfig = {
     host: 'localhost',
-    user: '',
-    password: '',
+    user: 'hkuser',
+    password: 'mostest',
     database: 'mysqlplustest'
 }
 

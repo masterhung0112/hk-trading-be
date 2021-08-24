@@ -1,13 +1,13 @@
-import { ForexCandleEntity } from "../Entities/ForexCandleEntity"
-import { ResolutionType } from "../Models/ResolutionType"
+import { CandleStickEntity } from '../Entities/CandleStickEntity'
+import { ResolutionType } from '../Models/ResolutionType'
 
 export interface IForexCandlesStore {
     getCandles(options: {
         resolutionType: ResolutionType, 
         fromTime: number, 
         toTime: number
-    }): ForexCandleEntity[]
+    }): CandleStickEntity[]
 
-    saveCandle(candle: ForexCandleEntity)
-    saveManyCandles(candles: ForexCandleEntity[])
+    saveCandle(candle: CandleStickEntity)
+    saveManyCandles(candles: CandleStickEntity[])
 }

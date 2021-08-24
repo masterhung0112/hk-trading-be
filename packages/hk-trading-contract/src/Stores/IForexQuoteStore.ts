@@ -1,4 +1,4 @@
-import { ForexTickData } from "../Entities"
+import { ForexTickData } from '../Entities'
 
 export interface IForexQuoteStore {
     GetTicks(options: {

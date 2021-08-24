@@ -2,12 +2,14 @@ import { Connection, Query, QueryOptions, OkPacket, RowDataPacket, ResultSetHead
 import InternalConnection from 'mysql2/lib/connection'
 
 declare module 'mysql2' {
+    // type QueryResult = Promise<RowDataPacket[] | RowDataPacket[][] | OkPacket | OkPacket[] | ResultSetHeader>
+    type QueryResult = Promise<OkPacket>
     export interface PQueryFunction {
         /*
             Without callback
         */
-        (query: string | Query): Promise<RowDataPacket[] | RowDataPacket[][] | OkPacket | OkPacket[] | ResultSetHeader>
-        (options: string | QueryOptions, values: any | any[]): Promise<RowDataPacket[] | RowDataPacket[][] | OkPacket | OkPacket[] | ResultSetHeader>
+        (query: string | Query): QueryResult
+        (options: string | QueryOptions, values: any | any[]): QueryResult
     }
 
     // Extends existing Connection interface

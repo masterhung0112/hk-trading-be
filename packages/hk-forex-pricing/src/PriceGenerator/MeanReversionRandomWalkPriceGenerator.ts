@@ -1,5 +1,5 @@
-import { CurrencyPair } from "./../constracts/CurrencyPair"
-import { BaseWalkPriceGenerator } from "./BaseWalkPriceGenerator"
+import { CurrencyPair } from './../constracts/CurrencyPair'
+import { BaseWalkPriceGenerator } from './BaseWalkPriceGenerator'
 
 export class MeanReversionRandomWalkPriceGenerator extends BaseWalkPriceGenerator {
     _halfSpreadPercentage: number;

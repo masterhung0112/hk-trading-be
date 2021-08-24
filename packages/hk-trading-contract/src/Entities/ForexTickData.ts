@@ -1,6 +1,6 @@
 export type ForexTickData = {
     symbol: string
-    timestamp: number
+    start: number
     bid: number
     ask: number
 }
