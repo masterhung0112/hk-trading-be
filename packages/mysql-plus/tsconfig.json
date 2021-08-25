@@ -1,15 +1,15 @@
 {
     "compilerOptions": {
         "moduleResolution": "node",
-        "module": "esnext",
+        "module": "commonjs",
         "target": "ES6",
         "rootDir": "./src",
         "outDir": "dist",
         "declaration": true,
         "sourceMap": true,
         "allowJs": true,
-        "allowSyntheticDefaultImports": true,
-        "lib": [ "es2015" ]
+        "esModuleInterop": true,
+        "lib": [ "es2015" ],
     },
     "include": ["src/**/*", "mysql.d.ts"],
     "exclude": ["dist", "node_modules"]
