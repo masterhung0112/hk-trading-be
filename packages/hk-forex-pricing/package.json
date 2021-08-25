@@ -1,31 +1,56 @@
 {
   "name": "hk-forex-pricing",
-  "version": "0.0.1",
   "description": "Example of creating a function that runs as a cron job using the serverless `schedule` event",
-  "author": "",
-  "license": "MIT",
+  "version": "0.0.1",
+  "scripts": {
+    "prepack": "tsc -b && oclif-dev manifest"
+  },
+  "bin": {
+    "hk": "./bin/run"
+  },
   "dependencies": {
-    "rxjs": "^7.3.0",
-    "hk-trading-contract": "^0.0.1",
-    "hk-technical-indicators": "^0.0.1",
-    "hk-cloud": "^0.0.1",
-    "finnhub": "^1.2.6",
-    "socket.io-client": "^2.4.0",
     "data-forge": "^1.8.17",
     "data-forge-fs": "^0.0.9",
-    "tasksfile": "5.1.1",
+    "finnhub": "^1.2.6",
+    "hk-cloud": "^0.0.1",
+    "hk-technical-indicators": "^0.0.1",
+    "hk-trading-contract": "^0.0.1",
     "mysql-plus": "^0.0.1",
-    "oclif": "^1.18.1"
+    "oclif": "^1.18.1",
+    "rxjs": "^7.3.0",
+    "socket.io-client": "^2.4.0",
+    "tasksfile": "5.1.1",
+    "@oclif/command": "^1",
+    "@oclif/config": "^1",
+    "@oclif/plugin-help": "^3",
+    "dotenv": "^10.0.0"
   },
   "devDependencies": {
+    "@oclif/dev-cli": "^1",
+    "@oclif/test": "^1",
     "@babel/preset-env": "^7.15.0",
     "@babel/preset-typescript": "^7.15.0",
-    "@types/jest": "^27.0.1",
-    "jest": "^27.0.6",
-    "@types/socket.io-client": "^1.4.36",
-    "eslint-config-hk": "^1.0.0",
     "@rushstack/eslint-patch": "^1.0.6",
+    "@types/jest": "^27.0.1",
+    "@types/socket.io-client": "^1.4.36",
     "eslint": "^7.32.0",
-    "dotenv": "^10.0.0"
+    "eslint-config-hk": "^1.0.0",
+    "jest": "^27.0.6",
+    "typescript": "^4.3.5"
+  },
+  "files": [
+    "/dist",
+    "/npm-shrinkwrap.json",
+    "/oclif.manifest.json",
+    "/yarn.lock"
+  ],
+  "license": "MIT",
+  "main": "src/commands/index.js",
+  "oclif": {
+    "commands": "./dist/commands",
+    "bin": "hk",
+    "plugins": [
+      "@oclif/plugin-help"
+    ]
   }
 }

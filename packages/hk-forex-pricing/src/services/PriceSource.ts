@@ -26,35 +26,35 @@ export class PriceSource {
         })
     }
 
-    startFetchingMarketRates() {
-        for (const adapter of this._marketAdapters) {
-            const subscription = adapter.marketDataObservable.subscribe({
-                next: (marketDatas) => {
-                    for (const marketData of marketDatas) {
-                        const priceGenerator = this._priceGenerators.get(marketData.CurrencyPair.Symbol)
-                        // Any item older than 10 minutes is considered available to update, this way if the preceeding adapters did not update the rate then perhaps the next adapter will
-                        if (
-                            priceGenerator &&
-                            (Date.now() - priceGenerator.EffectiveDate.getTime()) > (10 * 60 * 1000)) {
-                            priceGenerator.UpdateInitialValue(marketData.Bid, new Date(marketData.Date), marketData.Source)
-                        }
-                    }
-                },
-                complete: () => {
-                    for (const k of this._priceGenerators.keys()) {
-                        adapter.unsubscribe(k)
-                    }
-                }
-            })
-            
-            this._marketAdaptersSubscription.push(subscription)
+    // startFetchingMarketRates() {
+    //     for (const adapter of this._marketAdapters) {
+    //         const subscription = adapter.marketDataObservable.subscribe({
+    //             next: (marketDatas) => {
+    //                 for (const marketData of marketDatas) {
+    //                     const priceGenerator = this._priceGenerators.get(marketData.CurrencyPair.Symbol)
+    //                     // Any item older than 10 minutes is considered available to update, this way if the preceeding adapters did not update the rate then perhaps the next adapter will
+    //                     if (
+    //                         priceGenerator &&
+    //                         (Date.now() - priceGenerator.EffectiveDate.getTime()) > (10 * 60 * 1000)) {
+    //                         priceGenerator.UpdateInitialValue(marketData.Bid, new Date(marketData.Date), marketData.Source)
+    //                     }
+    //                 }
+    //             },
+    //             complete: () => {
+    //                 for (const k of this._priceGenerators.keys()) {
+    //                     adapter.unsubscribe(k)
+    //                 }
+    //             }
+    //         })
 
-            // Subscribe to start listening to a specific symbol
-            for (const k of this._priceGenerators.keys()) {
-                adapter.subscribe(k)
-            }
-        }
-    }
+    //         this._marketAdaptersSubscription.push(subscription)
+
+    //         // Subscribe to start listening to a specific symbol
+    //         for (const k of this._priceGenerators.keys()) {
+    //             adapter.subscribe(k)
+    //         }
+    //     }
+    // }
 
     stopFetchingMarkRate() {
         this._marketAdaptersSubscription.forEach((s) => s.unsubscribe())

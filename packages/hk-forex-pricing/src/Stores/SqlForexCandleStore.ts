@@ -1,4 +1,4 @@
-import { IForexCandlesStore, ResolutionType } from 'hk-trading-contract'
+import { IForexCandlesStore, ResolutionType, CandleStickEntity } from 'hk-trading-contract'
 import { MySQLTable, PoolPlus } from 'mysql-plus'
 
 export class SqlForexCandleStore implements IForexCandlesStore {
@@ -22,13 +22,9 @@ export class SqlForexCandleStore implements IForexCandlesStore {
         )`)
     }
 
-    async getCandles(options: {
-        resolutionType: ResolutionType;
-        fromTime: number;
-        toTime: number;
-    }): Promise<CandleStickEntity[]> {
-        return []
-    }
+  async getCandles(options: { resolutionType: ResolutionType; fromTime: number; toTime: number }): Promise<CandleStickEntity[]> {
+    throw new Error('Method not implemented.')
+  }
 
     async saveCandle(candle: CandleStickEntity) {
         //

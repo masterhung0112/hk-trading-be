@@ -1,11 +1,14 @@
-import { Observable, Subject } from "rxjs"
-import { IMarketDataAdapter } from "../constracts/IMarketDataAdapter"
-import { MarketData } from "../constracts/MarketData"
-import { PriceSource } from "./PriceSource"
+import { Observable, Subject } from 'rxjs'
+import { IMarketDataAdapter } from '../src/constracts/IMarketDataAdapter'
+import { MarketData } from '../src/constracts/MarketData'
+import { PriceSource } from '../src/services/PriceSource'
 
-const requestUri = "http://localhost-test"
+const requestUri = 'http://localhost-test'
 
 class TestMarketDataAdapter implements IMarketDataAdapter {
+    createQuote(symbol: string): Observable<MarketData> {
+      throw new Error('Method not implemented.')
+    }
     private _subject = new Subject<MarketData[]>()
     get RequestUriString(): string {
         return requestUri
@@ -21,10 +24,10 @@ class TestMarketDataAdapter implements IMarketDataAdapter {
     // }
 
     subscribe(symbol: string) {
-       
+
     }
     unsubscribe(symbol: string) {
-       
+
     }
 
 }

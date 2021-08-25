@@ -5,8 +5,12 @@ export class SqlForexQuoteStore implements IForexQuoteStore {
     private forexQuoteTable: MySQLTable
     constructor(private _poolPlus: PoolPlus) {
         this.forexQuoteTable = new MySQLTable('forex_quote', {}, this._poolPlus)
-        
+
     }
+
+  async GetTicks(options: { symbol: string; fromTime: number; toTime?: number; limit?: number }): Promise<ForexTickData[]> {
+    throw new Error('Method not implemented.')
+  }
 
     async init() {
         await this._poolPlus.pquery(`
@@ -19,9 +23,6 @@ export class SqlForexQuoteStore implements IForexQuoteStore {
         )`)
     }
 
-    async GetTicks(options: { symbol: string; fromTime: number; toTime?: number; limit?: number; }): Promise<ForexTickData[]> {
-        return []
-    }
 
     async saveTick(candle: ForexTickData) {
         await this.forexQuoteTable.insert(

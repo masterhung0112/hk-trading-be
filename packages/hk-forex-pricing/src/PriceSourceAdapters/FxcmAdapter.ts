@@ -1,10 +1,9 @@
 import { IMarketDataAdapter } from '../constracts/IMarketDataAdapter'
-import { MarketData } from '../constracts/MarketData'
 import io from 'socket.io-client'
-import * as querystring from 'querystring'
+import querystring from 'querystring'
 import { fromEvent, map, mergeMap, Observable, of, Subject, switchMap, takeUntil, tap } from 'rxjs'
-import { CurrencyPair } from '../constracts/CurrencyPair'
 import { RxHttpClient, RequestInit } from 'hk-cloud'
+import { ForexTickData } from 'hk-trading-contract'
 
 const token = '0ddf14082b58fcaf076c6ae899ddf950607d721d' // get this from http://tradingstation.fxcm.com/
 const tradingApiHost = 'api-demo.fxcm.com'
@@ -32,8 +31,8 @@ export class FxcmAdapter implements IMarketDataAdapter {
     connect$: Observable<SocketIOClient.Socket>
     globalRequestID = 1;
 
-    private _quoteMap = new Map<string, Subject<MarketData>>()
-    private _marketDataSubject = new Subject<MarketData[]>()
+    private _quoteMap = new Map<string, Subject<ForexTickData>>()
+    private _marketDataSubject = new Subject<ForexTickData[]>()
 
     request_headers = {
         // 'User-Agent': 'request',
@@ -47,7 +46,7 @@ export class FxcmAdapter implements IMarketDataAdapter {
     }
 
     sendRequest(method: string, resource: string, params) {
-        const requestID = this.getNextRequestID()
+        // const requestID = this.getNextRequestID()
         if (typeof (method) === 'undefined') {
             method = 'GET'
         }
@@ -64,7 +63,7 @@ export class FxcmAdapter implements IMarketDataAdapter {
         if (method === 'POST') {
             requestConfig.body = querystring.stringify(params)
         }
-    
+
         return new RxHttpClient().request(
             method,
             `${tradingApiProto}://${tradingApiHost}:${tradingApiPort}/${resource}`,
@@ -119,7 +118,7 @@ export class FxcmAdapter implements IMarketDataAdapter {
     //     }
     //     return this.send_raw(params)
     // }
-    priceUpdate(update, s: Subject<MarketData>) {
+    priceUpdate(update, s: Subject<ForexTickData>) {
         try {
             const jsonData = JSON.parse(update)
             // JavaScript floating point arithmetic is not accurate, so we need to round rates to 5 digits
@@ -129,8 +128,8 @@ export class FxcmAdapter implements IMarketDataAdapter {
                 return element.toFixed(5)
             })
             const symbol = jsonData.Symbol.replace('/', '')
-            
-            s.next(new MarketData(new CurrencyPair(symbol), (bid + ask) / 2, jsonData.Updated, 'FXCM'))
+
+            s.next({ symbol, bid, ask, start: jsonData.Updated })
 
             // this._marketDataSubject.next([new MarketData(new CurrencyPair(symbol), (bid + ask) / 2, jsonData.Updated, "FXCM")])
             // console.log(`@${jsonData.Updated} Price update of [${jsonData.Symbol}]: ${jsonData.Rates}`);
@@ -309,13 +308,13 @@ export class FxcmAdapter implements IMarketDataAdapter {
         // })
     }
 
-    createQuote(symbol: string): Observable<MarketData> {
+    createQuote(symbol: string): Observable<ForexTickData> {
         const quoteSubject = this._quoteMap.get(symbol)
         if (quoteSubject) {
             return quoteSubject.asObservable()
         }
 
-        const s = new Subject<MarketData>()
+        const s = new Subject<ForexTickData>()
         this._quoteMap.set(symbol, s)
 
         // eslint-disable-next-line @typescript-eslint/no-this-alias
@@ -352,7 +351,7 @@ export class FxcmAdapter implements IMarketDataAdapter {
         )
     }
 
-    get marketDataObservable(): Observable<MarketData[]> {
+    get marketDataObservable(): Observable<ForexTickData[]> {
         return this._marketDataSubject.asObservable()
     }
 }

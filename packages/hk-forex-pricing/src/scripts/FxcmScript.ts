@@ -7,7 +7,7 @@ import { ForexTickData } from 'hk-trading-contract'
 
 export const tryReadCsv = () => {
     const csvPath = path.resolve(__dirname, './data/fxcm/2021_1.csv')
-    
+
     console.log(
         df.fromCSV(fs.readFileSync(csvPath, 'utf16le'))
         // .parseCSV()
@@ -17,7 +17,7 @@ export const tryReadCsv = () => {
             // console.log('row', row)
             return {
                 symbol: 'FX:EURUSD',
-                timestamp: row.DateTime,
+                start: row.DateTime,
                 bid: row.Bid,
                 ask: row.Ask
             } as ForexTickData
@@ -28,9 +28,9 @@ export const tryReadCsv = () => {
 export const WriteToDB = () => {
     const dataQuote: ForexTickData = {
         symbol: 'FX:EURUSD',
-        timestamp: Date.now(),
+        start: Date.now(),
         bid: 1.234,
-        ask: 1.345        
+        ask: 1.345
     }
     new RxMySQL('').query('INSERT INTO forex_quotes SET ?', dataQuote).pipe(
 

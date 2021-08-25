@@ -1,7 +1,7 @@
-import { catchError, concatMap, mergeMap, of, take, timeout } from 'rxjs'
-import { PoolPlus } from '../../../mysql-plus/dist'
-import { SqlForexQuoteStore } from '../Stores/SqlForexQuoteStore'
-import { FxcmAdapter } from './FxcmAdapter'
+import { catchError, mergeMap, of, take, timeout } from 'rxjs'
+import { PoolPlus } from '../../mysql-plus/dist'
+import { SqlForexQuoteStore } from '../src/Stores/SqlForexQuoteStore'
+import { FxcmAdapter } from '../src/PriceSourceAdapters/FxcmAdapter'
 
 jest.setTimeout(30000)
 
@@ -44,7 +44,7 @@ test('FxcmAdapter run OK + Save DB', (done) => {
         database: process.env.MYSQL_DB,
     })
     const store = new SqlForexQuoteStore(poolPlus)
-    
+
     of(store.init()).pipe(
         mergeMap(() =>
             adapter.createQuote('EUR/USD').pipe(
