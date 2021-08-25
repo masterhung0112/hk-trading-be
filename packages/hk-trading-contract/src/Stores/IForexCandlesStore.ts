@@ -6,8 +6,8 @@ export interface IForexCandlesStore {
         resolutionType: ResolutionType, 
         fromTime: number, 
         toTime: number
-    }): CandleStickEntity[]
+    }): Promise<CandleStickEntity[]>
 
-    saveCandle(candle: CandleStickEntity)
-    saveManyCandles(candles: CandleStickEntity[])
+    saveCandle(candle: CandleStickEntity): Promise<void>
+    saveManyCandles(candles: CandleStickEntity[]): Promise<void>
 }

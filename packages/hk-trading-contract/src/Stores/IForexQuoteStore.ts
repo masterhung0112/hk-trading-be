@@ -6,8 +6,8 @@ export interface IForexQuoteStore {
         fromTime: number, 
         toTime?: number,
         limit?: number
-    }): ForexTickData[]
+    }): Promise<ForexTickData[]>
 
-    saveTick(candle: ForexTickData)
-    saveManyTicks(candles: ForexTickData[])
+    saveTick(candle: ForexTickData): Promise<void>
+    saveManyTicks(candles: ForexTickData[]): Promise<void>
 }
