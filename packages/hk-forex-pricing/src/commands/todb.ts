@@ -38,22 +38,7 @@ export default class QuoteToDB extends Command {
 
     of(store.init()).pipe(
         mergeMap(() =>
-            adapter.createQuote('EUR/USD').pipe(
-                timeout({
-                    each: 20000,
-                    with: () => {
-                        // done(new Error('timeout'))
-                        throw new Error('timeout')
-                    }
-                }),
-                catchError((err => {
-                    if (err.message != 'timeout') {
-                        // done(err)
-                    }
-                    return of()
-                })),
-                // take(10)
-            )
+            adapter.createQuote('EUR/USD')
         ),
         mergeMap(async (data) => {
             console.log(data)
@@ -63,7 +48,7 @@ export default class QuoteToDB extends Command {
                 bid: data.bid,
                 ask: data.ask,
             })
-        })
+        }),
     )
     .subscribe({
         next: () => {

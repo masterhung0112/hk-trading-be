@@ -1,12 +1,16 @@
+import { ForexTickData, ResolutionType, CandleStickDTO } from 'hk-trading-contract'
 import { Observable, Subject } from 'rxjs'
-import { IMarketDataAdapter } from '../src/constracts/IMarketDataAdapter'
-import { MarketData } from '../src/constracts/MarketData'
-import { PriceSource } from '../src/services/PriceSource'
+import { IMarketDataAdapter } from '../../src/constracts/IMarketDataAdapter'
+import { MarketData } from '../../src/constracts/MarketData'
+import { PriceSourceService } from '../../src/services/PriceSourceService'
 
 const requestUri = 'http://localhost-test'
 
 class TestMarketDataAdapter implements IMarketDataAdapter {
-    createQuote(symbol: string): Observable<MarketData> {
+    createQuote(symbol: string): Observable<ForexTickData> {
+      throw new Error('Method not implemented.')
+    }
+    createCandlesStream(symbol: string, resolution: ResolutionType, option?: { fromTimestamp?: number; toTimestamp?: number }): Observable<CandleStickDTO> {
       throw new Error('Method not implemented.')
     }
     private _subject = new Subject<MarketData[]>()
@@ -32,10 +36,10 @@ class TestMarketDataAdapter implements IMarketDataAdapter {
 
 }
 
-describe('PriceSource', () => {
+describe('PriceSourceService', () => {
     it('RefreshMarketRates run with empty adapter', () => {
         const dataAdapter = new TestMarketDataAdapter()
-        const priceSource = new PriceSource([dataAdapter])
+        const priceSource = new PriceSourceService([dataAdapter])
         // priceSource.RefreshMarketRates()
     })
 })

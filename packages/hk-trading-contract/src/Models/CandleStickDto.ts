@@ -1,5 +1,5 @@
 // This entity can be partition by day, by hour
-export type CandleStickDTO = {
+export interface CandleStickDTO {
     sym: string // Symbol
     sts: number // Start Timestamp
     ets?: number // End timestamp
@@ -14,16 +14,16 @@ export type CandleStickDTO = {
     v?: number // Volume
 }
 
-export type CandleStickBidAskDTO = CandleStickDTO & {
+export interface CandleStickBidAskDTO extends CandleStickDTO {
     ao: number
     ah: number
     al: number
     ac: number
 }
 
-export type QuoteEntity = {
+export interface QuoteDTO {
     symbol: string
-    ts: number
+    start: number
     bid: number
     ask: number
 }

@@ -5,7 +5,7 @@ import { IPriceGenerator } from '../constracts/IPriceGenerator'
 import { HardCodedSourceName } from '../contants/PriceSource'
 import { MeanReversionRandomWalkPriceGenerator } from '../PriceGenerator/MeanReversionRandomWalkPriceGenerator'
 
-export class PriceSource {
+export class PriceSourceService {
     private _marketAdapters: IMarketDataAdapter[]
     private _marketAdaptersSubscription: Subscription[] = []
     private _priceGenerators: Map<string, IPriceGenerator>
