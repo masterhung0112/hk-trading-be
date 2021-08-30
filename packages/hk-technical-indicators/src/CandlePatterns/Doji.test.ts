@@ -1,18 +1,24 @@
-import { Doji } from "./Doji";
+import { CandleMultiStickReversedDto } from '../Models/CandleMultiStickReversedDto'
+import { Doji } from './Doji'
 
-var input = {
-    open: [30.10],
-    high: [32.10],
-    close: [30.13],
-    low: [28.10],
-
+const input: CandleMultiStickReversedDto = {
+    sym: 'test',
+    sts: [123],
+    bo: [30.10],
+    bh: [32.10],
+    bc: [30.13],
+    bl: [28.10],
+    reversedInput: false,
 }
 
-var inputDot = {
-    open: [30.10],
-    high: [30.11],
-    close: [30.10],
-    low: [30.09],
+const inputDot: CandleMultiStickReversedDto = {
+    sym: 'test',
+    sts: [123],
+    bo: [30.10],
+    bh: [30.11],
+    bc: [30.10],
+    bl: [30.09],
+    reversedInput: false,
 }
 
 describe('Doji', function () {
@@ -21,13 +27,13 @@ describe('Doji', function () {
     //     fs.writeFileSync(__dirname + '/images/doji.png', imageBuffer);
     // });
     it('Check whether the supplied data has Doji pattern', function () {
-        var doji = new Doji();
-        var result = doji.hasPattern(input);
+        const doji = new Doji()
+        const result = doji.hasPattern(input)
         expect(result).toBe(true)
-    });
-    it('Check whether the supplied data has Doji pattern', function () {
-        var doji = new Doji();
-        var result = doji.hasPattern(inputDot);
+    })
+    it('Check whether the supplied data inputDot has Doji pattern', function () {
+        const doji = new Doji()
+        const result = doji.hasPattern(inputDot)
         expect(result).toBe(true)
-    });
+    })
 })

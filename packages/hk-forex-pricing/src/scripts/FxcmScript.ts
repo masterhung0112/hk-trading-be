@@ -3,7 +3,7 @@ import 'data-forge-fs'
 import path from 'path'
 import fs from 'fs'
 import { RxMySQL } from 'hk-cloud'
-import { ForexTickData } from 'hk-trading-contract'
+import { CandleTickData } from 'hk-trading-contract'
 
 export const tryReadCsv = () => {
     const csvPath = path.resolve(__dirname, './data/fxcm/2021_1.csv')
@@ -20,13 +20,13 @@ export const tryReadCsv = () => {
                 start: row.DateTime,
                 bid: row.Bid,
                 ask: row.Ask
-            } as ForexTickData
+            } as CandleTickData
         }))
         .toString())
 }
 
 export const WriteToDB = () => {
-    const dataQuote: ForexTickData = {
+    const dataQuote: CandleTickData = {
         symbol: 'FX:EURUSD',
         start: Date.now(),
         bid: 1.234,

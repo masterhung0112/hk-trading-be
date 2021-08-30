@@ -1,4 +1,4 @@
-import { catchError, mergeMap, of, take, timeout } from 'rxjs'
+import { mergeMap, of, take, timeout } from 'rxjs'
 import { PoolPlus } from 'mysql-plus'
 import { SqlForexQuoteStore } from '../../src/Stores/SqlForexQuoteStore'
 import { FxcmAdapter } from '../../src/PriceSourceAdapters/FxcmAdapter'
@@ -11,21 +11,18 @@ test('FxcmAdapter.createQuote run OK', (done) => {
   adapter.createQuote('EUR/USD').pipe(
     timeout({
       first: 20000,
-      with: () => {
-        done(new Error('timeout'))
-        throw new Error('timeout')
-      }
+      each: 10000,
     }),
-    catchError((err => {
-      if (err.message != 'timeout') {
-        done(err)
-      }
-      return of()
-    })),
     take(10)
-  ).subscribe((data) => {
-    if (data) {
-      console.log(data)
+  ).subscribe({
+    next: (data) => {
+      if (data) {
+        console.log(data)
+      }
+    },
+    error: (err) => done(err),
+    complete: () => {
+      adapter.close()
       done()
     }
   })
@@ -35,12 +32,13 @@ test('FxcmAdapter.createCandlesStream run OK', (done) => {
   const adapter = new FxcmAdapter()
 
   adapter.createCandlesStream('EUR/USD', '1m', {
-    fromTimestamp: new Date(Date.now() - (120* 1000)),
+    fromTimestamp: new Date(Date.now() - (120 * 1000)),
     toTimestamp: new Date(Date.now()),
     num: 1
   }).pipe(
     timeout({
-      each: 20000,
+      first: 20000,
+      each: 10000,
       with: () => {
         throw new Error('timeout')
       }
@@ -54,7 +52,6 @@ test('FxcmAdapter.createCandlesStream run OK', (done) => {
       }
     },
     complete: () => {
-      console.log('@@complete')
       adapter.close()
     },
     error: (err) => done(err)

@@ -1,3 +1,4 @@
+export * from './ICandlestickFinder'
 export * from './CandlestickFinder'
 export * from './BearishHammerStick'
 export * from './BearishInvertedHammerStick'
