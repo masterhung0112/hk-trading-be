@@ -2,7 +2,7 @@
 export interface CandleStickDTO {
     sym: string // Symbol
     sts: number // Start Timestamp
-    ets?: number // End timestamp
+    ets?: number // End Timestamp
     bo: number // Bid Open
     bh: number // Bid High
     bl: number // Bid Low
@@ -19,11 +19,4 @@ export interface CandleStickBidAskDTO extends CandleStickDTO {
     ah: number
     al: number
     ac: number
-}
-
-export interface QuoteDTO {
-    symbol: string
-    start: number
-    bid: number
-    ask: number
 }

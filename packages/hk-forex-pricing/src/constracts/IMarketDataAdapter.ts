@@ -1,11 +1,11 @@
 import { Observable } from 'rxjs'
-import { CandleStickDTO, ForexTickData, ResolutionType } from 'hk-trading-contract'
+import { CandleStickDTO, CandleQuoteDto, ResolutionType } from 'hk-trading-contract'
 
 export interface IMarketDataAdapter {
   // get RequestUriString(): string
   // get marketDataObservable(): Observable<MarketData[]>
 
-  createQuote(symbol: string): Observable<ForexTickData>
+  createQuote(symbol: string): Observable<CandleQuoteDto>
 
   createCandlesStream(
     symbol: string,

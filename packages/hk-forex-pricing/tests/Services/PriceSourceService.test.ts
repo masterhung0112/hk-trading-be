@@ -1,4 +1,4 @@
-import { ForexTickData, ResolutionType, CandleStickDTO } from 'hk-trading-contract'
+import { CandleTickData, ResolutionType, CandleStickDTO } from 'hk-trading-contract'
 import { Observable, Subject } from 'rxjs'
 import { IMarketDataAdapter } from '../../src/constracts/IMarketDataAdapter'
 import { MarketData } from '../../src/constracts/MarketData'
@@ -7,7 +7,7 @@ import { PriceSourceService } from '../../src/services/PriceSourceService'
 const requestUri = 'http://localhost-test'
 
 class TestMarketDataAdapter implements IMarketDataAdapter {
-    createQuote(symbol: string): Observable<ForexTickData> {
+    createQuote(symbol: string): Observable<CandleTickData> {
       throw new Error('Method not implemented.')
     }
     createCandlesStream(symbol: string, resolution: ResolutionType, option?: { fromTimestamp?: number; toTimestamp?: number }): Observable<CandleStickDTO> {

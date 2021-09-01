@@ -1,22 +1,22 @@
 // This entity can be partition by day, by hour
 export type CandleStickEntity = {
-    symbol: string
-    start: number
-    stop: number
-    bidOpen: number
-    bidHigh: number
-    bidLow: number
-    bidClose: number
-    askOpen: number
-    askHigh: number
-    askLow: number
-    askClose: number
-    vol: number
+    sym: string
+    sts: Date
+    ets?: Date
+    bo: number
+    bh: number
+    bl: number
+    bc: number
+    ao: number
+    ah: number
+    al: number
+    ac: number
+    v: number
 }
 
-export type QuoteEntity = {
-    symbol: string
-    ts: number
-    bid: number
-    ask: number
-}
+// export type QuoteEntity = {
+//     sym: string
+//     sts: number
+//     b: number
+//     a: number
+// }

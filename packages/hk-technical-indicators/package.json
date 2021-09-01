@@ -9,6 +9,7 @@
     "build": "tsc"
   },
   "dependencies": {
+    "hk-trading-contract": "^0.0.1"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.15.0",
@@ -19,6 +20,5 @@
     "eslint-config-hk": "^1.0.0",
     "@rushstack/eslint-patch": "^1.0.6",
     "eslint": "^7.32.0"
-    
   }
 }

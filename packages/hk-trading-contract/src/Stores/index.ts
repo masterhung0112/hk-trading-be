@@ -1,2 +1,4 @@
-export * from './IForexCandlesStore'
-export * from './IForexQuoteStore'
+export * from './IForexCandlesReadStore'
+export * from './IForexCandlesWriteStore'
+export * from './IForexQuoteReadStore'
+export * from './IForexQuoteWriteStore'

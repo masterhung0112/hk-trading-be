@@ -1,2 +1,5 @@
 export * from './ResolutionType'
 export * from './CandleStickDto'
+export * from './PatternRecognitionDto'
+export * from './CandleMultiStickDto'
+export * from './CandleQuoteDto'

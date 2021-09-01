@@ -1,11 +1,11 @@
 import { Observable, Subject } from 'rxjs'
 import { CurrencyPair } from '../constracts/CurrencyPair'
-import { ForexTickData } from 'hk-trading-contract'
+import { CandleTickData } from 'hk-trading-contract'
 import { IPriceGenerator } from '../constracts/IPriceGenerator'
 import { HardCodedSourceName } from '../contants/PriceSource'
 
 export abstract class BaseWalkPriceGenerator implements IPriceGenerator {
-    _priceChanges: Subject<ForexTickData>
+    _priceChanges: Subject<CandleTickData>
     _currentPair: CurrencyPair
     _effectiveDate: Date
     _sourceName: string
@@ -36,7 +36,7 @@ export abstract class BaseWalkPriceGenerator implements IPriceGenerator {
         return this._previousMid
     }
 
-    get PriceChanges(): Observable<ForexTickData> {
+    get PriceChanges(): Observable<CandleTickData> {
         return this._priceChanges
     }
 

@@ -1,42 +1,41 @@
-import { ForexTickData, IForexQuoteStore } from 'hk-trading-contract'
+import { CandleQuoteDto, IForexQuoteReadStore, IForexQuoteWriteStore } from 'hk-trading-contract'
 import { MySQLTable, PoolPlus } from 'mysql-plus'
 
-export class SqlForexQuoteStore implements IForexQuoteStore {
-    private forexQuoteTable: MySQLTable
-    constructor(private _poolPlus: PoolPlus) {
-        this.forexQuoteTable = new MySQLTable('forex_quote', {}, this._poolPlus)
+export class SqlForexQuoteStore implements IForexQuoteReadStore, IForexQuoteWriteStore {
+  private forexQuoteTable: MySQLTable
+  constructor(private _poolPlus: PoolPlus) {
+    this.forexQuoteTable = new MySQLTable('forex_quote', {}, this._poolPlus)
 
-    }
-
-  async GetTicks(options: { symbol: string; fromTime: number; toTime?: number; limit?: number }): Promise<ForexTickData[]> {
-    throw new Error('Method not implemented.')
   }
 
-    async init() {
-        await this._poolPlus.pquery(`
+  async init() {
+    return await this._poolPlus.pquery(`
         CREATE TABLE IF NOT EXISTS forex_quote(
-            symbol VARCHAR(32),
-            start TIMESTAMP(3),
-            bid DECIMAL(16, 6),
-            ask DECIMAL(16, 6),
+            symbol VARCHAR(32) NOT NULL,
+            start TIMESTAMP(3) NOT NULL,
+            bid DECIMAL(16, 6) NOT NULL,
+            ask DECIMAL(16, 6) NOT NULL,
             PRIMARY KEY (symbol, start)
         )`)
-    }
+  }
 
 
-    async saveTick(candle: ForexTickData) {
-        await this.forexQuoteTable.insert(
-            {symbol: candle.symbol, start: new Date(candle.start), bid: candle.bid, ask: candle.ask}
-        )
-    }
+  async saveTick(candle: CandleQuoteDto) {
+    await this.forexQuoteTable.insert(
+      { symbol: candle.sym, start: new Date(candle.sts), bid: candle.b, ask: candle.a }
+    )
+  }
 
-    async saveManyTicks(candles: ForexTickData[]) {
-        candles.forEach(async (tick) => {
-            await this.forexQuoteTable.insert(
-                [['symbol', 'start', 'bid', 'ask'],
-                [tick.symbol, tick.start, tick.bid, tick.ask]]
-            )
-        })
-    }
+  async saveManyTicks(candles: CandleQuoteDto[]) {
+    candles.forEach(async (tick) => {
+      await this.forexQuoteTable.insert(
+        [['symbol', 'start', 'bid', 'ask'],
+        [tick.sym, tick.sts, tick.b, tick.a]]
+      )
+    })
+  }
 
+  GetTicks(options: { symbol: string; fromTime: number; toTime?: number; limit?: number }): Promise<CandleQuoteDto[]> {
+    throw new Error('Method not implemented.')
+  }
 }

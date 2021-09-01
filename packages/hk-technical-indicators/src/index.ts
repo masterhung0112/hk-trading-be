@@ -1,4 +1,4 @@
-export * from './StockData'
+export * from './Models'
 export * from './CandlePatterns'
 export * from './Indicator/indicator'
-export * from './utils'
+export * from './Utils'

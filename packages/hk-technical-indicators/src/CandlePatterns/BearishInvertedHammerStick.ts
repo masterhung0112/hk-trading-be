@@ -1,4 +1,4 @@
-import StockData from '../StockData'
+import { CandleMultiStickReversedDto } from '../Models/CandleMultiStickReversedDto'
 import { approximateEqual } from '../utils/approximateEqual'
 import { CandlestickFinder } from './CandlestickFinder'
 
@@ -7,11 +7,11 @@ export default class BearishInvertedHammerStick extends CandlestickFinder {
         super('BearishInvertedHammerStick', 1)
     }
     
-    logic (data:StockData) {
-        const daysOpen  = data.open[0]
-        const daysClose = data.close[0]
-        const daysHigh  = data.high[0]
-        const daysLow   = data.low[0]
+    logic (data:CandleMultiStickReversedDto) {
+        const daysOpen  = data.bo[0]
+        const daysClose = data.bc[0]
+        const daysHigh  = data.bh[0]
+        const daysLow   = data.bl[0]
 
         let isBearishInvertedHammer = daysOpen > daysClose
         isBearishInvertedHammer = isBearishInvertedHammer && approximateEqual(daysClose, daysLow)
@@ -21,6 +21,6 @@ export default class BearishInvertedHammerStick extends CandlestickFinder {
     }
 }
 
-export function hasBearishInvertedHammerStick(data:StockData) {
+export function hasBearishInvertedHammerStick(data:CandleMultiStickReversedDto) {
   return new BearishInvertedHammerStick().hasPattern(data)
 }

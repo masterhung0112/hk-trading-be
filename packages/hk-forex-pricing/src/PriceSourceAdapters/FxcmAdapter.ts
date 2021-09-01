@@ -3,7 +3,7 @@ import io from 'socket.io-client'
 import querystring from 'querystring'
 import { catchError, fromEvent, map, mergeMap, Observable, of, Subject, switchMap, take, takeUntil, tap } from 'rxjs'
 import { RxHttpClient, RequestInit } from 'hk-cloud'
-import { CandleStickBidAskDTO, CandleStickDTO, ForexTickData, ResolutionType } from 'hk-trading-contract'
+import { CandleStickBidAskDTO, CandleStickDTO, CandleQuoteDto, ResolutionType } from 'hk-trading-contract'
 
 const token = '0ddf14082b58fcaf076c6ae899ddf950607d721d' // get this from http://tradingstation.fxcm.com/
 const tradingApiHost = 'api-demo.fxcm.com'
@@ -63,8 +63,8 @@ export class FxcmAdapter implements IMarketDataAdapter {
   private globalRequestID = 1;
   private socketId = ''
 
-  private _quoteMap = new Map<string, Subject<ForexTickData>>()
-  private _marketDataSubject = new Subject<ForexTickData[]>()
+  private _quoteMap = new Map<string, Subject<CandleQuoteDto>>()
+  private _marketDataSubject = new Subject<CandleQuoteDto[]>()
 
   request_headers = {
     // 'User-Agent': 'request',
@@ -103,7 +103,7 @@ export class FxcmAdapter implements IMarketDataAdapter {
       requestConfig
     ).pipe(
       catchError((err) => {
-        throw new Error(`${requestUrl}: ${err}`)
+        throw new Error(`${requestUrl}: ${err.message}`)
       })
     )
     // from(fetch(`, {
@@ -155,18 +155,18 @@ export class FxcmAdapter implements IMarketDataAdapter {
   //     }
   //     return this.send_raw(params)
   // }
-  priceUpdate(update, s: Subject<ForexTickData>) {
+  priceUpdate(update, s: Subject<CandleQuoteDto>) {
     try {
       const jsonData = JSON.parse(update)
       // JavaScript floating point arithmetic is not accurate, so we need to round rates to 5 digits
       // Be aware that .toFixed returns a String
-      const [bid, ask, _, __] = jsonData.Rates
+      const [b, a] = jsonData.Rates
       jsonData.Rates = jsonData.Rates.map(function (element) {
         return element.toFixed(5)
       })
-      const symbol = jsonData.Symbol.replace('/', '')
+      const sym = jsonData.Symbol.replace('/', '')
 
-      s.next({ symbol, bid, ask, start: jsonData.Updated })
+      s.next({ sym, b, a, sts: jsonData.Updated })
 
       // this._marketDataSubject.next([new MarketData(new CurrencyPair(symbol), (bid + ask) / 2, jsonData.Updated, "FXCM")])
       // console.log(`@${jsonData.Updated} Price update of [${jsonData.Symbol}]: ${jsonData.Rates}`);
@@ -347,13 +347,13 @@ export class FxcmAdapter implements IMarketDataAdapter {
     // })
   }
 
-  createQuote(symbol: string): Observable<ForexTickData> {
+  createQuote(symbol: string): Observable<CandleQuoteDto> {
     const quoteSubject = this._quoteMap.get(symbol)
     if (quoteSubject) {
       return quoteSubject.asObservable()
     }
 
-    const s = new Subject<ForexTickData>()
+    const s = new Subject<CandleQuoteDto>()
     this._quoteMap.set(symbol, s)
 
     // eslint-disable-next-line @typescript-eslint/no-this-alias
@@ -368,6 +368,7 @@ export class FxcmAdapter implements IMarketDataAdapter {
           // Parse
           mergeMap((response) => {
             const subscribeReply = (response as FxcmSubscribeReply)
+            console.log(subscribeReply)
             if (subscribeReply.response.executed) {
               if (subscribeReply.pairs.length != 1) {
                 throw new Error(`Multiple pairs (${subscribeReply.pairs}) when only one pair subscribed`)
@@ -390,7 +391,7 @@ export class FxcmAdapter implements IMarketDataAdapter {
     )
   }
 
-  get marketDataObservable(): Observable<ForexTickData[]> {
+  get marketDataObservable(): Observable<CandleQuoteDto[]> {
     return this._marketDataSubject.asObservable()
   }
 
@@ -431,8 +432,10 @@ export class FxcmAdapter implements IMarketDataAdapter {
           // Parse
           mergeMap((response) => {
             const getReply = (response as FxcmCandlesGetReply)
+            console.log(getReply)
             if (getReply.response.executed) {
               const candles: CandleStickBidAskDTO[] = []
+              // For each returned candle, add it to the array
               for (const [timestamp, bidOpen, bidClose, bidHigh, bidLow, askOpen, askClose, askHigh, askLow, tickQty] of getReply.candles) {
                 candles.push({
                   sym: 'FM:EURUSD',
@@ -450,10 +453,15 @@ export class FxcmAdapter implements IMarketDataAdapter {
                 })
               }
 
+              // Return the array of candles
               return of(candles)
             } else {
-              // Throw exception when there's error
-              throw new Error(getReply.response.error ? getReply.response.error : 'executed not success')
+              if (getReply.response.error) {
+                // Throw exception when there's error
+                throw new Error(getReply.response.error)
+              }
+              // There's no candle stick for the target resolution yet
+              return of()
             }
           }
           ))
