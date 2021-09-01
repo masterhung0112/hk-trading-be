@@ -1,0 +1,6 @@
+export * from './getColValues'
+export * from './is1DArray'
+export * from './isObject'
+export * from './range'
+export * from './replaceUndefinedWithNaN'
+export * from './throwWrongParamsError'
