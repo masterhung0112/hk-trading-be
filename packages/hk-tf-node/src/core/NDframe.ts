@@ -299,7 +299,7 @@ export abstract class NDframe implements INDframe {
                 return Object.values(item)
             })
 
-            this.data = replaceUndefinedWithNaN(dataArr, this.series) //Defualt array data in row format
+            this.data = replaceUndefinedWithNaN(dataArr, this.series) //Default array data in row format
             this.rowDataTensor = tensor(this.data) //data saved as row tensors
             this.kwargs.columns = Object.keys(Object.values(data)[0]) //get names of the column from the first entry
 

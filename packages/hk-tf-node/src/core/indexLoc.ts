@@ -12,6 +12,7 @@ export interface IndexLocArgs {
  * Obtain the defined the set of row and column index
  * @param {*} kwargs object {rows:Array, columns:Array of column name, type: ["iloc","loc"]}
  * @return Array
+ * @example indexLoc(frame, { rows: [ '0:' ], columns: [ '0:4' ] })
  */
 export function indexLoc(ndframe: INDframe, kwargs: IndexLocArgs): [any[], ColumnType[], ColumnType[]] {
     let rows: ColumnType[] = []
@@ -20,12 +21,14 @@ export function indexLoc(ndframe: INDframe, kwargs: IndexLocArgs): [any[], Colum
 
     // check if the object has the key
     if (Object.prototype.hasOwnProperty.call(kwargs), 'rows') {
-        const kwargsRows = kwargs['rows']
+        const kwargsRows = kwargs.rows
+
         if (!Array.isArray(kwargsRows)) {
-            throw new Error('rows parameter must be a Array')
+            throw new Error(`rows parameter must be a Array. Value: ${kwargsRows}`)
         }
 
         if (kwargsRows.length == 1 && typeof kwargsRows[0] === 'string') {
+            // Example: [ '0:' ]
             if (kwargsRows[0].includes(':')) {
                 const columnSplit = kwargsRows[0].split(':')
 
@@ -50,6 +53,8 @@ export function indexLoc(ndframe: INDframe, kwargs: IndexLocArgs): [any[], Colum
 
                     if (typeof start == 'number' && typeof end == 'number') {
                         rows = range(start, end)
+                    } else {
+                        throw new Error(`expected start and end is number, but got start(${start}), end(${end})`)
                     }
                 }
             } else { // kwargsRows[0].includes(':')
@@ -84,42 +89,41 @@ export function indexLoc(ndframe: INDframe, kwargs: IndexLocArgs): [any[], Colum
     }
 
     if (Object.prototype.hasOwnProperty.call(kwargs, 'columns')) {
-        if (Array.isArray(kwargs['columns'])) {
-            if (kwargs['columns'].length == 1 && kwargs['columns'][0].includes(':')) {
-
-                const columnSplit = kwargs['columns'][0].split(':')
-                let start, end
-
-                if (kwargs['type'] == 'iloc') {
-                    if (columnSplit[0] == '') {
-                        start = 0
-                    } else {
-                        start = parseInt(columnSplit[0]) || 0
-                    }
-
-                    if (columnSplit[1] == '') {
-                        end = ndframe.columnNames.length - 1
-                    } else {
-                        end = parseInt(columnSplit[1]) - 1 === 0 ? 0 : parseInt(columnSplit[1]) - 1
-                    }
-
-                } else { // (kwargs['type'] == 'iloc')
-                    start = ndframe.columnNames.indexOf(columnSplit[0] + '')
-                    end = ndframe.columnNames.indexOf(columnSplit[1] + '') - 1
-                }
-
-                if (typeof start == 'number' && typeof end == 'number') {
-                    columns = range(start, end)
-                    isColumnSplit = true
-                }
-
-            } else { // (kwargs['columns'].length == 1 && kwargs['columns'][0].includes(':'))
-                columns = kwargs['columns']
-            }
-
-        } else { // Array.isArray(kwargs['columns'])
+        const kwargsColumns = kwargs.columns
+        if (!Array.isArray(kwargsColumns)) {
             throw new Error('columns must be a list')
         }
+
+        if (kwargsColumns.length == 1 && typeof kwargsColumns[0] === 'string' && kwargsColumns[0].includes(':')) {
+            const columnSplit = kwargsColumns[0].split(':')
+            let start, end
+
+            if (kwargs['type'] == 'iloc') {
+                if (columnSplit[0] == '') {
+                    start = 0
+                } else {
+                    start = parseInt(columnSplit[0]) || 0
+                }
+
+                if (columnSplit[1] == '') {
+                    end = ndframe.columnNames.length - 1
+                } else {
+                    end = parseInt(columnSplit[1]) - 1 === 0 ? 0 : parseInt(columnSplit[1]) - 1
+                }
+
+            } else { // (kwargs['type'] == 'iloc')
+                start = ndframe.columnNames.indexOf(columnSplit[0] + '')
+                end = ndframe.columnNames.indexOf(columnSplit[1] + '') - 1
+            }
+
+            if (typeof start == 'number' && typeof end == 'number') {
+                columns = range(start, end)
+                isColumnSplit = true
+            }
+
+        } else { // (kwargsColumns.length == 1 && typeof kwargsColumns[0] === 'string' && kwargsColumns[0].includes(':')
+            columns = kwargs['columns']
+        } 
     } else { // Object.prototype.hasOwnProperty.call(kwargs, 'columns')
         //Return all column
         if (kwargs['type'] == 'loc') {

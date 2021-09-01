@@ -1,11 +1,13 @@
+import { ColumnType } from '../core/ColumnType'
+
 /**
-   * retrieve row array and column names from object of the form {a: [1,2,3,4], b: [30,20, 30, 20}]
-   * @param {*} data
-   */
-export function getRowAndColValues(data: any[]): [any[], string[]] {
+ * retrieve row array and column names from object of the form {a: [1,2,3,4], b: [30, 20, 30, 20}]
+ * @param {*} data
+ */
+export function getRowAndColValues(data: Record<ColumnType, any>): [any[], ColumnType[]] {
     const colNames = Object.keys(data)
     const colData = Object.values(data)
-    const firstColLen = colData[0].length
+    const firstColLen = colData.length > 0 ? colData[0].length : 0
 
     colData.forEach((d) => {
         if (d.length != firstColLen) {
@@ -13,15 +15,13 @@ export function getRowAndColValues(data: any[]): [any[], string[]] {
         }
     })
 
-    const rowsLen = colData[0].length
     const colsLen = colNames.length
     const rowsArr = []
 
-    for (let i = 0; i <= rowsLen - 1; i++) {
+    for (let i = 0; i < firstColLen; ++i) {
         const tempRow = []
-        for (let j = 0; j < colsLen; j++) {
-            const arr = colData[j]
-            tempRow.push(arr[i])
+        for (let j = 0; j < colsLen; ++j) {
+            tempRow.push(colData[j][i])
         }
         rowsArr.push(tempRow)
     }
