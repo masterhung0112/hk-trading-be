@@ -1,0 +1,9 @@
+{
+    "extends": "../tsconfig.json",
+    "compilerOptions": {
+        "baseUrl": "./",
+        "types": ["jest"]
+    },
+    "include": ["./**/*"],
+    "exclude": ["../dist", "../node_modules"]
+}
