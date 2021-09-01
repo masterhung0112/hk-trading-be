@@ -3,7 +3,7 @@ import 'data-forge-fs'
 import path from 'path'
 import fs from 'fs'
 import { RxMySQL } from 'hk-cloud'
-import { CandleTickData } from 'hk-trading-contract'
+import { CandleQuoteDto } from 'hk-trading-contract'
 
 export const tryReadCsv = () => {
     const csvPath = path.resolve(__dirname, './data/fxcm/2021_1.csv')
@@ -16,21 +16,21 @@ export const tryReadCsv = () => {
         .select((row => {
             // console.log('row', row)
             return {
-                symbol: 'FX:EURUSD',
-                start: row.DateTime,
-                bid: row.Bid,
-                ask: row.Ask
-            } as CandleTickData
+                sym: 'FX:EURUSD',
+                sts: row.DateTime,
+                b: row.Bid,
+                a: row.Ask
+            } as CandleQuoteDto
         }))
         .toString())
 }
 
 export const WriteToDB = () => {
-    const dataQuote: CandleTickData = {
-        symbol: 'FX:EURUSD',
-        start: Date.now(),
-        bid: 1.234,
-        ask: 1.345
+    const dataQuote: CandleQuoteDto = {
+        sym: 'FX:EURUSD',
+        sts: Date.now(),
+        b: 1.234,
+        a: 1.345
     }
     new RxMySQL('').query('INSERT INTO forex_quotes SET ?', dataQuote).pipe(
 

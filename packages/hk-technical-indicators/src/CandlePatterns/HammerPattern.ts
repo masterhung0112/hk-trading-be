@@ -32,6 +32,7 @@ export default class HammerPattern extends CandlestickFinder {
         const start = confirm ? 3 : 4
         const end = confirm ? 4 : undefined
         const possibleHammerData: CandleMultiStickReversedDto = {
+            resolutionType: data.resolutionType,
             sym: data.sym,
             sts: data.sts,
             bo: data.bo.slice(start, end),

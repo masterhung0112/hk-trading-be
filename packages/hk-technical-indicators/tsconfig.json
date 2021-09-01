@@ -2,9 +2,8 @@
     "compilerOptions": {
         "moduleResolution": "node",
         "target": "esnext",
-        "rootDir": "src",
         "outDir": "dist",
         "declaration": true
     },
-    "types": ["jest"]
+    "include": ["src/**/*"]
 }

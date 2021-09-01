@@ -1,7 +1,8 @@
-import { CandleMultiStickReversedDto } from '../Models/CandleMultiStickReversedDto'
-import { Doji } from './Doji'
+import { CandleMultiStickReversedDto } from '../../src/Models/CandleMultiStickReversedDto'
+import { Doji } from '../../src/CandlePatterns/Doji'
 
 const input: CandleMultiStickReversedDto = {
+    resolutionType: '1m',
     sym: 'test',
     sts: [123],
     bo: [30.10],
@@ -12,6 +13,7 @@ const input: CandleMultiStickReversedDto = {
 }
 
 const inputDot: CandleMultiStickReversedDto = {
+    resolutionType: '1m',
     sym: 'test',
     sts: [123],
     bo: [30.10],
