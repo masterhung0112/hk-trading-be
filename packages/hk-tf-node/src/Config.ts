@@ -4,7 +4,7 @@ export class Config {
     dtypeTestLim: number
     tableMaxRow: number
     tableMaxColInConsole: number
-    
+
     constructor() {
         this.tableWidth = 17 //set the width of each column printed in console
         this.tableTruncate = 16 //set the max number of string before text is truncated in printing
@@ -13,3 +13,5 @@ export class Config {
         this.tableMaxColInConsole = 7
       }
 }
+
+export const config = new Config()

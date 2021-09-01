@@ -1,13 +1,13 @@
 import { ColumnType } from './ColumnType'
 
 export interface LocArgs {
-    rows?: string[]
-    columns?: string[]
+    rows?: ColumnType[]
+    columns?: ColumnType[]
 }
 
 export interface ILocArgs {
-    rows?: number[]
-    columns?: number[]
+    rows?: ColumnType[]
+    columns?: ColumnType[]
 }
 
 export interface INDframe {
@@ -39,7 +39,7 @@ export interface INDframe {
      * Gets the column names of the data
      * @returns {Array} strings of column names
      */
-    get columnNames(): string[]
+    get columnNames(): ColumnType[]
 
     /**
      * Gets a sequence of axis dimension along row and columns
