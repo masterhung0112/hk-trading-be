@@ -3,7 +3,6 @@
         "moduleResolution": "node",
         "module": "commonjs",
         "target": "ES6",
-        "rootDir": "./src",
         "outDir": "dist",
         "declaration": true,
         "sourceMap": true,
