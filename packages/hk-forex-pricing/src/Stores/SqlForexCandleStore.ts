@@ -49,9 +49,30 @@ export class SqlForexCandleStore implements IForexCandlesReadStore {
     )
   }
 
-  getCandles(options: { resolutionType: ResolutionType; fromTime?: Date; toTime?: Date; num?: number }): Promise<CandleMultiStickDto> {
+  private resolutionTypeToInverval(resolutionType: ResolutionType) {
+    switch (resolutionType) {
+      case '1d':
+        return (24 * 60)
+      case '1h':
+        return 60
+      case '1m':
+        return 1
+      case '1s':
+        throw new Error(`unsupported resolution Type ${resolutionType}`)
+      case '1w':
+        return (7 * 24 * 60)
+      case '4h':
+        return (4 * 60)
+      case '5m':
+      default:
+        throw new Error(`unsupported resolution Type ${resolutionType}`)
+    }
+  }
+
+  getCandles(options: { resolutionType: ResolutionType; symbol: string; fromTime?: Date; toTime?: Date; num?: number }): Promise<CandleMultiStickDto> {
     const fromTime = toMysqlFormat(options.fromTime)
     const toTime = toMysqlFormat(options.toTime)
+    const interval = this.resolutionTypeToInverval(options.resolutionType)
     const statement = `
     SELECT m.symbol, q1.bid AS open,
         q2.bid AS close,
@@ -62,12 +83,12 @@ export class SqlForexCandleStore implements IForexCandlesReadStore {
         MAX(start) AS max_time,
         MIN(bid) AS low,
         MAX(bid) as high,
-        from_unixtime(round(UNIX_TIMESTAMP(start) / (60 * @interval))* (60 * @interval)) AS open_time
+        from_unixtime(round(UNIX_TIMESTAMP(start) / (60 * ${interval}))* (60 * ${interval})) AS open_time
     FROM mysqlplustest.forex_quote
-    WHERE symbol = ${options.resolutionType} ${fromTime ? `AND start >= ${fromTime}` : ''} ${toTime ? `AND start <= ${toTime}` : ''}
+    WHERE symbol = "${options.symbol}" ${fromTime ? `AND start >= "${fromTime}"` : ''} ${toTime ? `AND start <= "${toTime}"` : ''}
     GROUP BY symbol, open_time) m
     JOIN mysqlplustest.forex_quote q1 ON m.min_time = q1.start
-    JOIN mysqlplustest.forex_quote q2 ON m.max_time = q2.start;
+    JOIN mysqlplustest.forex_quote q2 ON m.max_time = q2.start
     ${options.num ? `LIMIT ${options.num}` : ''}
     `
     return this._poolPlus.pquery(statement)
