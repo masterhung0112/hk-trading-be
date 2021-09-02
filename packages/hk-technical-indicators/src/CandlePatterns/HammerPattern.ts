@@ -9,7 +9,7 @@ import { CandlestickFinder } from './CandlestickFinder'
 
 export default class HammerPattern extends CandlestickFinder {
     constructor() {
-        super('HammerPattern', 5)
+        super('hammerpattern', 'HammerPattern', 5)
     }
 
     logic(data: CandleMultiStickReversedDto) {

@@ -4,7 +4,7 @@ import { CandlestickFinder } from './CandlestickFinder'
 
 export class Doji extends CandlestickFinder {
     constructor() {
-        super('Doji', 1)
+        super('doji', 'Doji', 1)
     }
 
     logic(data: CandleMultiStickReversedDto): boolean {

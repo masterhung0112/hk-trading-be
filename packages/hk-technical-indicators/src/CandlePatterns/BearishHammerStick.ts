@@ -4,7 +4,7 @@ import { CandlestickFinder } from './CandlestickFinder'
 
 export class BearishHammerStick extends CandlestickFinder {
     constructor() {
-        super('BearishHammerStick', 1)
+        super('bearishhammer', 'BearishHammerStick', 1)
     }
 
     logic(data: CandleMultiStickReversedDto) {

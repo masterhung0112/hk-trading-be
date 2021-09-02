@@ -3,7 +3,7 @@ import { ICandlestickFinder } from './ICandlestickFinder'
 
 export class CandlestickFinder implements ICandlestickFinder {
     
-    constructor(public name: string, public requiredCount: number) {
+    constructor(public id: string, public name: string, public requiredCount: number) {
         // if (new.target === Abstract) {
         //     throw new TypeError("Abstract class");
         // }

@@ -1,4 +1,4 @@
-import { CandleMultiStickDto, CandleStickDTO, IForexCandlesReadStore } from 'hk-trading-contract'
+import { CandleMultiStickDto, CandleStickDTO, IForexCandlesReadStore, PatternRecognitionDto } from 'hk-trading-contract'
 import { Subject } from 'rxjs'
 import { CandlePatternDetector } from '../../src/PatternDetectors/CandlePatternDetector'
 import { ICandlestickFinder } from 'hk-technical-indicators'
@@ -15,6 +15,7 @@ describe('CandlePatternDetector', () => {
 
   const patterFinder: ICandlestickFinder = {
     hasPattern,
+    id: 'helloid',
     name: 'hello',
     requiredCount: 1,
   }
@@ -23,7 +24,7 @@ describe('CandlePatternDetector', () => {
     jest.resetAllMocks()
   })
 
-  it('one candle, detector returns true', (done) => {
+  it('one candle, returns PatternRecognitionDto', (done) => {
     const detector = new CandlePatternDetector([patterFinder], forexCandlesStore)
     getCandles.mockResolvedValue({
       resolutionType: '1m',
@@ -34,11 +35,17 @@ describe('CandlePatternDetector', () => {
       bc: [30.13],
       bl: [28.10],
     } as CandleMultiStickDto)
+
     hasPattern.mockResolvedValue(true)
     const stream$ = new Subject<CandleStickDTO>()
     detector.getOutputStream([stream$]).subscribe({
       next: (patternRecognition) => {
-        console.log(patternRecognition)
+        expect(patternRecognition).toEqual({
+          patternSymbol: 'helloid',
+          patternDisplayName: 'hello',
+          resolutionType: '1m',
+          symbol: 'test'
+        } as PatternRecognitionDto)
       },
       complete: () => done()
     })

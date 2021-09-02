@@ -4,7 +4,7 @@ import { CandlestickFinder } from './CandlestickFinder'
 
 export default class BullishHammerStick extends CandlestickFinder {
     constructor() {
-        super('BullishHammerStick', 1)
+        super('bullishhammer', 'BullishHammerStick', 1)
     }
     logic(data: CandleMultiStickReversedDto) {
         const daysOpen = data.bo[0]
