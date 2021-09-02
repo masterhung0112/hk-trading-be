@@ -1,6 +1,9 @@
+import { ResolutionType } from './ResolutionType'
+
 // This entity can be partition by day, by hour
 export interface CandleStickDTO {
     sym: string // Symbol
+    resolutionType: ResolutionType
     sts: number // Start Timestamp
     ets?: number // End Timestamp
     bo: number // Bid Open

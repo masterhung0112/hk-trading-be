@@ -1,5 +1,8 @@
+import { ResolutionType } from './ResolutionType'
+
 export interface CandleMultiStickDto {
     sym: string // Symbol
+    resolutionType: ResolutionType
     sts: number[] // Start Timestamp
     ets?: number[] // End timestamp
     bo: number[] // Bid Open

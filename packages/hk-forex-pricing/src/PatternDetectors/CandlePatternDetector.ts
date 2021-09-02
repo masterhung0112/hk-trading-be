@@ -1,11 +1,6 @@
-import { from, mergeMap, Observable, forkJoin, map } from 'rxjs'
-import { CandleStickDTO, IForexCandlesReadStore, PatternRecognitionDto, ResolutionType } from 'hk-trading-contract'
+import { from, mergeMap, Observable, map,  Subject } from 'rxjs'
+import { CandleMultiStickDto, CandleStickDTO, IForexCandlesReadStore, PatternRecognitionDto } from 'hk-trading-contract'
 import { ICandlestickFinder } from 'hk-technical-indicators'
-
-export interface CandlePatternStreamInput {
-    resolutionType: ResolutionType
-    sticks: CandleStickDTO
-}
 
 export class CandlePatternDetector {
   constructor(
@@ -16,7 +11,7 @@ export class CandlePatternDetector {
   }
 
   // Retrieve new bar. Try to process
-  getOutputStream(streams$: Observable<CandlePatternStreamInput>[]): Observable<PatternRecognitionDto | null> {
+  getOutputStream(streams$: Observable<CandleStickDTO>[]): Observable<PatternRecognitionDto | null> {
     /*
       With each stream
         Loop each registered pattern
@@ -31,38 +26,71 @@ export class CandlePatternDetector {
     */
 
     // Iterate streams
-    const stream = from(streams$).pipe((
-      mergeMap((s) => s)
-    ))
+    const stream = from(streams$).pipe(
+      mergeMap((s) => {
+        return s.pipe(
+          mergeMap((candlePatternInput) => {
+            const candleAndFinderSubject = new Subject<{ finder: ICandlestickFinder, candles: CandleMultiStickDto }>()
+            this.supportedCandlePatternFinders.forEach((finder) => {
+              this.forexCandleStore.getCandles({
+                resolutionType: candlePatternInput.resolutionType,
+                toTime: candlePatternInput.sts,
+                num: finder.requiredCount
+              })
+            })
+            return candleAndFinderSubject
+          })
+        )
+      }),
+    )
+
+    return stream.pipe(
+      map((com) => {
+        if (com.candles.bc.length < com.finder.requiredCount) {
+          // Not enough candles for pattern detection
+          return null
+        } else if (com.finder.hasPattern(com.candles)) {
+          // Found this is the pattern that we need
+          return {
+            patternSymbol: com.finder.name,
+            patternDisplayName: com.finder.name,
+            resolutionType: com.candles.resolutionType,
+            symbol: com.candles.sym,
+          } as PatternRecognitionDto
+        }
+        return null
+      }
+      )
+    )
 
     // We run each finder for each stream
-    return forkJoin([stream, from(this.supportedCandlePatternFinders)]).pipe(
-      mergeMap(([a, b]) => {
-          // Read the necessary candles from database
-          return from(this.forexCandleStore.getCandles({
-            resolutionType: a.resolutionType,
-            toTime: a.sticks.sts,
-            num: b.requiredCount
-          })).pipe(
-            // We received the number of candles requested, detect if it's the pattern we need
-            map((multiStickEntity => {
-              if (multiStickEntity.bc.length < b.requiredCount) {
-                // Not enough candles for pattern detection
-                return null
-              } else if (b.hasPattern(multiStickEntity)) {
-                  // Found this is the pattern that we need
-                  return {
-                    patternSymbol: b.name,
-                    patternDisplayName: b.name,
-                    resolutionType: a.resolutionType,
-                    symbol: a.sticks.sym,
-                  } as PatternRecognitionDto
-              }
-              return null
-            }))
-          )
-      })
-    )
+    // return forkJoin([stream, from(this.supportedCandlePatternFinders)]).pipe(
+    //   mergeMap(([a, b]) => {
+    //       // Read the necessary candles from database
+    //       return from(this.forexCandleStore.getCandles({
+    //         resolutionType: a.resolutionType,
+    //         toTime: a.sticks.sts,
+    //         num: b.requiredCount
+    //       })).pipe(
+    //         // We received the number of candles requested, detect if it's the pattern we need
+    //         map((multiStickEntity => {
+    //           if (multiStickEntity.bc.length < b.requiredCount) {
+    //             // Not enough candles for pattern detection
+    //             return null
+    //           } else if (b.hasPattern(multiStickEntity)) {
+    //               // Found this is the pattern that we need
+    //               return {
+    //                 patternSymbol: b.name,
+    //                 patternDisplayName: b.name,
+    //                 resolutionType: a.resolutionType,
+    //                 symbol: a.sticks.sym,
+    //               } as PatternRecognitionDto
+    //           }
+    //           return null
+    //         }))
+    //       )
+    //   })
+    // )
 
 
     // zip(candle, from(this.supportedCandlePatternFinders)).pipe(

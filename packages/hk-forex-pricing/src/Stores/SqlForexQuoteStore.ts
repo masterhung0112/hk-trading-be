@@ -19,7 +19,6 @@ export class SqlForexQuoteStore implements IForexQuoteReadStore, IForexQuoteWrit
         )`)
   }
 
-
   async saveTick(candle: CandleQuoteDto) {
     await this.forexQuoteTable.insert(
       { symbol: candle.sym, start: new Date(candle.sts), bid: candle.b, ask: candle.a }

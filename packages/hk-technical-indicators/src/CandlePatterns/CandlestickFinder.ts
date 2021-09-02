@@ -56,6 +56,7 @@ export class CandlestickFinder implements ICandlestickFinder {
             return data
         } else {
             const returnVal: CandleMultiStickReversedDto = {
+                resolutionType: data.resolutionType,
                 sym: data.sym,
                 sts: data.sts,
                 bo: [],
@@ -82,6 +83,7 @@ export class CandlestickFinder implements ICandlestickFinder {
         const generatedData = data.bc.map(function (currentData, index) {
             let i = 0
             const returnVal: CandleMultiStickReversedDto = {
+                resolutionType: data.resolutionType,
                 sym: data.sym,
                 sts: data.sts,
                 bo: [],
