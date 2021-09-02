@@ -4,7 +4,7 @@ import { PoolPlus } from 'mysql-plus'
 import { FxcmAdapter } from '../../PriceSourceAdapters/FxcmAdapter'
 import { SqlForexCandleStore } from '../../Stores/SqlForexCandleStore'
 import dotenv from 'dotenv'
-import { CandleStickBidAskDTO, CandleStickEntity } from '../../../../hk-trading-contract/dist'
+import { CandleStickBidAskDTO } from 'hk-trading-contract'
 
 dotenv.config({ path: './env/.env.local' })
 
@@ -12,7 +12,7 @@ export default class QuoteToDB extends Command {
   static description = 'describe the command here'
 
   static examples = [
-    `$ hk candle:todb
+    `$ hk quote:todb
 `,
   ]
 
@@ -25,8 +25,6 @@ export default class QuoteToDB extends Command {
   static args = [{ name: 'file' }]
 
   async run() {
-    const { args, flags } = this.parse(QuoteToDB)
-
     const poolPlus = new PoolPlus({
       host: process.env.MYSQL_HOST,
       port: parseInt(process.env.MYSQL_PORT),
@@ -57,7 +55,7 @@ export default class QuoteToDB extends Command {
           const c = candle as CandleStickBidAskDTO
           await store.saveCandle({
             sym: candle.sym,
-            sts: new Date(candle.sts),
+            sts: candle.sts,
             // ets:
             bo: c.bo,
             bh: c.bh,
@@ -68,17 +66,12 @@ export default class QuoteToDB extends Command {
             al: c.al,
             ac: c.ac,
             v: c.v
-          })
+          } as CandleStickBidAskDTO)
         }
         return of()
       }),
     )
       .subscribe({
-        next: () => {
-          // if (result) {
-          //     console.log('result', result)
-          // }
-        },
         error: (err) => { console.log(err) }
       })
   }

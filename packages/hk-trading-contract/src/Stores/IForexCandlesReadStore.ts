@@ -4,8 +4,8 @@ import { ResolutionType } from '../Models/ResolutionType'
 export interface IForexCandlesReadStore {
     getCandles(options: {
         resolutionType: ResolutionType
-        fromTime?: number
-        toTime?: number
+        fromTime?: Date
+        toTime?: Date
         num?: number
     }): Promise<CandleMultiStickDto>
 }

@@ -23,11 +23,11 @@ export class MeanReversionRandomWalkPriceGenerator extends BaseWalkPriceGenerato
     //   }
 
       this._priceChanges.next({
-          symbol: this._currentPair.Symbol,
-          start: new Date(Date.now() + 12096e5).getUTCMilliseconds(),
+          sym: this._currentPair.Symbol,
+          sts: new Date(Date.now() + 12096e5).getUTCMilliseconds(),
           // mid: this.format(this._previousMid),
-          ask: this.format(this._previousMid * (1 + this._halfSpreadPercentage)),
-          bid: this.format(this._previousMid * (1 - this._halfSpreadPercentage)),
+          a: this.format(this._previousMid * (1 + this._halfSpreadPercentage)),
+          b: this.format(this._previousMid * (1 - this._halfSpreadPercentage)),
           // creationTimestamp: Date.now()
         })
     }

@@ -5,6 +5,6 @@ describe('SqlForexQuoteStore', () => {
   store.init()
 
   it('save tick OK', () => {
-    store.saveTick()
+    // store.saveTick()
   })
 })

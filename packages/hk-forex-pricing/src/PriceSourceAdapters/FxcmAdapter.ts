@@ -438,6 +438,7 @@ export class FxcmAdapter implements IMarketDataAdapter {
               // For each returned candle, add it to the array
               for (const [timestamp, bidOpen, bidClose, bidHigh, bidLow, askOpen, askClose, askHigh, askLow, tickQty] of getReply.candles) {
                 candles.push({
+                  resolutionType: '1m',
                   sym: 'FM:EURUSD',
                   sts: timestamp,
                   // ets?: number;

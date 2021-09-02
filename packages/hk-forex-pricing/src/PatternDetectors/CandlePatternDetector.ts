@@ -34,7 +34,7 @@ export class CandlePatternDetector {
               return of(finder).pipe(
                 combineLatestWith(from(this.forexCandlesStore.getCandles({
                   resolutionType: candleStickDto.resolutionType,
-                  toTime: candleStickDto.sts,
+                  toTime: new Date(candleStickDto.sts),
                   num: finder.requiredCount
                 }))
               ))

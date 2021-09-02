@@ -7,7 +7,10 @@
         "declaration": true,
         "importHelpers": true,
         "rootDir": "src",
-        "outDir": "dist"
+        "outDir": "dist",
+        "lib": [
+          "dom", "es2015"
+        ]
     },
     "include": ["src/**/*"],
     "exclude": ["node_modules"]
