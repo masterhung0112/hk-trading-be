@@ -1,5 +1,5 @@
 import {Command, flags} from '@oclif/command'
-import { of, mergeMap, from } from 'rxjs'
+import { of, mergeMap, from, distinctUntilChanged } from 'rxjs'
 import { PoolPlus } from 'mysql-plus'
 import { FxcmAdapter } from '../../PriceSourceAdapters/FxcmAdapter'
 import { SqlForexQuoteStore } from '../../Stores/SqlForexQuoteStore'
@@ -31,6 +31,7 @@ export default class QuoteTo1m extends Command {
         user: process.env.MYSQL_USER,
         password: process.env.MYSQL_PASS,
         database: process.env.MYSQL_DB,
+        decimalNumbers: true,
     })
     const forexQuoteStore = new SqlForexQuoteStore(poolPlus)
     const forexCandlesStore = new SqlForexCandleStore(poolPlus)
@@ -41,20 +42,29 @@ export default class QuoteTo1m extends Command {
             adapter.createQuote('EUR/USD')
         ),
         mergeMap(async (data) => {
+            // console.log({
+            //   ...data,
+            //   sts: new Date(data.sts)
+            // })
             await forexQuoteStore.saveTick(data)
             return data
         }, 5),
         mergeMap((data) => {
           return from(forexCandlesStore.getCandles({
             resolutionType: '1m',
-            toTime: new Date(data.sts),
+            symbol: data.sym,
+            // toTime: new Date(data.sts),
             num: 1
           }))
-        })
+        }),
+        distinctUntilChanged((previous, current) => (current.bl.length > 0 && previous.bo[0] === current.bo[0] && previous.bh[0] === current.bh[0] && previous.bl[0] === current.bl[0] && previous.bc[0] === current.bc[0]))
     )
     .subscribe({
         next: (candleMultiStickDto) => {
-          console.log(candleMultiStickDto)
+          if (candleMultiStickDto.sts.length > 0) {
+            console.log(candleMultiStickDto)
+            // patternDetector.getOutputStream()
+          }
         },
         error: (err) => {console.log(err)}
     })

@@ -1,3 +1,5 @@
+
+export * from './arrToObj'
 export * from './checker'
 export * from './convert2DTo1D'
 export * from './getColValues'

@@ -31,6 +31,7 @@ export default class QuoteToDB extends Command {
       user: process.env.MYSQL_USER,
       password: process.env.MYSQL_PASS,
       database: process.env.MYSQL_DB,
+      decimalNumbers: true,
     })
     const store = new SqlForexCandleStore(poolPlus)
     const adapter = new FxcmAdapter()

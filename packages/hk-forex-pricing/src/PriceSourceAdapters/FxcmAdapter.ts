@@ -166,7 +166,7 @@ export class FxcmAdapter implements IMarketDataAdapter {
       })
       const sym = jsonData.Symbol.replace('/', '')
 
-      s.next({ sym, b, a, sts: jsonData.Updated })
+      s.next({ sym: `FM:${sym}`, b, a, sts: jsonData.Updated })
 
       // this._marketDataSubject.next([new MarketData(new CurrencyPair(symbol), (bid + ask) / 2, jsonData.Updated, "FXCM")])
       // console.log(`@${jsonData.Updated} Price update of [${jsonData.Symbol}]: ${jsonData.Rates}`);

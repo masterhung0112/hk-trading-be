@@ -1,9 +1,9 @@
 import { tensor } from '@tensorflow/tfjs-node'
-import { getColValues, getRowAndColValues, keyInObject, removeArr, throwWrongParamsError } from '../utils'
+import { arrToObj, getColValues, getRowAndColValues, keyInObject, removeArr, throwWrongParamsError } from '../utils'
 import { ColumnType } from './ColumnType'
 import { DropArgs, IDataFrame } from './IDataFrame'
 import { indexLoc, IndexLocArgs } from './indexLoc'
-import { ILocArgs, LocArgs } from './INDframe'
+import { ILocArgs, INDframe, LocArgs } from './INDframe'
 import { NDframe } from './NDframe'
 import { Series } from './Series'
 
@@ -177,6 +177,23 @@ export class DataFrame extends NDframe implements IDataFrame {
         const df = new DataFrame(newData, { columns: columns })
         df.setIndex(rows)
         return df
+    }
+
+    column(colName: string): INDframe {
+        if (!this.columns.includes(colName)) {
+            throw new Error(`column ${colName} does not exist`)
+        }
+        const colIdxObjs = arrToObj(this.columns)
+        const indx = colIdxObjs[colName]
+        const data = this.colData[indx]
+        return new Series(data, { columns: [colName] })
+    }
+
+    transpose(): IDataFrame {
+        return new DataFrame(this.colData, {
+            columns: this.columnNames,
+            index: this.index
+        })
     }
 
     // set all columns to DataFrame Property. This ensures easy access to columns as Series

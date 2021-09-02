@@ -1,3 +1,4 @@
+import { DataFrame } from 'hk-tf-node'
 import { IForexCandlesReadStore, CandleStickDTO, CandleMultiStickDto, ResolutionType } from 'hk-trading-contract'
 import { MySQLTable, PoolPlus } from 'mysql-plus'
 
@@ -69,28 +70,80 @@ export class SqlForexCandleStore implements IForexCandlesReadStore {
     }
   }
 
-  getCandles(options: { resolutionType: ResolutionType; symbol: string; fromTime?: Date; toTime?: Date; num?: number }): Promise<CandleMultiStickDto> {
+  async getCandles(options: { resolutionType: ResolutionType; symbol: string; fromTime?: Date; toTime?: Date; num?: number }): Promise<CandleMultiStickDto> {
     const fromTime = toMysqlFormat(options.fromTime)
     const toTime = toMysqlFormat(options.toTime)
     const interval = this.resolutionTypeToInverval(options.resolutionType)
     const statement = `
-    SELECT m.symbol, q1.bid AS open,
-        q2.bid AS close,
-        m.low AS low,
-        m.high AS high,
-        m.open_time
+    SELECT m.symbol as sym, q1.bid AS bo,
+        q2.bid AS bc,
+        m.low AS bl,
+        m.high AS bh,
+        m.open_time as sts
     FROM (SELECT symbol, MIN(start) AS min_time,
         MAX(start) AS max_time,
         MIN(bid) AS low,
         MAX(bid) as high,
-        from_unixtime(round(UNIX_TIMESTAMP(start) / (60 * ${interval}))* (60 * ${interval})) AS open_time
+        floor(UNIX_TIMESTAMP(start) / (60 * ${interval}))* (60 * ${interval}) * 1000 AS open_time
     FROM mysqlplustest.forex_quote
     WHERE symbol = "${options.symbol}" ${fromTime ? `AND start >= "${fromTime}"` : ''} ${toTime ? `AND start <= "${toTime}"` : ''}
     GROUP BY symbol, open_time) m
     JOIN mysqlplustest.forex_quote q1 ON m.min_time = q1.start
     JOIN mysqlplustest.forex_quote q2 ON m.max_time = q2.start
+    ORDER BY open_time DESC
     ${options.num ? `LIMIT ${options.num}` : ''}
     `
-    return this._poolPlus.pquery(statement)
+    const result = await this._poolPlus.pquery(statement)
+    const df = new DataFrame(result)
+
+    return {
+      sym: options.symbol,
+      resolutionType: options.resolutionType,
+      sts: df.column('sts').values,
+      bo: df.column('bo').values as number[],
+      bh: df.column('bh').values as number[],
+      bl: df.column('bl').values as number[],
+      bc: df.column('bc').values as number[],
+    }
+  }
+
+  async getCandle(options: {
+    resolutionType: ResolutionType
+    symbol: string
+    fromTime?: Date
+    toTime?: Date
+  }): Promise<CandleStickDTO> {
+    const fromTime = toMysqlFormat(options.fromTime)
+    const toTime = toMysqlFormat(options.toTime)
+    const interval = this.resolutionTypeToInverval(options.resolutionType)
+    const statement = `
+  SELECT m.symbol as sym, q1.bid AS bo,
+      q2.bid AS bc,
+      m.low AS bl,
+      m.high AS bh,
+      m.open_time as sts
+  FROM (SELECT symbol, MIN(start) AS min_time,
+      MAX(start) AS max_time,
+      MIN(bid) AS low,
+      MAX(bid) as high,
+      floor(UNIX_TIMESTAMP(start) / (60 * ${interval}))* (60 * ${interval}) * 1000 AS open_time
+      FROM mysqlplustest.forex_quote
+      WHERE symbol = "${options.symbol}" ${fromTime ? `AND start >= "${fromTime}"` : ''} ${toTime ? `AND start <= "${toTime}"` : ''}
+      GROUP BY symbol, open_time) m
+      JOIN mysqlplustest.forex_quote q1 ON m.min_time = q1.start
+      JOIN mysqlplustest.forex_quote q2 ON m.max_time = q2.start
+      ORDER BY open_time DESC
+      LIMIT 1;
+  `
+    const result = await this._poolPlus.pquery(statement)
+    return {
+      sym: options.symbol,
+      resolutionType: options.resolutionType,
+      sts: result[0].sts,
+      bo: result[0].bo,
+      bh: result[0].bh,
+      bl: result[0].bl,
+      bc: result[0].bc
+    }
   }
 }

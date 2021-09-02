@@ -7,7 +7,7 @@ import { hasBullishHammerStick } from './BullishHammerStick'
 import { hasBullishInvertedHammerStick } from './BullishInvertedHammerStick'
 import { CandlestickFinder } from './CandlestickFinder'
 
-export default class HammerPattern extends CandlestickFinder {
+export class HammerPattern extends CandlestickFinder {
     constructor() {
         super('hammerpattern', 'HammerPattern', 5)
     }
