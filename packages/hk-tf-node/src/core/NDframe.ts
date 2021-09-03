@@ -42,7 +42,8 @@ export abstract class NDframe implements INDframe {
             this.readArray(data)
         } else {
             this.series = false
-            if (isObject(data[0])) {
+            
+            if (data.length > 0 && isObject(data[0])) {
                 //check the type of the first object in the data
                 this.readObject(data, 1) //type 1 object are of JSON form [{a: 1, b: 2}, {a: 30, b: 20}]
             } else if (isObject(data)) {

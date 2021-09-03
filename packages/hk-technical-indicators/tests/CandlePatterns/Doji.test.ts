@@ -4,7 +4,7 @@ import { Doji } from '../../src/CandlePatterns/Doji'
 const input: CandleMultiStickReversedDto = {
     resolutionType: '1m',
     sym: 'test',
-    sts: [123],
+    sts: [60 + 9],
     bo: [30.10],
     bh: [32.10],
     bc: [30.13],
@@ -15,7 +15,7 @@ const input: CandleMultiStickReversedDto = {
 const inputDot: CandleMultiStickReversedDto = {
     resolutionType: '1m',
     sym: 'test',
-    sts: [123],
+    sts: [60 - 9],
     bo: [30.10],
     bh: [30.11],
     bc: [30.10],
@@ -37,5 +37,13 @@ describe('Doji', function () {
         const doji = new Doji()
         const result = doji.hasPattern(inputDot)
         expect(result).toBe(true)
+    })
+    it('Not doji when sts is greater than 10s', function () {
+        const doji = new Doji()
+        const result = doji.hasPattern({
+            ...input,
+            sts: [50]
+        })
+        expect(result).toBe(false)
     })
 })

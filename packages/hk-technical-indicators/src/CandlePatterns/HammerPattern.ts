@@ -9,7 +9,11 @@ import { CandlestickFinder } from './CandlestickFinder'
 
 export class HammerPattern extends CandlestickFinder {
     constructor() {
-        super('hammerpattern', 'HammerPattern', 5)
+        super({
+            id: 'hammerpattern', 
+            name: 'HammerPattern', 
+            requiredBarNum: 5
+        })
     }
 
     logic(data: CandleMultiStickReversedDto) {

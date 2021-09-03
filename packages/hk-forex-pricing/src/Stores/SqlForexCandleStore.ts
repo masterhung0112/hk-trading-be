@@ -1,18 +1,6 @@
 import { DataFrame } from 'hk-tf-node'
 import { IForexCandlesReadStore, CandleStickDTO, CandleMultiStickDto, ResolutionType } from 'hk-trading-contract'
-import { MySQLTable, PoolPlus } from 'mysql-plus'
-
-function twoDigits(d) {
-  if (0 <= d && d < 10) return '0' + d.toString()
-  if (-10 < d && d < 0) return '-0' + (-1 * d).toString()
-  return d.toString()
-}
-
-
-function toMysqlFormat(d: Date) {
-  if (!d) return ''
-  return d.getUTCFullYear() + '-' + twoDigits(1 + d.getUTCMonth()) + '-' + twoDigits(d.getUTCDate()) + ' ' + twoDigits(d.getUTCHours()) + ':' + twoDigits(d.getUTCMinutes()) + ':' + twoDigits(d.getUTCSeconds())
-}
+import { dateToMysqlFormat, MySQLTable, PoolPlus } from 'mysql-plus'
 
 export class SqlForexCandleStore implements IForexCandlesReadStore {
   private forexCandleTable: MySQLTable
@@ -71,8 +59,8 @@ export class SqlForexCandleStore implements IForexCandlesReadStore {
   }
 
   async getCandles(options: { resolutionType: ResolutionType; symbol: string; fromTime?: Date; toTime?: Date; num?: number }): Promise<CandleMultiStickDto> {
-    const fromTime = toMysqlFormat(options.fromTime)
-    const toTime = toMysqlFormat(options.toTime)
+    const fromTime = dateToMysqlFormat(options.fromTime)
+    const toTime = dateToMysqlFormat(options.toTime)
     const interval = this.resolutionTypeToInverval(options.resolutionType)
     const statement = `
     SELECT m.symbol as sym, q1.bid AS bo,
@@ -94,7 +82,20 @@ export class SqlForexCandleStore implements IForexCandlesReadStore {
     ${options.num ? `LIMIT ${options.num}` : ''}
     `
     const result = await this._poolPlus.pquery(statement)
-    const df = new DataFrame(result)
+    if (result.length == 0) {
+      return {
+        sym: options.symbol,
+        resolutionType: options.resolutionType,
+        sts: [],
+        bo: [],
+        bh: [],
+        bl: [],
+        bc: []
+      }
+    }
+    const df = new DataFrame(result, {
+      columns: ['sym', 'bo', 'bc', 'bl', 'bh', 'sts']
+    })
 
     return {
       sym: options.symbol,
@@ -113,8 +114,8 @@ export class SqlForexCandleStore implements IForexCandlesReadStore {
     fromTime?: Date
     toTime?: Date
   }): Promise<CandleStickDTO> {
-    const fromTime = toMysqlFormat(options.fromTime)
-    const toTime = toMysqlFormat(options.toTime)
+    const fromTime = dateToMysqlFormat(options.fromTime)
+    const toTime = dateToMysqlFormat(options.toTime)
     const interval = this.resolutionTypeToInverval(options.resolutionType)
     const statement = `
   SELECT m.symbol as sym, q1.bid AS bo,

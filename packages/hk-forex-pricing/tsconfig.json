@@ -9,7 +9,8 @@
         "rootDir": "src",
         "outDir": "dist",
         "lib": [ "es2015", "dom" ],
-        "skipLibCheck": true
+        "skipLibCheck": true,
+        "sourceMap": true
     },
     "include": ["src/**/*"],
     "exclude": ["dist", "node_modules"]

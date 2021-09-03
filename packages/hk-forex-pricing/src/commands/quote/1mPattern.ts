@@ -1,12 +1,12 @@
 import { Command, flags } from '@oclif/command'
-import { of, mergeMap, from, distinctUntilChanged } from 'rxjs'
+import { of, mergeMap, from, distinctUntilChanged, tap } from 'rxjs'
 import { PoolPlus } from 'mysql-plus'
 import { FxcmAdapter } from '../../PriceSourceAdapters/FxcmAdapter'
 import { SqlForexQuoteStore } from '../../Stores/SqlForexQuoteStore'
 import dotenv from 'dotenv'
 import { SqlForexCandleStore } from '../../Stores/SqlForexCandleStore'
 import { CandlePatternDetector } from '../../PatternDetectors/CandlePatternDetector'
-import { Doji, HammerPattern } from 'hk-technical-indicators'
+import { BearishHammerStick, Doji, HammerPattern, BearishInvertedHammerStick, BullishInvertedHammerStick, BullishHammerStick } from 'hk-technical-indicators'
 
 dotenv.config({ path: './env/.env.local' })
 
@@ -40,7 +40,11 @@ export default class QuoteTo1mPattern extends Command {
     const adapter = new FxcmAdapter()
     const patternDetector = new CandlePatternDetector([
       new Doji(),
-      new HammerPattern()
+      new HammerPattern(),
+      new BearishHammerStick(),
+      new BearishInvertedHammerStick(),
+      new BullishHammerStick(),
+      new BullishInvertedHammerStick()
     ], forexCandlesStore)
 
     const candleStickStream$ = of(forexQuoteStore.init()).pipe(
@@ -55,10 +59,11 @@ export default class QuoteTo1mPattern extends Command {
         return from(forexCandlesStore.getCandle({
           resolutionType: '1m',
           symbol: data.sym,
-          // toTime: new Date(data.sts),
+          toTime: new Date(data.sts),
         }))
       }),
-      distinctUntilChanged((previous, current) => (previous.bo === current.bo && previous.bh === current.bh && previous.bl === current.bl && previous.bc === current.bc))
+      distinctUntilChanged((previous, current) => (previous.bo === current.bo && previous.bh === current.bh && previous.bl === current.bl && previous.bc === current.bc)),
+      // tap((data) => console.log(data))
     )
 
     patternDetector.getOutputStream([candleStickStream$])

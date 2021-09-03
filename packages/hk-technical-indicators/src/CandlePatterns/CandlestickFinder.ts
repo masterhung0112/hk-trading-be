@@ -1,12 +1,37 @@
 import { CandleMultiStickReversedDto } from '../Models/CandleMultiStickReversedDto'
+import { resolutionTypeToSecond } from '../Utils'
 import { ICandlestickFinder } from './ICandlestickFinder'
+
+export interface CandlestickFinderArgs {
+    id: string
+    name: string
+    requiredBarNum: number
+    ignoreTimestamp?: boolean
+}
 
 export class CandlestickFinder implements ICandlestickFinder {
     
-    constructor(public id: string, public name: string, public requiredCount: number) {
+    constructor(protected clsArgs: CandlestickFinderArgs) {
         // if (new.target === Abstract) {
         //     throw new TypeError("Abstract class");
         // }
+    }
+
+    get id() { return this.clsArgs.id }
+    get name() { return this.clsArgs.id }
+    get requiredBarNum() { return this.clsArgs.requiredBarNum }
+
+    isTimeApplicable(data: CandleMultiStickReversedDto): boolean {
+        if (!this.clsArgs.ignoreTimestamp) {
+            const resolutionSecond = resolutionTypeToSecond(data.resolutionType)
+            const remainingFirst = Math.abs(resolutionSecond - data.sts[0]) 
+            const remainingLast = Math.abs(data.sts[0] - resolutionSecond)
+            // Only accept the tick of last 10 seconds
+            if (!(remainingFirst < 10 || remainingLast < 10)) {
+                return false
+            }
+        }
+        return true
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -15,8 +40,8 @@ export class CandlestickFinder implements ICandlestickFinder {
     }
 
     getAllPatternIndex(data: CandleMultiStickReversedDto) {
-        if (data.bc.length < this.requiredCount) {
-            console.warn('Data count less than data required for the strategy ', this.name)
+        if (data.bc.length < this.clsArgs.requiredBarNum) {
+            console.warn('Data count less than data required for the strategy ', this.clsArgs.name)
             return []
         }
         if (data.reversedInput) {
@@ -36,10 +61,16 @@ export class CandlestickFinder implements ICandlestickFinder {
 
     // Get only the last items from array and check if it has the corresponding pattern
     hasPattern(data: CandleMultiStickReversedDto): boolean {
-        if (data.bc.length < this.requiredCount) {
-            console.warn('Data count less than data required for the strategy ', this.name)
+        if (data.bc.length < this.clsArgs.requiredBarNum) {
+            console.warn('Data count less than data required for the strategy ', this.clsArgs.name)
             return false
         }
+
+        const isTimeOK = this.isTimeApplicable(data)
+        if (!isTimeOK) { 
+            return false
+        }
+
         if (data.reversedInput) {
             data.bo.reverse()
             data.bh.reverse()
@@ -51,7 +82,7 @@ export class CandlestickFinder implements ICandlestickFinder {
     }
 
     protected _getLastDataForCandleStick(data: CandleMultiStickReversedDto) {
-        const requiredCount = this.requiredCount
+        const requiredCount = this.clsArgs.requiredBarNum
         if (data.bc.length === requiredCount) {
             return data
         } else {
@@ -79,7 +110,7 @@ export class CandlestickFinder implements ICandlestickFinder {
     }
 
     protected _generateDataForCandleStick(data: CandleMultiStickReversedDto) {
-        const requiredCount = this.requiredCount
+        const requiredCount = this.clsArgs.requiredBarNum
         const generatedData = data.bc.map(function (currentData, index) {
             let i = 0
             const returnVal: CandleMultiStickReversedDto = {

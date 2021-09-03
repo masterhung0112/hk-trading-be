@@ -35,8 +35,9 @@ export class CandlePatternDetector {
                 combineLatestWith(from(this.forexCandlesStore.getCandles({
                   resolutionType: candleStickDto.resolutionType,
                   symbol: candleStickDto.sym,
-                  // toTime: new Date(candleStickDto.sts),
-                  num: finder.requiredCount
+                  fromTime: new Date(candleStickDto.sts - (finder.requiredBarNum * 60 * 1.9 * 1000)),
+                  toTime: new Date(candleStickDto.sts),
+                  num: finder.requiredBarNum
                 }))
               ))
             }))
@@ -49,7 +50,7 @@ export class CandlePatternDetector {
     return stream$.pipe(
       map(([finder, candles]) => {
         if (candles.bc.length > 0) {
-          if (candles.bc.length < finder.requiredCount) {
+          if (candles.bc.length < finder.requiredBarNum) {
             // Not enough candles for pattern detection
             return null
           } else if (finder.hasPattern(candles)) {
@@ -62,6 +63,8 @@ export class CandlePatternDetector {
               symbol: candles.sym,
             } as PatternRecognitionDto
           }
+        } else {
+          console.log('no candles')
         }
         return null
       })

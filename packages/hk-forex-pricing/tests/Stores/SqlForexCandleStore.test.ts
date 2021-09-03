@@ -15,10 +15,14 @@ describe('SqlForexCandleStore', () => {
 
   it('query OK', async () => {
       const num = 2
+      const dateNow = Date.now()
+      const nowTime = new Date(dateNow)
+      const fromTime = new Date(dateNow - (60 * 2 * 1000))
       const candles = await store.getCandles({
         resolutionType: '1m',
         symbol: 'FM:EURUSD',
-        // toTime: new Date(Date.now()),
+        fromTime: fromTime,
+        toTime: nowTime,
         num: num,
       })
 
@@ -30,6 +34,6 @@ describe('SqlForexCandleStore', () => {
       expect(candles.bl).toHaveLength(num)
       expect(candles.bc).toHaveLength(num)
 
-      console.log(candles)
+      console.log(fromTime, nowTime, candles)
   })
 })
