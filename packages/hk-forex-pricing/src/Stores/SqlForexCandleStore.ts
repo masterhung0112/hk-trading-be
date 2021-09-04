@@ -1,3 +1,4 @@
+import { resolutionTypeToSecond } from 'hk-technical-indicators'
 import { DataFrame } from 'hk-tf-node'
 import { IForexCandlesReadStore, CandleStickDTO, CandleMultiStickDto, ResolutionType } from 'hk-trading-contract'
 import { dateToMysqlFormat, MySQLTable, PoolPlus } from 'mysql-plus'
@@ -59,20 +60,43 @@ export class SqlForexCandleStore implements IForexCandlesReadStore {
   }
 
   async getCandles(options: { resolutionType: ResolutionType; symbol: string; fromTime?: Date; toTime?: Date; num?: number }): Promise<CandleMultiStickDto> {
+
+    if ((!options.fromTime || !options.toTime) && !options.num) {
+      throw new Error('fromTime or toTime must be available when options.num is not available')
+    }
+    const intervalSecond = resolutionTypeToSecond(options.resolutionType)
+
+    // Calculate fromTime to ToTime
+    if (options.num) {
+      const diffTime = options.num * intervalSecond * 1000
+
+      if (options.fromTime && !options.toTime) {
+        options.toTime = new Date(options.fromTime.getUTCMilliseconds() + diffTime)
+      }
+      if (!options.fromTime && options.toTime) {
+        options.fromTime = new Date(options.toTime.getUTCMilliseconds() - diffTime)
+      }
+    }
+        // UNIX_TIMESTAMP(m.min_time) * 1000 AS mintime,
+        // UNIX_TIMESTAMP(m.max_time) * 1000 AS maxtime
     const fromTime = dateToMysqlFormat(options.fromTime)
     const toTime = dateToMysqlFormat(options.toTime)
-    const interval = this.resolutionTypeToInverval(options.resolutionType)
+    // console.log(fromTime, ' | ', toTime)
     const statement = `
-    SELECT m.symbol as sym, q1.bid AS bo,
+    SELECT * FROM (
+      SELECT m.symbol as sym, q1.bid AS bo,
         q2.bid AS bc,
         m.low AS bl,
         m.high AS bh,
-        m.open_time as sts
-    FROM (SELECT symbol, MIN(start) AS min_time,
+        m.open_time AS sts,
+        UNIX_TIMESTAMP(m.min_time) * 1000 AS mintime,
+        UNIX_TIMESTAMP(m.max_time) * 1000 AS maxtime
+    FROM (SELECT symbol,
+        MIN(start) AS min_time,
         MAX(start) AS max_time,
         MIN(bid) AS low,
         MAX(bid) as high,
-        floor(UNIX_TIMESTAMP(start) / (60 * ${interval}))* (60 * ${interval}) * 1000 AS open_time
+        floor(UNIX_TIMESTAMP(start) / ${intervalSecond}) * ${intervalSecond} * 1000 AS open_time
     FROM mysqlplustest.forex_quote
     WHERE symbol = "${options.symbol}" ${fromTime ? `AND start >= "${fromTime}"` : ''} ${toTime ? `AND start <= "${toTime}"` : ''}
     GROUP BY symbol, open_time) m
@@ -80,12 +104,16 @@ export class SqlForexCandleStore implements IForexCandlesReadStore {
     JOIN mysqlplustest.forex_quote q2 ON m.max_time = q2.start
     ORDER BY open_time DESC
     ${options.num ? `LIMIT ${options.num}` : ''}
+    ) result ORDER BY sts ASC;
     `
+    // console.log('statement', statement)
     const result = await this._poolPlus.pquery(statement)
     if (result.length == 0) {
       return {
         sym: options.symbol,
         resolutionType: options.resolutionType,
+        firstStickSts: -1,
+        lastStickSts: -1,
         sts: [],
         bo: [],
         bh: [],
@@ -93,13 +121,16 @@ export class SqlForexCandleStore implements IForexCandlesReadStore {
         bc: []
       }
     }
-    const df = new DataFrame(result, {
-      columns: ['sym', 'bo', 'bc', 'bl', 'bh', 'sts']
-    })
+    const df = new DataFrame(result)
 
+
+    // const maxT =  df.column('maxtime').max()
+    console.log(df.column('mintime').values, df.column('maxtime').values)
     return {
       sym: options.symbol,
       resolutionType: options.resolutionType,
+      firstStickSts: Math.min(...df.column('mintime').values),
+      lastStickSts: Math.max(...df.column('maxtime').values),
       sts: df.column('sts').values,
       bo: df.column('bo').values as number[],
       bh: df.column('bh').values as number[],

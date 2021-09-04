@@ -17,7 +17,7 @@ describe('SqlForexCandleStore', () => {
       const num = 2
       const dateNow = Date.now()
       const nowTime = new Date(dateNow)
-      const fromTime = new Date(dateNow - (60 * 2 * 1000))
+      const fromTime = new Date(dateNow - (80 * 60 * 1000))
       const candles = await store.getCandles({
         resolutionType: '1m',
         symbol: 'FM:EURUSD',
@@ -33,7 +33,15 @@ describe('SqlForexCandleStore', () => {
       expect(candles.bh).toHaveLength(num)
       expect(candles.bl).toHaveLength(num)
       expect(candles.bc).toHaveLength(num)
+      // expect(candles.firstStickSts).toBeLessThan(candles.lastStickSts)
+      expect(candles.firstStickSts).toBeGreaterThan(candles.sts[0])
+      expect(candles.lastStickSts).toBeGreaterThan(candles.sts[1])
+      expect(candles.sts[0]).toBeLessThan(candles.sts[1])
 
-      console.log(fromTime, nowTime, candles)
+      console.log(fromTime, nowTime, {
+        ...candles,
+        firstStickSts: new Date(candles.firstStickSts),
+        lastStickSts: new Date(candles.lastStickSts)
+      })
   })
 })

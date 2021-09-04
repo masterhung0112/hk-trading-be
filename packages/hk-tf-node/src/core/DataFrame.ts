@@ -3,7 +3,7 @@ import { arrToObj, getColValues, getRowAndColValues, keyInObject, removeArr, thr
 import { ColumnType } from './ColumnType'
 import { DropArgs, IDataFrame } from './IDataFrame'
 import { indexLoc, IndexLocArgs } from './indexLoc'
-import { ILocArgs, INDframe, LocArgs } from './INDframe'
+import { ILocArgs, LocArgs } from './INDframe'
 import { NDframe } from './NDframe'
 import { Series } from './Series'
 
@@ -179,7 +179,7 @@ export class DataFrame extends NDframe implements IDataFrame {
         return df
     }
 
-    column(colName: string): INDframe {
+    column(colName: string): Series {
         if (!this.columns.includes(colName)) {
             throw new Error(`column ${colName} does not exist`)
         }

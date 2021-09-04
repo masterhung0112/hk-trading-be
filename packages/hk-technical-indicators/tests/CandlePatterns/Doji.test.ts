@@ -4,7 +4,9 @@ import { Doji } from '../../src/CandlePatterns/Doji'
 const input: CandleMultiStickReversedDto = {
     resolutionType: '1m',
     sym: 'test',
-    sts: [60 + 9],
+    firstStickSts: 0,
+    lastStickSts: 60 - 9,
+    sts: [60 - 9],
     bo: [30.10],
     bh: [32.10],
     bc: [30.13],
@@ -15,6 +17,8 @@ const input: CandleMultiStickReversedDto = {
 const inputDot: CandleMultiStickReversedDto = {
     resolutionType: '1m',
     sym: 'test',
+    firstStickSts: 0,
+    lastStickSts: 60 - 9,
     sts: [60 - 9],
     bo: [30.10],
     bh: [30.11],
@@ -38,12 +42,28 @@ describe('Doji', function () {
         const result = doji.hasPattern(inputDot)
         expect(result).toBe(true)
     })
-    it('Not doji when sts is greater than 10s', function () {
+    it('Doji when sts is is 4 minutes 59 second', function () {
+        const doji = new Doji()
+        const result = doji.hasPattern({
+            ...input,
+            sts: [60 * 5 - 1]
+        })
+        expect(result).toBe(true)
+    })
+    it('Doji when sts is 5 minutes 1 second', function () {
+        const doji = new Doji()
+        const result = doji.hasPattern({
+            ...input,
+            sts: [60 * 5 + 1]
+        })
+        expect(result).toBe(false)
+    })
+    it('Doji when sts is 50', function () {
         const doji = new Doji()
         const result = doji.hasPattern({
             ...input,
             sts: [50]
         })
-        expect(result).toBe(false)
+        expect(result).toBe(true)
     })
 })

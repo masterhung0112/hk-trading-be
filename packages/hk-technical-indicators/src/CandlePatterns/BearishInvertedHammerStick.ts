@@ -11,7 +11,7 @@ export class BearishInvertedHammerStick extends CandlestickFinder {
         })
     }
     
-    logic (data:CandleMultiStickReversedDto) {
+    logic (data: CandleMultiStickReversedDto) {
         const daysOpen  = data.bo[0]
         const daysClose = data.bc[0]
         const daysHigh  = data.bh[0]

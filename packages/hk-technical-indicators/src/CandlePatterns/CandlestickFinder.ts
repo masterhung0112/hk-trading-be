@@ -23,14 +23,20 @@ export class CandlestickFinder implements ICandlestickFinder {
 
     isTimeApplicable(data: CandleMultiStickReversedDto): boolean {
         if (!this.clsArgs.ignoreTimestamp) {
+            if (data.sts.length === 0) {
+                return false
+            }
             const resolutionSecond = resolutionTypeToSecond(data.resolutionType)
-            const remainingFirst = Math.abs(resolutionSecond - data.sts[0]) 
-            const remainingLast = Math.abs(data.sts[0] - resolutionSecond)
+            // const remainingFirst = Math.abs(resolutionSecond - data.sts[0]) 
+            const remainingLast = resolutionSecond - (data.lastStickSts % resolutionSecond)
+            // console.log('remainingLast', new Date(data.lastStickSts), remainingLast)
             // Only accept the tick of last 10 seconds
-            if (!(remainingFirst < 10 || remainingLast < 10)) {
+            // if (!(remainingFirst < 10 || remainingLast < 10)) {
+            if (remainingLast > 10) {
                 return false
             }
         }
+        console.log('t OK', new Date(data.lastStickSts))
         return true
     }
 
@@ -88,6 +94,8 @@ export class CandlestickFinder implements ICandlestickFinder {
         } else {
             const returnVal: CandleMultiStickReversedDto = {
                 resolutionType: data.resolutionType,
+                firstStickSts: -1,
+                lastStickSts: -1,
                 sym: data.sym,
                 sts: data.sts,
                 bo: [],
@@ -99,6 +107,8 @@ export class CandlestickFinder implements ICandlestickFinder {
             let i = 0
             const index = data.bc.length - requiredCount
             while (i < requiredCount) {
+                returnVal.firstStickSts = returnVal.firstStickSts < 0 ? data.firstStickSts : Math.min(data.firstStickSts, returnVal.firstStickSts)
+                returnVal.lastStickSts = returnVal.lastStickSts < 0 ? data.lastStickSts : Math.max(data.lastStickSts, returnVal.lastStickSts)
                 returnVal.bo.push(data.bo[index + i])
                 returnVal.bh.push(data.bh[index + i])
                 returnVal.bl.push(data.bl[index + i])
@@ -115,6 +125,8 @@ export class CandlestickFinder implements ICandlestickFinder {
             let i = 0
             const returnVal: CandleMultiStickReversedDto = {
                 resolutionType: data.resolutionType,
+                firstStickSts: -1,
+                lastStickSts: -1,
                 sym: data.sym,
                 sts: data.sts,
                 bo: [],
@@ -124,6 +136,8 @@ export class CandlestickFinder implements ICandlestickFinder {
                 reversedInput: data.reversedInput
             } 
             while (i < requiredCount) {
+                returnVal.firstStickSts = returnVal.firstStickSts < 0 ? data.firstStickSts : Math.min(data.firstStickSts, returnVal.firstStickSts)
+                returnVal.lastStickSts = returnVal.lastStickSts < 0 ? data.lastStickSts : Math.max(data.lastStickSts, returnVal.lastStickSts)
                 returnVal.bo.push(data.bo[index + i])
                 returnVal.bh.push(data.bh[index + i])
                 returnVal.bl.push(data.bl[index + i])

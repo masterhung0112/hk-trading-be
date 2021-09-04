@@ -1,3 +1,4 @@
+import { Series } from '.'
 import { ColumnType } from './ColumnType'
 import { ILocArgs, INDframe, LocArgs } from './INDframe'
 
@@ -41,7 +42,7 @@ export interface IDataFrame extends INDframe {
      * @params col_name: the name of a column in the database.
      * @returns tensor of shape 1
      */
-    column(colName: string): INDframe
+    column(colName: string): Series
 
     /**
      * Transpose index and columns.

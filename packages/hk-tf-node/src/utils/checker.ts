@@ -49,7 +49,7 @@ export function checker(arrVal: any[]) {
       }
 
       if (count == lim) {
-        //if atleast one string appears return string dtype
+        //if at least one string appears return string dtype
         const even = (element) => element == true
         if (stringTracker.some(even)) {
           dtypes = 'string'

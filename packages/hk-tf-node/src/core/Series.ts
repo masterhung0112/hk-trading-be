@@ -1,5 +1,5 @@
 import { config } from '../Config'
-import { convert2DTo1D, isObject, throwWrongParamsError } from '../utils'
+import { convert2DTo1D, isObject, throwStrDtypeError, throwWrongParamsError } from '../utils'
 import { ColumnType } from './ColumnType'
 import { indexLoc, IndexLocArgs } from './indexLoc'
 import { INDframe, ILocArgs, LocArgs } from './INDframe'
@@ -42,6 +42,16 @@ export class Series extends NDframe {
 
         const [newData, columns, rows] = indexLoc(this, indexLocArgs)
         return new Series(newData, { columns: columns, index: rows })
+    }
+
+    min(): number {
+        throwStrDtypeError(this, 'min')
+        return this.rowDataTensor.min().arraySync() as number
+    }
+
+    max(): number {
+        throwStrDtypeError(this, 'max')
+        return this.rowDataTensor.max().arraySync() as number
     }
 
     iloc(kwargs?: ILocArgs): INDframe {

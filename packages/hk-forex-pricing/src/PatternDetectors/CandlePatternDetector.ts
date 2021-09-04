@@ -61,10 +61,12 @@ export class CandlePatternDetector {
               resolutionType: candles.resolutionType,
               sts: candles.sts[0],
               symbol: candles.sym,
+              firstStickSts: candles.firstStickSts,
+              lastStickSts: candles.lastStickSts
             } as PatternRecognitionDto
           }
         } else {
-          console.log('no candles')
+          // console.log('no candles')
         }
         return null
       })

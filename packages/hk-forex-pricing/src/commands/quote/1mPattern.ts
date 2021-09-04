@@ -1,12 +1,12 @@
 import { Command, flags } from '@oclif/command'
-import { of, mergeMap, from, distinctUntilChanged, tap } from 'rxjs'
+import { of, mergeMap, from, distinctUntilChanged } from 'rxjs'
 import { PoolPlus } from 'mysql-plus'
 import { FxcmAdapter } from '../../PriceSourceAdapters/FxcmAdapter'
 import { SqlForexQuoteStore } from '../../Stores/SqlForexQuoteStore'
 import dotenv from 'dotenv'
 import { SqlForexCandleStore } from '../../Stores/SqlForexCandleStore'
 import { CandlePatternDetector } from '../../PatternDetectors/CandlePatternDetector'
-import { BearishHammerStick, Doji, HammerPattern, BearishInvertedHammerStick, BullishInvertedHammerStick, BullishHammerStick } from 'hk-technical-indicators'
+import { BearishHammerStick, Doji, HammerPattern, BearishInvertedHammerStick, BullishInvertedHammerStick, BullishHammerStick, BullishEngulfingPattern, BullishHarami, BullishHaramiCross, BullishMarubozu, BullishSpinningTop } from 'hk-technical-indicators'
 
 dotenv.config({ path: './env/.env.local' })
 
@@ -39,12 +39,17 @@ export default class QuoteTo1mPattern extends Command {
     const forexCandlesStore = new SqlForexCandleStore(poolPlus)
     const adapter = new FxcmAdapter()
     const patternDetector = new CandlePatternDetector([
+      new BearishHammerStick(),
+      new BullishInvertedHammerStick(),
+      new BullishEngulfingPattern(),
+      new BullishHammerStick(),
+      new BullishHarami(),
+      new BullishHaramiCross(),
+      new BearishInvertedHammerStick(),
+      new BullishMarubozu(),
+      new BullishSpinningTop(),
       new Doji(),
       new HammerPattern(),
-      new BearishHammerStick(),
-      new BearishInvertedHammerStick(),
-      new BullishHammerStick(),
-      new BullishInvertedHammerStick()
     ], forexCandlesStore)
 
     const candleStickStream$ = of(forexQuoteStore.init()).pipe(
@@ -72,7 +77,9 @@ export default class QuoteTo1mPattern extends Command {
           if (patternRecognitionDto) {
             console.log({
               ...patternRecognitionDto,
-              sts: new Date(patternRecognitionDto.sts)
+              sts: new Date(patternRecognitionDto.sts),
+              firstStickSts: new Date(patternRecognitionDto.firstStickSts),
+              lastStickSts: new Date(patternRecognitionDto.lastStickSts)
             })
           }
         },
