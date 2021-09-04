@@ -1,3 +1,5 @@
+
+export * from './arrToObj'
 export * from './checker'
 export * from './convert2DTo1D'
 export * from './getColValues'
@@ -11,4 +13,5 @@ export * from './keyInObject'
 export * from './range'
 export * from './removeArr'
 export * from './replaceUndefinedWithNaN'
+export * from './throwStrDtypeError'
 export * from './throwWrongParamsError'

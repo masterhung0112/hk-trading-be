@@ -2,6 +2,7 @@ import { CandleMultiStickReversedDto } from '../Models/CandleMultiStickReversedD
 
 export interface ICandlestickFinder {
   get name(): string
-  get requiredCount(): number
+  get id(): string
+  get requiredBarNum(): number
   hasPattern(data: CandleMultiStickReversedDto): boolean
 }

@@ -1,3 +1,4 @@
+import { Series } from '.'
 import { ColumnType } from './ColumnType'
 import { ILocArgs, INDframe, LocArgs } from './INDframe'
 
@@ -35,6 +36,20 @@ export interface IDataFrame extends INDframe {
      *
      */
     drop(kwargs: DropArgs)
+
+    /**
+     * Return a sequence of axis dimension along row and columns
+     * @params col_name: the name of a column in the database.
+     * @returns tensor of shape 1
+     */
+    column(colName: string): Series
+
+    /**
+     * Transpose index and columns.
+     * Reflect the DataFrame over its main diagonal by writing rows as columns and vice-versa.
+     * The property T is an accessor to the method transpose().
+     */
+    transpose(): IDataFrame
 
     /**
      * Purely label based indexing. Can accept string label names for both rows and columns

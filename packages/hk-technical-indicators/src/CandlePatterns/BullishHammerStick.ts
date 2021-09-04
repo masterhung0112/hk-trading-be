@@ -2,9 +2,13 @@ import { CandleMultiStickReversedDto } from '../Models/CandleMultiStickReversedD
 import { approximateEqual } from '../utils/approximateEqual'
 import { CandlestickFinder } from './CandlestickFinder'
 
-export default class BullishHammerStick extends CandlestickFinder {
+export class BullishHammerStick extends CandlestickFinder {
     constructor() {
-        super('BullishHammerStick', 1)
+        super({
+            id: 'bullishhammer', 
+            name: 'BullishHammerStick', 
+            requiredBarNum: 1
+        })
     }
     logic(data: CandleMultiStickReversedDto) {
         const daysOpen = data.bo[0]

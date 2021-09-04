@@ -7,9 +7,13 @@ import { hasBullishHammerStick } from './BullishHammerStick'
 import { hasBullishInvertedHammerStick } from './BullishInvertedHammerStick'
 import { CandlestickFinder } from './CandlestickFinder'
 
-export default class HammerPattern extends CandlestickFinder {
+export class HammerPattern extends CandlestickFinder {
     constructor() {
-        super('HammerPattern', 5)
+        super({
+            id: 'hammerpattern', 
+            name: 'HammerPattern', 
+            requiredBarNum: 5
+        })
     }
 
     logic(data: CandleMultiStickReversedDto) {
@@ -33,6 +37,8 @@ export default class HammerPattern extends CandlestickFinder {
         const end = confirm ? 4 : undefined
         const possibleHammerData: CandleMultiStickReversedDto = {
             resolutionType: data.resolutionType,
+            firstStickSts: data.firstStickSts,
+            lastStickSts: data.lastStickSts,
             sym: data.sym,
             sts: data.sts,
             bo: data.bo.slice(start, end),

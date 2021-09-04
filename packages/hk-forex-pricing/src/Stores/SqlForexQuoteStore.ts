@@ -1,5 +1,5 @@
 import { CandleQuoteDto, IForexQuoteReadStore, IForexQuoteWriteStore } from 'hk-trading-contract'
-import { MySQLTable, PoolPlus } from 'mysql-plus'
+import { dateToMysqlFormat, MySQLTable, PoolPlus } from 'mysql-plus'
 
 export class SqlForexQuoteStore implements IForexQuoteReadStore, IForexQuoteWriteStore {
   private forexQuoteTable: MySQLTable
@@ -21,7 +21,7 @@ export class SqlForexQuoteStore implements IForexQuoteReadStore, IForexQuoteWrit
 
   async saveTick(candle: CandleQuoteDto) {
     await this.forexQuoteTable.insert(
-      { symbol: candle.sym, start: new Date(candle.sts), bid: candle.b, ask: candle.a }
+      { symbol: candle.sym, start: dateToMysqlFormat(new Date(candle.sts)), bid: candle.b, ask: candle.a }
     )
   }
 
