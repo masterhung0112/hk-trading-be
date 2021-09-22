@@ -1,5 +1,5 @@
 {
-  "name": "hk-tf-node",
+  "name": "hk-pd",
   "version": "0.0.1",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -11,7 +11,10 @@
     "@types/jest": "^27.0.1",
     "jest": "^27.0.6",
     "@tensorflow/tfjs-node": "^3.9.0",
-    "table": "^6.7.1"
+    "table": "^6.7.1",
+    "typy": "^3.0.1",
+    "easy-table": "1.1.0",
+    "dayjs": "^1.8.12"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.15.0",

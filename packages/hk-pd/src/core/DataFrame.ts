@@ -2,19 +2,13 @@ import { tensor } from '@tensorflow/tfjs-node'
 import { arrToObj, getColValues, getRowAndColValues, keyInObject, removeArr, throwWrongParamsError } from '../utils'
 import { ColumnType } from './ColumnType'
 import { DropArgs, IDataFrame } from './IDataFrame'
+import { IDataFrameConfig } from './IDataFrameConfig'
 import { indexLoc, IndexLocArgs } from './indexLoc'
 import { ILocArgs, LocArgs } from './INDframe'
-import { NDframe } from './NDframe'
 import { Series } from './Series'
 
-export interface DataFrameArgs {
-    index?: ColumnType[]
-    columns?: ColumnType[]
-    dtypes?: string[]
-}
-
-export class DataFrame extends NDframe implements IDataFrame {
-    constructor(data, kwargs: DataFrameArgs = {}) {
+export class DataFrame<IndexT, ValueT> implements IDataFrame<IndexT, ValueT> {
+    constructor(data, kwargs: IDataFrameConfig = {}) {
         super(data, kwargs)
         this._setColumnProperty() //set column property on DataFrame Class for easy accessing using the format df['colname']
     }

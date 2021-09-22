@@ -32,6 +32,7 @@ module.exports = {
               'selector': 'typeLike',
               'format': ['PascalCase']
             }
-          ]
+          ],
+        '@typescript-eslint/ban-types': 0,
     }
 }
