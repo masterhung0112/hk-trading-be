@@ -1,5 +1,5 @@
 export class ArrayIterator<T> implements Iterator<T> {
-    index = 0
+    protected index = 0
 
     constructor(protected arr: T[]) {
 

@@ -1,4 +1,5 @@
-// Returns if a value is really a number
-export function isNumber(value: any) {
-    return typeof value === 'number' && isFinite(value)
+import t from 'typy'
+
+export function isNumber(v: any): v is number {
+    return t(v).isNumber
 }

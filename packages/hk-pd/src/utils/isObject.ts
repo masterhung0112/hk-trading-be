@@ -1,4 +1,7 @@
+import t from 'typy'
+import { isDate } from './isDate'
+
 // Returns if a value is an object
-export function isObject(value) {
-    return value && typeof value === 'object' && value.constructor && !('length' in value) //&& value.constructor.name === 'Object'
+export function isObject(v: any): boolean {
+    return t(v).isObject && !isDate(v)
 }

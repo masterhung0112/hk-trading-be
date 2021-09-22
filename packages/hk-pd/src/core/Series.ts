@@ -1,4 +1,3 @@
-import { ColumnType } from './ColumnType'
 import { EmptyIterable } from '../iterables/EmptyIterable'
 import { isFunction } from '../utils/isFunction'
 import { isArray } from '../utils/isArray'
@@ -6,37 +5,10 @@ import { CountIterable } from '../iterables/CountIterable'
 import { MultiIterable } from '../iterables/MultiTerable'
 import { ExtractElementIterable } from '../iterables/ExtractElementIterable'
 import Table from 'easy-table'
-
-export interface ISeriesConfig<IndexT, ValueT> {
-    values?: Iterable<ValueT>
-
-    index?: Iterable<IndexT>
-
-    pairs?: Iterable<[IndexT, ValueT]>
-
-    /***
-     * Set to true when the series has been baked into memory
-     * and does not need to be lazily evaluated.
-     */
-    baked?: boolean,
-}
-
-export interface SeriesArgs {
-    index?: ColumnType[]
-    columns?: ColumnType[]
-    dtypes?: string[]
-}
-
-interface ISeriesContent<IndexT, ValueT> {
-    index: Iterable<IndexT>
-    values: Iterable<ValueT>
-    pairs: Iterable<[IndexT, ValueT]>
-
-    //  Records if a series is baked into memory.
-    isBaked: boolean
-}
-
-export type SeriesConfigFn<IndexT, ValueT> = () => ISeriesConfig<IndexT, ValueT>
+import { ISeries } from './ISeries'
+import { ISeriesContent } from './ISeriesContent'
+import { SeriesConfigFn } from './SeriesConfigFn'
+import { ISeriesConfig } from './ISeriesConfig'
 
 /**
  * One-dimensional ndarray with axis labels (including time series).
@@ -47,7 +19,7 @@ export type SeriesConfigFn<IndexT, ValueT> = () => ISeriesConfig<IndexT, ValueT>
  *
  * @returns Series
  */
-export class Series<IndexT = number, ValueT = any> {
+export class Series<IndexT = number, ValueT = any> implements ISeries<IndexT, ValueT> {
     private static readonly _defaultEmptyIterable = new EmptyIterable();
     private static readonly _defaultCountIterable = new CountIterable();
 
@@ -158,19 +130,6 @@ export class Series<IndexT = number, ValueT = any> {
         return this.content.values[Symbol.iterator]()
     }
 
-    // loc(kwargs?: LocArgs): INDframe {
-    //     const paramsNeeded = ['rows']
-    //     throwWrongParamsError(kwargs, paramsNeeded)
-
-    //     const indexLocArgs: IndexLocArgs = {
-    //         ...kwargs,
-    //         type: 'loc'
-    //     }
-
-    //     const [newData, columns, rows] = indexLoc(this, indexLocArgs)
-    //     return new Series(newData, { columns: columns, index: rows })
-    // }
-
     min(): number {
         let min : number | undefined
 
@@ -214,19 +173,6 @@ export class Series<IndexT = number, ValueT = any> {
         }
         return max
     }
-
-    // iloc(kwargs?: ILocArgs): INDframe {
-    //     const paramsNeeded = ['rows']
-    //     throwWrongParamsError(kwargs, paramsNeeded)
-
-    //     const indexLocArgs: IndexLocArgs = {
-    //         ...kwargs,
-    //         type: 'iloc'
-    //     }
-
-    //     const [newData, columns, rows] = indexLoc(this, indexLocArgs)
-    //     return new Series(newData, { columns: columns, index: rows })
-    // }
 
     toPairs(): ([IndexT, ValueT])[] {
         const pairs = []
