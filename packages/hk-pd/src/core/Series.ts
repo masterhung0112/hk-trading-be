@@ -9,6 +9,11 @@ import { ISeries } from './ISeries'
 import { ISeriesContent } from './ISeriesContent'
 import { SeriesConfigFn } from './SeriesConfigFn'
 import { ISeriesConfig } from './ISeriesConfig'
+import { SelectorWithIndexFn } from './SelectorWithIndexFn'
+import { IDataFrame } from './IDataFrame'
+import { DataFrame } from '.'
+import { SelectIterable } from '../iterables/SelectIterable'
+import { PredicateFn } from './PredicateFn'
 
 /**
  * One-dimensional ndarray with axis labels (including time series).
@@ -183,6 +188,69 @@ export class Series<IndexT = number, ValueT = any> implements ISeries<IndexT, Va
         }
         return pairs
     }
+
+    inflate<ToT = ValueT>(selector?: SelectorWithIndexFn<ValueT, ToT>): IDataFrame<IndexT, ToT> {
+        if (selector) {
+            if (!isFunction(selector)) throw new Error('Expected \'selector\' parameter to Series.inflate to be a selector function.')
+            return new DataFrame<IndexT, ToT>(() => {
+                const content = this.content
+                return {
+                    values: new SelectIterable(content.values, selector),
+                    index: content.index,
+                    pairs: new SelectIterable(content.pairs, (pair: [IndexT, ValueT], index: number): [IndexT, ToT] => [pair[0], selector(pair[1], index)])
+                }
+            })
+        } else {
+            return new DataFrame<IndexT, ToT>(() => {
+                const content = this.content
+                return {
+                    values: <Iterable<ToT>> <any> content.values,
+                    index: content.index,
+                    pairs: <Iterable<[IndexT, ToT]>> <any> content.pairs
+                }
+            })
+        }
+    }
+
+    any(predicate?: PredicateFn<ValueT>): boolean {
+        if (predicate) {
+            if (!isFunction(predicate)) throw new Error("Expected 'predicate' parameter to 'Series.any' to be a function.")
+
+            for (const value of this) {
+                if (predicate(value)) {
+                    return true
+                }
+            }
+        } else {
+            // Just check if there is at least one item
+            const iterator = this[Symbol.iterator]()
+            return !iterator.next().done
+        }
+
+        return false
+    }
+
+    first(): ValueT {
+        for (const value of this) {
+            return value; // Only need the first value.
+        }
+
+        throw new Error("Series.first: No values in Series.")
+    }
+
+    last(): ValueT {
+        let lastValue = null;
+
+        for (const value of this) {
+            lastValue = value; // Throw away all values until we get to the last one.
+        }
+
+        if (lastValue === null) {
+            throw new Error("Series.last: No values in Series.");
+        }
+
+        return lastValue;
+    } 
 
     toString() {
         const header = ['__index__', '__value__']

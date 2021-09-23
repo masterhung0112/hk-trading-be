@@ -5,20 +5,30 @@ import { EmptyIterable } from '../iterables/EmptyIterable'
 import { ExtractElementIterable } from '../iterables/ExtractElementIterable'
 import { MultiIterable } from '../iterables/MultiTerable'
 import { SelectIterable } from '../iterables/SelectIterable'
+import { SelectManyIterable } from '../iterables/SelectManyIterable'
 import { TakeIterable } from '../iterables/TakeIterable'
 import { isArray } from '../utils/isArray'
 import { isFunction } from '../utils/isFunction'
 import { isNumber } from '../utils/isNumber'
 import { isObject } from '../utils/isObject'
 import { isString } from '../utils/isString'
+import { makeDistinct } from '../utils/makeDistinct'
 import { toMap } from '../utils/toMap'
+import { toMap2 } from '../utils/toMap2'
 import { DataFrameConfigFn } from './DataFrameConfigFn'
 import { IColumnConfig } from './IColumnConfig'
+import { IColumnGenSpec } from './IColumnGenSpec'
 import { IDataFrame } from './IDataFrame'
 import { IDataFrameConfig } from './IDataFrameConfig'
 import { IDataFrameContent } from './IDataFrameContent'
+import { IIndex } from './IIndex'
+import { Index } from './IndexT'
 import { ISeries } from './ISeries'
+import { PredicateFn } from './PredicateFn'
+import { SelectorFn } from './SelectorFn'
+import { SelectorWithIndexFn } from './SelectorWithIndexFn'
 import { Series } from './Series'
+import { SeriesSelectorFn } from './SeriesSelectorFn'
 
 export class DataFrame<IndexT, ValueT> implements IDataFrame<IndexT, ValueT> {
     private _configFn: DataFrameConfigFn<IndexT, ValueT> | null = null;
@@ -208,24 +218,28 @@ export class DataFrame<IndexT, ValueT> implements IDataFrame<IndexT, ValueT> {
     }
 
     private _lazyInit() {
-        if (this.content === null && this._configFn !== null) {
+        if (this.getContent() === null && this._configFn !== null) {
             this._content = DataFrame._initFromConfig(this._configFn())
         }
     }
 
-    get content() {
+    getContent() {
         this._lazyInit()
         return this._content
     }
 
+    getColumnNames(): string[] {
+        return Array.from(this.getContent().columnNames)
+    }
+
     [Symbol.iterator](): Iterator<any> {
-        return this.content.values[Symbol.iterator]()
+        return this.getContent().values[Symbol.iterator]()
     }
 
     count(): number {
         let total = 0
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        for (const value of this.content.values) {
+        for (const value of this.getContent().values) {
             ++total
         }
         return total
@@ -255,7 +269,7 @@ export class DataFrame<IndexT, ValueT> implements IDataFrame<IndexT, ValueT> {
         }
 
         return new DataFrame<IndexT, ValueT>(() => {
-            const content = this.content
+            const content = this.getContent()
             return {
                 columnNames: content.columnNames,
                 index: new TakeIterable(content.index, numRows),
@@ -265,18 +279,406 @@ export class DataFrame<IndexT, ValueT> implements IDataFrame<IndexT, ValueT> {
         })
     }
 
+    deflate<ToT = ValueT>(selector?: SelectorWithIndexFn<ValueT, ToT>): ISeries<IndexT, ToT> {
+        if (selector) {
+            if (!isFunction(selector)) throw new Error("Expected 'selector' parameter to 'DataFrame.deflate' function to be a selector function.")
+        }
+
+        return new Series<IndexT, ToT>(() => {
+            const content = this.getContent()
+            if (selector) {
+                return {
+                    index: content.index,
+                    values: new SelectIterable<ValueT, ToT>(content.values, selector),
+                    pairs: new SelectIterable<[IndexT, ValueT], [IndexT, ToT]>(content.pairs, (pair, index) => {
+                        return [
+                            pair[0],
+                            selector(pair[1], index)
+                        ];
+                    })
+                }
+            } else {
+                return {
+                    index: content.index,
+                    values: content.values as any as Iterable<ToT>,
+                    pairs: content.pairs as any as Iterable<[IndexT, ToT]>,
+                }
+            }
+        })
+    }
+
+    withIndex<NewIndexT>(newIndex: Iterable<NewIndexT> | SelectorFn<ValueT, NewIndexT>): IDataFrame<NewIndexT, ValueT> {
+        if (isFunction(newIndex)) {
+            return new DataFrame<NewIndexT, ValueT>(() => {
+                const content = this.getContent()
+                return {
+                    columnNames: content.columnNames,
+                    values: content.values,
+                    index: this.deflate(newIndex),
+                }
+            })
+        } else {
+            DataFrame._checkIterable(newIndex, 'newIndex')
+
+            return new DataFrame<NewIndexT, ValueT>(() => {
+                const content = this.getContent()
+                return {
+                    columnNames: content.columnNames,
+                    values: content.values,
+                    index: newIndex as Iterable<NewIndexT>,
+                }
+            })
+        }
+    }
+
+    resetIndex(): IDataFrame<number, ValueT> {
+        return new DataFrame<number, ValueT>(() => {
+            const content = this.getContent();
+            return {
+                columnNames: content.columnNames,
+                values: content.values,
+                // Strip the index.
+            };
+        });
+    }
+
+    cast<NewValueT>(): IDataFrame<IndexT, NewValueT> {
+        return this as any as IDataFrame<IndexT, NewValueT>
+    }
+
+    none(predicate?: PredicateFn<ValueT>): boolean {
+        if (predicate) {
+            if (!isFunction(predicate)) {
+                throw new Error('Expected \'predicate\' parameter to \'DataFrame.none\' to be a function.')
+            }
+        }
+        
+        if (predicate) {
+            // Use predicate to check each value
+            for (const value of this) {
+                if (predicate(value)) {
+                    return false
+                }
+            }
+        } else {
+            // just check if empty
+            const iterator = this[Symbol.iterator]()
+            return iterator.next().done || false
+        }
+
+        return true // nothing failed the predicate
+    }
+
+    getIndex(): IIndex<IndexT> {
+        return new Index<IndexT>(() => ({ values: this.getContent().index }))
+    }
+
+    setIndex<NewIndexT = any>(columnName: string): IDataFrame<NewIndexT, ValueT> {
+        if (!isString(columnName)) throw new Error("Expected 'columnName' parameter to 'DataFrame.setIndex' to be a string that specifies the name of the column to set as the index for the dataframe.");
+
+        return this.withIndex<NewIndexT>(this.getSeries(columnName));
+    }
+
+    withSeries<OutputValueT = any, SeriesValueT = any>(columnNameOrSpec: string | IColumnGenSpec, series?: ISeries<IndexT, SeriesValueT> | SeriesSelectorFn<IndexT, ValueT, SeriesValueT>): IDataFrame<IndexT, OutputValueT> {
+        if (!isObject(columnNameOrSpec)) {
+            if (!isString(columnNameOrSpec)) {
+                throw new Error('Expected \'columnNameOrSpec\' parameter to \'DataFrame.withSeries\' function to be a string that specifies the column to set or replace.')
+            }
+            if (!isFunction(series as Object)) {
+                if (!isObject(series)) {
+                    throw new Error('Expected \'series\' parameter to \'DataFrame.withSeries\' to be a Series object or a function that takes a dataframe and produces a Series.')
+                }
+            }
+        } else {
+            if (series !== undefined) {
+                throw new Error('Expected \'series\' parameter to \'DataFrame.withSeries\' to not be set when \'columnNameOrSpec is an object.')
+            }
+        }
+
+        if (isObject(columnNameOrSpec)) {
+            const columnSpec: IColumnGenSpec = <IColumnGenSpec> columnNameOrSpec
+            const columnNames = Object.keys(columnSpec)
+            // eslint-disable-next-line @typescript-eslint/no-this-alias
+            let workingDataFrame: IDataFrame<IndexT, ValueT> = this
+            for (const columnName of columnNames) {
+                workingDataFrame = workingDataFrame.withSeries(columnName, columnSpec[columnName])
+            }
+            return workingDataFrame.cast<OutputValueT>()
+        }
+
+        const columnName: string = <string> columnNameOrSpec
+
+        // We have an empty data frame
+        if (this.none()) {
+            let importSeries: ISeries<IndexT, SeriesValueT>
+
+            if (isFunction(series)) {
+                importSeries = (series! as SeriesSelectorFn<IndexT, ValueT, SeriesValueT>)(this)
+            } else {
+                importSeries = series! as ISeries<IndexT, SeriesValueT>
+            }
+
+            return importSeries.inflate<ValueT>(value => {
+                const row: any = {}
+                row[columnName] = value
+                return row
+            }).cast<OutputValueT>()
+        }
+
+        return new DataFrame<IndexT, OutputValueT>(() => {
+            let importSeries: ISeries<IndexT, SeriesValueT>
+            if (isFunction(series)) {
+                importSeries = (series! as SeriesSelectorFn<IndexT, ValueT, SeriesValueT>)(this)
+            } else {
+                importSeries = series! as ISeries<IndexT, SeriesValueT>
+            }
+
+            const seriesValueMap = toMap2(importSeries.toPairs(), pair => pair[0], pair => pair[1])
+            const newColumnNames = makeDistinct(this.getColumnNames().concat([columnName]))
+
+            return {
+                columnNames: newColumnNames,
+                index: this.getContent().index,
+                pairs: new SelectIterable<[IndexT, ValueT], [IndexT, OutputValueT]>(this.getContent().pairs, pair => {
+                    const index = pair[0]
+                    const value = pair[1]
+                    const modified: any = Object.assign({}, value)
+                    modified[columnName] = seriesValueMap.get(index)
+                    return [
+                        index,
+                        modified
+                    ]
+                })
+            }
+        })
+    }
+
     getSeries<SeriesValueT = any>(columnName: string): ISeries<IndexT, SeriesValueT> {
         if (!isString(columnName)) {
-            throw new Error('Expected \'columnName\' parameter to \'DataFrame.getSeries\' function to be a string that specifies the name of the column to retreive.')
+            throw new Error("Expected 'columnName' parameter to 'DataFrame.getSeries' function to be a string that specifies the name of the column to retreive.")
         }
 
         return new Series<IndexT, SeriesValueT>(() => ({
             values: new SelectIterable<ValueT, SeriesValueT>(
-                this.content.values,
+                this.getContent().values,
                 (row: any) => row[columnName]
             ),
-            index: this.content.index,
+            index: this.getContent().index,
         }))
+    }
+
+    dropSeries<NewValueT = ValueT>(columnOrColumns: string | string[]): IDataFrame<IndexT, NewValueT> {
+        if (!isArray(columnOrColumns)) {
+            if (!isString(columnOrColumns)) {
+                throw new Error("'DataFrame.dropSeries' expected either a string or an array or strings.")
+            }
+
+            columnOrColumns = [columnOrColumns as string]
+        }
+
+        return new DataFrame<IndexT, NewValueT>(() => {
+            const content = this.getContent()
+            const newColumnNames = []
+
+            for (const columnName of content.columnNames) {
+                if (columnOrColumns.indexOf(columnName) === -1) {
+                    newColumnNames.push(columnName)
+                }
+            }
+            return {
+                columnNames: newColumnNames,
+                index: content.index,
+                values: new SelectIterable<ValueT, NewValueT>(content.values, value => {
+                    const clone: any = Object.assign({}, value)
+                    for (const droppedColumnName of columnOrColumns) {
+                        delete clone[droppedColumnName]
+                    }
+                    return clone
+                }),
+                pairs: new SelectIterable<[IndexT, ValueT], [IndexT, NewValueT]>(content.pairs, pair => {
+                    const clone: any = Object.assign({}, pair[1])
+                    for (const droppedColumnName of columnOrColumns) {
+                        delete clone[droppedColumnName]
+                    }
+                    return [pair[0], clone]
+                })
+            }
+        })
+    }
+
+    hasSeries(columnName: string): boolean {
+        const columnNameLwr = columnName.toLowerCase()
+        for (const existingColumnName of this.getColumnNames()) {
+            if (existingColumnName.toLowerCase() == columnNameLwr) {
+                return true
+            }
+        }
+        return false
+    }
+
+    expectSeries<SeriesValueT> (columnName: string): ISeries<IndexT, SeriesValueT> {
+        if (!this.hasSeries(columnName)) {
+            throw new Error("Expected dataframe to contain series with column name: '" + columnName + "'.");
+        }
+
+        return this.getSeries(columnName);
+    }
+
+    ensureSeries<SeriesValueT> (columnNameOrSpec: string | IColumnGenSpec, series?: ISeries<IndexT, SeriesValueT> | SeriesSelectorFn<IndexT, ValueT, SeriesValueT>): IDataFrame<IndexT, ValueT> {
+        if (!isObject(columnNameOrSpec)) {
+            if (!isString(columnNameOrSpec)) throw new Error("Expected 'columnNameOrSpec' parameter to 'DataFrame.ensureSeries' function to be a string that specifies the column to set or replace.");
+            if (!isFunction(series as Object)) {
+                if (!isObject(series)) throw new Error("Expected 'series' parameter to 'DataFrame.ensureSeries' to be a Series object or a function that takes a dataframe and produces a Series.");
+            }
+        }
+        else {
+            if (series !== undefined) throw new Error("Expected 'series' parameter to 'DataFrame.ensureSeries' to not be set when 'columnNameOrSpec is an object.");
+        }
+
+        if (isObject(columnNameOrSpec)) {
+            const columnSpec: IColumnGenSpec = <IColumnGenSpec> columnNameOrSpec;
+            const columnNames = Object.keys(columnNameOrSpec);
+            let workingDataFrame = <IDataFrame<IndexT,any>> this;
+            for (const columnName of columnNames) {
+                workingDataFrame = workingDataFrame.ensureSeries(columnName, columnSpec[columnName]);
+            }
+
+            return workingDataFrame
+        }
+
+        const columnName: string = <string> columnNameOrSpec;
+        if (this.hasSeries(columnName)) {
+            return this; // Already have the series.
+        }
+        else {
+            return this.withSeries(columnName, series);
+        }
+    }
+
+    reorderSeries<NewValueT = ValueT>(columnNames: string[]): IDataFrame<IndexT, NewValueT> {
+        if (!isArray(columnNames)) throw new Error("Expected parameter 'columnNames' to 'DataFrame.reorderSeries' to be an array with column names.");
+
+        for (const columnName of columnNames) {
+            if (!isString(columnName)) throw new Error("Expected parameter 'columnNames' to 'DataFrame.reorderSeries' to be an array with column names.");
+        }
+
+        return new DataFrame<IndexT, NewValueT>(() => {
+            const content = this.getContent();
+            return {
+                columnNames: columnNames,
+                index: content.index,
+                values: new SelectIterable<ValueT, NewValueT>(content.values, (value: any) => {
+                    const output: any = {};
+                    for (const columnName of columnNames) {
+                        output[columnName] = value[columnName];
+                    }
+
+                    return <NewValueT> output;
+                }),
+                pairs:  new SelectIterable<[IndexT, ValueT], [IndexT, NewValueT]>(content.pairs, (pair: [IndexT, ValueT]) => {
+                    const value: any = <any> pair[1];
+                    const output: any = {};
+                    for (const columnName of columnNames) {
+                        output[columnName] = value[columnName];
+                    }
+
+                    return [pair[0], <NewValueT> output];
+                }),
+            };
+        });
+    }
+
+    static merge<MergedValueT = any, IndexT = any, ValueT = any>(dataFrames: Iterable<IDataFrame<IndexT, ValueT>>): IDataFrame<IndexT, MergedValueT> {
+        const rowMap = new Map<IndexT, any>()
+
+        for (const dataFrame of dataFrames) {
+            for (const pair of dataFrame.toPairs()) {
+                const index = pair[0]
+                if (!rowMap.has(index)) {
+                    const clone = Object.assign({}, pair[1])
+                    rowMap.set(index, clone)
+                } else {
+                    rowMap.set(index, Object.assign(rowMap.get(index), pair[1]))
+                }
+            }
+        }
+
+        const allColumnNames = Array.from(dataFrames)
+            .map(dataFrame => dataFrame.getColumnNames())
+            .reduce((prev, next) => prev.concat(next), [])
+        const newColumnNames = makeDistinct(allColumnNames)
+        const mergedPairs = Array.from(rowMap.keys()).map(index => [index, rowMap.get(index)])
+
+        mergedPairs.sort((a, b) => {
+            if (a[0] === b[0]) {
+                return 0
+            } else if (a[0] > b[0]) {
+                return 1
+            } else {
+                return -1
+            }
+        })
+
+        return new DataFrame<IndexT, MergedValueT>({
+            columnNames: newColumnNames,
+            pairs: mergedPairs as [IndexT, MergedValueT][]
+        })
+    }
+
+    merge<MergedValueT = ValueT>(...otherDataFrames: IDataFrame<IndexT, any>[]): IDataFrame<IndexT, MergedValueT> {
+        return DataFrame.merge<MergedValueT, IndexT, any>([this as IDataFrame<IndexT, ValueT>].concat(otherDataFrames));
+    }
+
+    toArray(): ValueT[] {
+        const values = [];
+        for (const value of this.getContent().values) {
+            if (value !== undefined && value !== null) {
+                values.push(value);
+            }
+        }
+        return values;
+    }
+
+    toPairs(): ([IndexT, ValueT])[] {
+        const pairs = [];
+        for (const pair of this.getContent().pairs) {
+            if (pair[1] != undefined && pair[1] !== null) {
+                pairs.push(pair);
+            }
+        }
+        return pairs;
+    }
+
+    select<ToT>(selector: SelectorWithIndexFn<ValueT, ToT>): IDataFrame<IndexT, ToT> {
+        if (!isFunction(selector)) throw new Error("Expected 'selector' parameter to 'DataFrame.select' function to be a function.");
+
+        return new DataFrame(() => {
+            const content = this.getContent();
+            return {
+                values: new SelectIterable<ValueT, ToT>(content.values, selector),
+                index: content.index,    
+            };
+        });
+    }
+
+    selectMany<ToT>(selector: SelectorWithIndexFn<ValueT, Iterable<ToT>>): IDataFrame<IndexT, ToT> {
+        if (!isFunction(selector)) throw new Error("Expected 'selector' parameter to 'DataFrame.selectMany' to be a function.");
+
+        return new DataFrame(() => ({
+            pairs: new SelectManyIterable(
+                this.getContent().pairs, 
+                (pair: [IndexT, ValueT], index: number): Iterable<[IndexT, ToT]> => {
+                    const outputPairs: [IndexT, ToT][] = [];
+                    for (const transformed of selector(pair[1], index)) {
+                        outputPairs.push([
+                            pair[0],
+                            transformed
+                        ]);
+                    }
+                    return outputPairs;
+                }
+            )
+        }));
     }
 
 //     drop(kwargs: DropArgs) {

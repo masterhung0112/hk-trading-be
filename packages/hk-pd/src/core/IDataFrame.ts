@@ -1,4 +1,9 @@
 import { ISeries } from './ISeries'
+import { IColumnGenSpec } from './IColumnGenSpec'
+import { SeriesSelectorFn } from './SeriesSelectorFn'
+import { PredicateFn } from './PredicateFn'
+import { SelectorFn } from './SelectorFn'
+import { SelectorWithIndexFn } from './SelectorWithIndexFn'
 
 /**
  * A 2D frame object that stores data in structured tabular format
@@ -12,6 +17,10 @@ import { ISeries } from './ISeries'
 export interface IDataFrame<IndexT = any, ValueT = any> extends Iterable<ValueT> {
     [Symbol.iterator](): Iterator<ValueT>
 
+    getColumnNames(): string[]
+
+    cast<NewValueT>(): IDataFrame<IndexT, NewValueT>
+    
     /**
      * Prints the first n values in a dataframe
      * @param {rows}  rows --> int
@@ -19,16 +28,11 @@ export interface IDataFrame<IndexT = any, ValueT = any> extends Iterable<ValueT>
      */
     head(numValues?: number): IDataFrame<IndexT, ValueT>
 
-    /**
-     * Drop a list of rows or columns base on the specified axis
-     * @param {Object} kwargs Configuration object
-     *             {columns: [Array(Columns| Index)] array of column names to drop
-     *              axis: row=0, columns=1
-     *             inplace: specify whether to drop the row/column with/without creating a new DataFrame}
-     * @returns null | DataFrame
-     *
-     */
-    // drop(kwargs: DropArgs)
+    none(predicate?: PredicateFn<ValueT>): boolean
+
+    setIndex<NewIndexT = any>(columnName: string): IDataFrame<NewIndexT, ValueT>
+    withIndex<NewIndexT>(newIndex: Iterable<NewIndexT> | SelectorFn<ValueT, NewIndexT>): IDataFrame<NewIndexT, ValueT>
+    resetIndex(): IDataFrame<number, ValueT>
 
     /**
      * Return a sequence of axis dimension along row and columns
@@ -36,6 +40,24 @@ export interface IDataFrame<IndexT = any, ValueT = any> extends Iterable<ValueT>
      * @returns tensor of shape 1
      */
     getSeries<SeriesValueT = any>(columnName: string): ISeries<IndexT, SeriesValueT>
+
+    withSeries<OutputValueT = any, SeriesValueT = any>(columnNameOrSpec: string | IColumnGenSpec, series?: ISeries<IndexT, SeriesValueT> | SeriesSelectorFn<IndexT, ValueT, SeriesValueT>): IDataFrame<IndexT, OutputValueT>
+
+    hasSeries(columnName: string): boolean
+
+    dropSeries<NewValueT = ValueT>(columnOrColumns: string | string[]): IDataFrame<IndexT, NewValueT>
+    
+    expectSeries<SeriesValueT> (columnName: string): ISeries<IndexT, SeriesValueT>
+    ensureSeries<SeriesValueT> (columnNameOrSpec: string | IColumnGenSpec, series?: ISeries<IndexT, SeriesValueT> | SeriesSelectorFn<IndexT, ValueT, SeriesValueT>): IDataFrame<IndexT, ValueT>
+    reorderSeries<NewValueT = ValueT>(columnNames: string[]): IDataFrame<IndexT, NewValueT>
+
+    merge<MergedValueT = ValueT>(...otherDataFrames: IDataFrame<IndexT, any>[]): IDataFrame<IndexT, MergedValueT>
+
+    select<ToT>(selector: SelectorWithIndexFn<ValueT, ToT>): IDataFrame<IndexT, ToT>
+    selectMany<ToT>(selector: SelectorWithIndexFn<ValueT, Iterable<ToT>>): IDataFrame<IndexT, ToT>
+    
+    toArray(): ValueT[]
+    toPairs (): ([IndexT, ValueT])[]
 
     /**
      * Transpose index and columns.
