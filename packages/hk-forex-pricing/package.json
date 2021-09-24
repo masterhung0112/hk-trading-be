@@ -24,7 +24,7 @@
     "@oclif/config": "^1",
     "@oclif/plugin-help": "^3",
     "dotenv": "^10.0.0",
-    "hk-tf-node": "^0.0.1"
+    "hk-pd": "^0.0.1"
   },
   "devDependencies": {
     "@oclif/dev-cli": "^1",

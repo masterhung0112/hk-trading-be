@@ -68,7 +68,13 @@ export interface IDataFrame<IndexT = any, ValueT = any> extends Iterable<ValueT>
     orderBy<SortT> (selector: SelectorWithIndexFn<ValueT, SortT>): IOrderedDataFrame<IndexT, ValueT, SortT>
 
     first(): ValueT
-    last(): ValueT 
+    last(): ValueT
+
+    concat (...dataframes: (IDataFrame<IndexT, ValueT>[] | IDataFrame<IndexT, ValueT>)[]): IDataFrame<IndexT, ValueT>
+    insertPair(pair: [IndexT, ValueT]): IDataFrame<IndexT, ValueT>
+    appendPair(pair: [IndexT, ValueT]): IDataFrame<IndexT, ValueT>
+
+    window (period: number): ISeries<number, IDataFrame<IndexT, ValueT>>
 
     toArray(): ValueT[]
     toPairs(): ([IndexT, ValueT])[]

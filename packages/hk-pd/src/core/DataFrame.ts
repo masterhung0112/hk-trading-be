@@ -1,6 +1,9 @@
 import { ColumnNamesIterable } from '../iterables/ColumnNamesIterable'
+import { ConcatIterable } from '../iterables/ConcatIterable'
 import { CountIterable } from '../iterables/CountIterable'
 import { CsvRowsIterable } from '../iterables/CsvRowsIterable'
+import { DataFrameRollingWindowIterable } from '../iterables/DataFrameRollingWindowIterable'
+import { DataFrameWindowIterable } from '../iterables/DataFrameWindowIterable'
 import { EmptyIterable } from '../iterables/EmptyIterable'
 import { ExtractElementIterable } from '../iterables/ExtractElementIterable'
 import { MultiIterable } from '../iterables/MultiTerable'
@@ -821,6 +824,85 @@ export class DataFrame<IndexT, ValueT> implements IDataFrame<IndexT, ValueT> {
             selector: selector,
             direction: Direction.Ascending,
             parent: null,
+        })
+    }
+
+    insertPair(pair: [IndexT, ValueT]): IDataFrame<IndexT, ValueT> {
+        if (!isArray(pair)) throw new Error('Expected \'pair\' parameter to \'DataFrame.insertPair\' to be an array.')
+        if (pair.length !== 2) throw new Error('Expected \'pair\' parameter to \'DataFrame.insertPair\' to be an array with two elements. The first element is the index, the second is the value.')
+
+        return (new DataFrame<IndexT, ValueT>(({
+            pairs: [pair]
+        }))).concat(this)
+    }
+
+    appendPair(pair: [IndexT, ValueT]): IDataFrame<IndexT, ValueT> {
+        if (!isArray(pair)) throw new Error('Expected \'pair\' parameter to \'DataFrame.appendPair\' to be an array.')
+        if (pair.length !== 2) throw new Error('Expected \'pair\' parameter to \'DataFrame.appendPair\' to be an array with two elements. The first element is the index, the second is the value.')
+
+        return this.concat(new DataFrame<IndexT, ValueT>({ pairs: [pair] }))
+    }
+
+    static concat<IndexT = any, ValueT = any> (dataframes: IDataFrame<IndexT, ValueT>[]): IDataFrame<IndexT, ValueT > {
+        if (!isArray(dataframes)) throw new Error('Expected \'dataframes\' parameter to \'DataFrame.concat\' to be an array of dataframes.')
+
+        return new DataFrame(() => {
+            const upcast = <DataFrame<IndexT, ValueT>[]> dataframes
+            const contents = upcast.map(dataframe => dataframe.getContent())
+
+            let columnNames: string[] = []
+            for (const content of contents) {
+                for (const columnName of content.columnNames) {
+                    columnNames.push(columnName)
+                }
+            }
+
+            columnNames = makeDistinct(columnNames)
+
+            return {
+                columnNames: columnNames,
+                values: new ConcatIterable(contents.map(content => content.values)),
+                pairs: new ConcatIterable(contents.map(content => content.pairs)),
+            }
+        })
+    }
+
+    concat(...dataframes: (IDataFrame<IndexT, ValueT>[] | IDataFrame<IndexT, ValueT>)[]): IDataFrame<IndexT, ValueT> {
+        const concatInput: IDataFrame<IndexT, ValueT>[] = [this]
+
+        for (const input of dataframes) {
+            if (isArray(input)) {
+                for (const subInput of input) {
+                    concatInput.push(subInput)
+                }
+            } else {
+                concatInput.push(input)
+            }
+        }
+
+        return DataFrame.concat<IndexT, ValueT>(concatInput)
+    }
+
+    window(period: number): ISeries<number, IDataFrame<IndexT, ValueT>> {
+        if (!isNumber(period)) throw new Error('Expected \'period\' parameter to \'DataFrame.window\' to be a number.')
+
+        return new Series<number, IDataFrame<IndexT, ValueT>>(() => {
+            const content = this.getContent()
+
+            return {
+                values: new DataFrameWindowIterable<IndexT, ValueT>(content.columnNames, content.pairs, period)
+            }
+        })
+    }
+
+    rollingWindow(period: number): ISeries<number, IDataFrame<IndexT, ValueT>> {
+        if (!isNumber(period)) throw new Error('Expected \'period\' parameter to \'DataFrame.rollingWindow\' to be a number.')
+
+        return new Series<number, IDataFrame<IndexT, ValueT>>(() => {
+            const content = this.getContent()
+            return {
+                values: new DataFrameRollingWindowIterable<IndexT, ValueT>(content.columnNames, content.pairs, period)
+            }            
         })
     }
 

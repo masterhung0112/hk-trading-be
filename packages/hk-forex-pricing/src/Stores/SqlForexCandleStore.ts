@@ -1,5 +1,5 @@
 import { resolutionTypeToSecond } from 'hk-technical-indicators'
-import { DataFrame } from 'hk-tf-node'
+import { DataFrame } from 'hk-pd'
 import { IForexCandlesReadStore, CandleStickDTO, CandleMultiStickDto, ResolutionType } from 'hk-trading-contract'
 import { dateToMysqlFormat, MySQLTable, PoolPlus } from 'mysql-plus'
 
