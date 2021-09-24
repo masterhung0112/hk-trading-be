@@ -4,6 +4,8 @@ import { SeriesSelectorFn } from './SeriesSelectorFn'
 import { PredicateFn } from './PredicateFn'
 import { SelectorFn } from './SelectorFn'
 import { SelectorWithIndexFn } from './SelectorWithIndexFn'
+import { IMultiColumnAggregatorSpec } from './IColumnAggregatorSpec'
+import { IOrderedDataFrame } from './IOrderedDataFrame'
 
 /**
  * A 2D frame object that stores data in structured tabular format
@@ -56,8 +58,20 @@ export interface IDataFrame<IndexT = any, ValueT = any> extends Iterable<ValueT>
     select<ToT>(selector: SelectorWithIndexFn<ValueT, ToT>): IDataFrame<IndexT, ToT>
     selectMany<ToT>(selector: SelectorWithIndexFn<ValueT, Iterable<ToT>>): IDataFrame<IndexT, ToT>
     
+    pivot<NewValueT = ValueT> (
+        columnOrColumns: string | Iterable<string>, 
+        valueColumnNameOrSpec: string | IMultiColumnAggregatorSpec, 
+        aggregator?: (values: ISeries<number, any>) => any
+            ): IDataFrame<number, NewValueT>
+
+    groupBy<GroupT> (selector: SelectorWithIndexFn<ValueT, GroupT>): ISeries<number, IDataFrame<IndexT, ValueT>>
+    orderBy<SortT> (selector: SelectorWithIndexFn<ValueT, SortT>): IOrderedDataFrame<IndexT, ValueT, SortT>
+
+    first(): ValueT
+    last(): ValueT 
+
     toArray(): ValueT[]
-    toPairs (): ([IndexT, ValueT])[]
+    toPairs(): ([IndexT, ValueT])[]
 
     /**
      * Transpose index and columns.

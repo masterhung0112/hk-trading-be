@@ -10,4 +10,6 @@ export interface ISeries<IndexT = number, ValueT = any> extends Iterable<ValueT>
     any(predicate?: PredicateFn<ValueT>): boolean
     first (): ValueT
     last(): ValueT
+    select<ToT> (selector: SelectorWithIndexFn<ValueT, ToT>): ISeries<IndexT, ToT>
+    selectMany<ToT> (selector: SelectorWithIndexFn<ValueT, Iterable<ToT>>): ISeries<IndexT, ToT>
 }

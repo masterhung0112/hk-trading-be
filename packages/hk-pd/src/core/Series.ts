@@ -14,6 +14,7 @@ import { IDataFrame } from './IDataFrame'
 import { DataFrame } from '.'
 import { SelectIterable } from '../iterables/SelectIterable'
 import { PredicateFn } from './PredicateFn'
+import { SelectManyIterable } from '../iterables/SelectManyIterable'
 
 /**
  * One-dimensional ndarray with axis labels (including time series).
@@ -214,7 +215,7 @@ export class Series<IndexT = number, ValueT = any> implements ISeries<IndexT, Va
 
     any(predicate?: PredicateFn<ValueT>): boolean {
         if (predicate) {
-            if (!isFunction(predicate)) throw new Error("Expected 'predicate' parameter to 'Series.any' to be a function.")
+            if (!isFunction(predicate)) throw new Error('Expected \'predicate\' parameter to \'Series.any\' to be a function.')
 
             for (const value of this) {
                 if (predicate(value)) {
@@ -232,25 +233,54 @@ export class Series<IndexT = number, ValueT = any> implements ISeries<IndexT, Va
 
     first(): ValueT {
         for (const value of this) {
-            return value; // Only need the first value.
+            return value // Only need the first value.
         }
 
-        throw new Error("Series.first: No values in Series.")
+        throw new Error('Series.first: No values in Series.')
     }
 
     last(): ValueT {
-        let lastValue = null;
+        let lastValue = null
 
         for (const value of this) {
-            lastValue = value; // Throw away all values until we get to the last one.
+            lastValue = value // Throw away all values until we get to the last one.
         }
 
         if (lastValue === null) {
-            throw new Error("Series.last: No values in Series.");
+            throw new Error('Series.last: No values in Series.')
         }
 
-        return lastValue;
-    } 
+        return lastValue
+    }
+
+    select<ToT>(selector: SelectorWithIndexFn<ValueT, ToT>): ISeries<IndexT, ToT> {
+        if (!isFunction(selector)) throw new Error('Expected \'selector\' parameter to \'Series.select\' function to be a function.')
+
+        return new Series(() => ({
+            values: new SelectIterable(this.content.values, selector),
+            index: this.content.index,
+        }))
+    }
+
+    selectMany<ToT> (selector: SelectorWithIndexFn<ValueT, Iterable<ToT>>): ISeries<IndexT, ToT> {
+        if (!isFunction(selector)) throw new Error('Expected \'selector\' parameter to \'Series.selectMany\' to be a function.')
+
+        return new Series(() => ({
+            pairs: new SelectManyIterable(
+                this.content.pairs,
+                (pair: [IndexT, ValueT], index: number): Iterable<[IndexT, ToT]> => {
+                    const outputPairs: [IndexT, ToT][] = []
+                    for (const transformed of selector(pair[1], index)) {
+                        outputPairs.push([
+                            pair[0],
+                            transformed
+                        ])
+                    }
+                    return outputPairs
+                }
+            )
+        }))
+    }
 
     toString() {
         const header = ['__index__', '__value__']

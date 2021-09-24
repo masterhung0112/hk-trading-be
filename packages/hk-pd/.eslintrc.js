@@ -31,6 +31,10 @@ module.exports = {
             {
               'selector': 'typeLike',
               'format': ['PascalCase']
+            },
+            {
+              'selector': 'enumMember',
+              'format': ['PascalCase']
             }
           ],
         '@typescript-eslint/ban-types': 0,
