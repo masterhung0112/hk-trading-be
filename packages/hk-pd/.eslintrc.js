@@ -38,5 +38,6 @@ module.exports = {
             }
           ],
         '@typescript-eslint/ban-types': 0,
+        '@typescript-eslint/no-this-alias': 0,
     }
 }

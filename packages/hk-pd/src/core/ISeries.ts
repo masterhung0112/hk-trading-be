@@ -12,4 +12,10 @@ export interface ISeries<IndexT = number, ValueT = any> extends Iterable<ValueT>
     last(): ValueT
     select<ToT> (selector: SelectorWithIndexFn<ValueT, ToT>): ISeries<IndexT, ToT>
     selectMany<ToT> (selector: SelectorWithIndexFn<ValueT, Iterable<ToT>>): ISeries<IndexT, ToT>
+    parseInts(): ISeries<IndexT, number>
+    parseFloats(): ISeries<IndexT, number>
+    parseDates(formatString?: string): ISeries<IndexT, Date>
+    toStrings(formatString?: string): ISeries<IndexT, string>
+    bake(): ISeries<IndexT, ValueT>
+    toArray(): any[]
 }

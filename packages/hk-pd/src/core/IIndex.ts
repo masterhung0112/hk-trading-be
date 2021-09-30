@@ -1,4 +1,4 @@
-import { ISeries } from "./ISeries";
+import { ISeries } from './ISeries'
 
 export type IIndexPredicateFn = (value: any, against: any) => boolean
 

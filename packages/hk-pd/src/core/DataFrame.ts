@@ -9,7 +9,9 @@ import { ExtractElementIterable } from '../iterables/ExtractElementIterable'
 import { MultiIterable } from '../iterables/MultiTerable'
 import { SelectIterable } from '../iterables/SelectIterable'
 import { SelectManyIterable } from '../iterables/SelectManyIterable'
+import { SkipWhileIterable } from '../iterables/SkipWhileIterable'
 import { TakeIterable } from '../iterables/TakeIterable'
+import { TakeWhileIterable } from '../iterables/TakeWhileIterable'
 import { isArray } from '../utils/isArray'
 import { isFunction } from '../utils/isFunction'
 import { isNumber } from '../utils/isNumber'
@@ -26,6 +28,7 @@ import { IColumnGenSpec } from './IColumnGenSpec'
 import { IDataFrame } from './IDataFrame'
 import { IDataFrameConfig } from './IDataFrameConfig'
 import { IDataFrameContent } from './IDataFrameContent'
+import { IFormatSpec } from './IFormatSpec'
 import { IIndex } from './IIndex'
 import { Index } from './IndexT'
 import { IOrderedDataFrame } from './IOrderedDataFrame'
@@ -386,19 +389,69 @@ export class DataFrame<IndexT, ValueT> implements IDataFrame<IndexT, ValueT> {
         return this.withIndex<NewIndexT>(this.getSeries(columnName))
     }
 
+    startAt(indexValue: IndexT): IDataFrame<IndexT, ValueT> {
+        return new DataFrame<IndexT, ValueT>(() => {
+            const content = this.getContent()
+            const lessThan = this.getIndex().getLessThan()
+            return {
+                columnNames: content.columnNames,
+                index: new SkipWhileIterable(content.index, index => lessThan(index, indexValue)),
+                pairs: new SkipWhileIterable(content.pairs, pair => lessThan(pair[0], indexValue))
+            }
+        })
+    }
+
+    endAt(indexValue: IndexT): IDataFrame<IndexT, ValueT> {
+        return new DataFrame<IndexT, ValueT>(() => {
+            const content = this.getContent()
+            const lessThanOrEqualTo = this.getIndex().getLessThanOrEqualTo()
+            return {
+                columnNames: content.columnNames,
+                index: new TakeWhileIterable(content.index, index => lessThanOrEqualTo(index, indexValue)),
+                pairs: new TakeWhileIterable(content.pairs, pair => lessThanOrEqualTo(pair[0], indexValue)),
+            }
+        })
+    }
+
+    before(indexValue: IndexT): IDataFrame<IndexT, ValueT> {
+        return new DataFrame<IndexT, ValueT>(() => {
+            const content = this.getContent()
+            const lessThan = this.getIndex().getLessThan()
+            return {
+                columnNames: content.columnNames,
+                index: new TakeWhileIterable(content.index, index => lessThan(index, indexValue)),
+                pairs: new TakeWhileIterable(content.pairs, pair => lessThan(pair[0], indexValue)),
+            }
+        })
+    }
+
+    after(indexValue: IndexT): IDataFrame<IndexT, ValueT> {
+        return new DataFrame<IndexT, ValueT>(() => {
+            const content = this.getContent()
+            const lessThanOrEqualTo = this.getIndex().getLessThanOrEqualTo()
+            return {
+                columnNames: content.columnNames,
+                index: new SkipWhileIterable(content.index, index => lessThanOrEqualTo(index, indexValue)),
+                pairs: new SkipWhileIterable(content.pairs, pair => lessThanOrEqualTo(pair[0], indexValue)),
+            }
+        })
+    }
+
+    between(startIndexValue: IndexT, endIndexValue: IndexT): IDataFrame<IndexT, ValueT> {
+        return this.startAt(startIndexValue).endAt(endIndexValue)
+    }
+
     withSeries<OutputValueT = any, SeriesValueT = any>(columnNameOrSpec: string | IColumnGenSpec, series?: ISeries<IndexT, SeriesValueT> | SeriesSelectorFn<IndexT, ValueT, SeriesValueT>): IDataFrame<IndexT, OutputValueT> {
-        if (!isObject(columnNameOrSpec)) {
+        if (isObject(columnNameOrSpec)) {
+            if (series !== undefined) {
+                throw new Error('Expected \'series\' parameter to \'DataFrame.withSeries\' to not be set when \'columnNameOrSpec is an object.')
+            }
+        } else {
             if (!isString(columnNameOrSpec)) {
                 throw new Error('Expected \'columnNameOrSpec\' parameter to \'DataFrame.withSeries\' function to be a string that specifies the column to set or replace.')
             }
-            if (!isFunction(series as Object)) {
-                if (!isObject(series)) {
-                    throw new Error('Expected \'series\' parameter to \'DataFrame.withSeries\' to be a Series object or a function that takes a dataframe and produces a Series.')
-                }
-            }
-        } else {
-            if (series !== undefined) {
-                throw new Error('Expected \'series\' parameter to \'DataFrame.withSeries\' to not be set when \'columnNameOrSpec is an object.')
+            if (!isFunction(series as Object) && !isObject(series)) {
+                throw new Error('Expected \'series\' parameter to \'DataFrame.withSeries\' to be a Series object or a function that takes a dataframe and produces a Series.')
             }
         }
 
@@ -926,7 +979,98 @@ export class DataFrame<IndexT, ValueT> implements IDataFrame<IndexT, ValueT> {
         }
 
         return lastValue
-    } 
+    }
+
+    parseInts(columnNameOrNames: string | string[]): IDataFrame<IndexT, ValueT> {
+        if (isArray(columnNameOrNames)) {
+            // eslint-disable-next-line @typescript-eslint/no-this-alias
+            let working: IDataFrame<IndexT, ValueT> = this
+            for (const columnName of columnNameOrNames) {
+                working = working.parseInts(columnName)
+            }
+            
+            return working
+        } else {
+            return this.withSeries(columnNameOrNames, this.getSeries(columnNameOrNames).parseInts())
+        }
+    }
+
+    parseFloats(columnNameOrNames: string | string[]): IDataFrame<IndexT, ValueT> {
+        if (isArray(columnNameOrNames)) {
+            // eslint-disable-next-line @typescript-eslint/no-this-alias
+            let working: IDataFrame<IndexT, ValueT> = this
+            for (const columnName of columnNameOrNames) {
+                working = working.parseFloats(columnName)
+            }
+            
+            return working
+        }
+        else {
+            return this.withSeries(columnNameOrNames, this.getSeries(columnNameOrNames).parseFloats())
+        }
+    }
+
+    parseDates(columnNameOrNames: string | string[], formatString?: string): IDataFrame<IndexT, ValueT> {
+        if (formatString) {
+            if (!isString(formatString)) throw new Error('Expected optional \'formatString\' parameter to \'DataFrame.parseDates\' to be a string (if specified).')
+        }
+
+        if (isArray(columnNameOrNames)) {
+            // eslint-disable-next-line @typescript-eslint/no-this-alias
+            let working: IDataFrame<IndexT, ValueT> = this
+            for (const columnName of columnNameOrNames) {
+                working = working.parseDates(columnName, formatString)
+            }
+            
+            return working
+        }
+        else {
+            return this.withSeries(columnNameOrNames, this.getSeries(columnNameOrNames).parseDates(formatString))
+        }
+    }
+
+    toStrings(columnNames: string | string[] | IFormatSpec, formatString?: string): IDataFrame<IndexT, ValueT> {
+        if (isObject(columnNames)) {
+            for (const columnName of Object.keys(columnNames)) {
+                if (!isString((columnNames as any)[columnName])) throw new Error('Expected values of \'columnNames\' parameter to be strings when a format spec is passed in.')
+            }
+
+            if (formatString !== undefined) throw new Error('Optional \'formatString\' parameter to \'DataFrame.toStrings\' should not be set when passing in a format spec.')
+        }
+        else {
+            if (!isArray(columnNames)) {
+                if (!isString(columnNames)) throw new Error('Expected \'columnNames\' parameter to \'DataFrame.toStrings\' to be a string, array of strings or format spec that specifes which columns should be converted to strings.')
+            }
+
+            if (formatString) {
+                if (!isString(formatString)) throw new Error('Expected optional \'formatString\' parameter to \'DataFrame.toStrings\' to be a string (if specified).')
+            }
+        }
+
+        if (isObject(columnNames)) {
+            // eslint-disable-next-line @typescript-eslint/no-this-alias
+            let working: IDataFrame<IndexT, ValueT> = this
+            for (const columnName of Object.keys(columnNames)) {
+                working = working.toStrings(columnName, formatString)
+            }
+            
+            return working
+        }
+        else if (isArray(columnNames)) {
+            let working: IDataFrame<IndexT, ValueT> = this
+            for (const columnName of columnNames) {
+                const columnFormatString = (columnNames as any)[columnName]
+                working = working.toStrings(columnName, columnFormatString)
+            }
+            
+            return working
+        }
+        else {
+            const singleColumnName = columnNames as string
+            return this.withSeries(singleColumnName, this.getSeries(singleColumnName).toStrings(formatString))
+        }
+    }
+
 
 //     drop(kwargs: DropArgs) {
 //         const paramsNeeded = ['columns', 'index', 'inplace', 'axis']

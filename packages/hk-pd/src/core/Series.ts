@@ -15,6 +15,10 @@ import { DataFrame } from '.'
 import { SelectIterable } from '../iterables/SelectIterable'
 import { PredicateFn } from './PredicateFn'
 import { SelectManyIterable } from '../iterables/SelectManyIterable'
+import { isString } from '../utils/isString'
+import moment from 'dayjs'
+import { isDate } from '../utils/isDate'
+import { isNumber } from '../utils/isNumber'
 
 /**
  * One-dimensional ndarray with axis labels (including time series).
@@ -127,13 +131,13 @@ export class Series<IndexT = number, ValueT = any> implements ISeries<IndexT, Va
         }
     }
 
-    get content(): ISeriesContent<IndexT, ValueT> {
+    getContent(): ISeriesContent<IndexT, ValueT> {
         this._lazyInit()
         return this._content!
     }
 
     [Symbol.iterator](): Iterator<ValueT> {
-        return this.content.values[Symbol.iterator]()
+        return this.getContent().values[Symbol.iterator]()
     }
 
     min(): number {
@@ -182,7 +186,7 @@ export class Series<IndexT = number, ValueT = any> implements ISeries<IndexT, Va
 
     toPairs(): ([IndexT, ValueT])[] {
         const pairs = []
-        for (const pair of this.content.pairs) {
+        for (const pair of this.getContent().pairs) {
             if (pair[1] !== undefined && pair[1] !== null) {
                 pairs.push(pair)
             }
@@ -194,7 +198,7 @@ export class Series<IndexT = number, ValueT = any> implements ISeries<IndexT, Va
         if (selector) {
             if (!isFunction(selector)) throw new Error('Expected \'selector\' parameter to Series.inflate to be a selector function.')
             return new DataFrame<IndexT, ToT>(() => {
-                const content = this.content
+                const content = this.getContent()
                 return {
                     values: new SelectIterable(content.values, selector),
                     index: content.index,
@@ -203,7 +207,7 @@ export class Series<IndexT = number, ValueT = any> implements ISeries<IndexT, Va
             })
         } else {
             return new DataFrame<IndexT, ToT>(() => {
-                const content = this.content
+                const content = this.getContent()
                 return {
                     values: <Iterable<ToT>> <any> content.values,
                     index: content.index,
@@ -257,8 +261,8 @@ export class Series<IndexT = number, ValueT = any> implements ISeries<IndexT, Va
         if (!isFunction(selector)) throw new Error('Expected \'selector\' parameter to \'Series.select\' function to be a function.')
 
         return new Series(() => ({
-            values: new SelectIterable(this.content.values, selector),
-            index: this.content.index,
+            values: new SelectIterable(this.getContent().values, selector),
+            index: this.getContent().index,
         }))
     }
 
@@ -267,7 +271,7 @@ export class Series<IndexT = number, ValueT = any> implements ISeries<IndexT, Va
 
         return new Series(() => ({
             pairs: new SelectManyIterable(
-                this.content.pairs,
+                this.getContent().pairs,
                 (pair: [IndexT, ValueT], index: number): Iterable<[IndexT, ToT]> => {
                     const outputPairs: [IndexT, ToT][] = []
                     for (const transformed of selector(pair[1], index)) {
@@ -280,6 +284,95 @@ export class Series<IndexT = number, ValueT = any> implements ISeries<IndexT, Va
                 }
             )
         }))
+    }
+
+    static parseInt(value: any | undefined | null, valueIndex: number): number | undefined {
+        if (value === undefined || value === null) {
+            return undefined
+        }
+        else {
+            if (!isString(value)) {
+                throw new Error('Called Series.parseInts, expected all values in the series to be strings, instead found a \'' + typeof(value) + '\' at index ' + valueIndex)
+            }
+
+            if (value.length === 0) {
+                return undefined
+            }
+
+            return parseInt(value)
+        }
+    }
+
+    parseInts(): ISeries<IndexT, number> {
+        return <ISeries<IndexT, number>> this.select(Series.parseInt)
+    }
+
+    static parseFloat (value: any | undefined | null, valueIndex: number): number | undefined {
+        if (value === undefined || value === null) {
+            return undefined
+        }
+        else {
+            if (!isString(value)) throw new Error('Called Series.parseFloats, expected all values in the series to be strings, instead found a \'' + typeof(value) + '\' at index ' + valueIndex)
+
+            if (value.length === 0) {
+                return undefined
+            }
+
+            return parseFloat(value)
+        }
+    }
+
+    parseFloats(): ISeries<IndexT, number> {
+        return <ISeries<IndexT, number>> this.select(Series.parseFloat)
+    }
+
+    static parseDate(value: any | undefined | null, valueIndex: number, formatString?: string): Date | undefined {
+        if (value === undefined || value === null) {
+            return undefined
+        }
+        else {
+            if (!isString(value)) throw new Error('Called Series.parseDates, expected all values in the series to be strings, instead found a \'' + typeof(value) + '\' at index ' + valueIndex)
+
+            if (value.length === 0) {
+                return undefined
+            }
+
+            return moment(value, formatString).toDate()
+        }
+    }
+
+    parseDates(formatString?: string): ISeries<IndexT, Date> {
+        if (formatString) {
+            if (!isString(formatString)) throw new Error('Expected optional \'formatString\' parameter to Series.parseDates to be a string (if specified).')
+        }
+
+        return <ISeries<IndexT, Date>> this.select((value: any | undefined, valueIndex: number) => Series.parseDate(value, valueIndex, formatString))
+    }
+
+    static toString(value: any | undefined | null, formatString?: string): string | undefined | null {
+        if (value === undefined) {
+            return undefined
+        }
+        else if (value === null) {
+            return null
+        }
+        else if (formatString && isDate(value)) {
+            return moment(value).format(formatString)
+        }
+        else if (formatString && isNumber(value)) {
+            return numeral(value).format(formatString)
+        }
+        else {
+            return value.toString()
+        }		
+    }
+
+    toStrings(formatString?: string): ISeries<IndexT, string> {
+        if (formatString) {
+            if (!isString(formatString)) throw new Error('Expected optional \'formatString\' parameter to Series.toStrings to be a string (if specified).')
+        }
+
+        return <ISeries<IndexT, string>> this.select(value => Series.toString(value, formatString))
     }
 
     toString() {
@@ -298,6 +391,29 @@ export class Series<IndexT = number, ValueT = any> implements ISeries<IndexT, Va
         }
 
         return table.toString()
+    }
+
+    toArray(): any[] {
+        const values = []
+        for (const value of this.getContent().values) {
+            if (value !== undefined && value !== null) {
+                values.push(value)
+            }
+        }
+        return values
+    }
+
+    bake(): ISeries<IndexT, ValueT> {
+        if (this.getContent().isBaked) {
+            // Already baked.
+            return this
+        }
+
+        return new Series<IndexT, ValueT>({
+            values: this.toArray(),
+            pairs: this.toPairs(),
+            baked: true,
+        })
     }
 
     print() {

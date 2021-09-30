@@ -6,6 +6,7 @@ import { SelectorFn } from './SelectorFn'
 import { SelectorWithIndexFn } from './SelectorWithIndexFn'
 import { IMultiColumnAggregatorSpec } from './IColumnAggregatorSpec'
 import { IOrderedDataFrame } from './IOrderedDataFrame'
+import { IFormatSpec } from './IFormatSpec'
 
 /**
  * A 2D frame object that stores data in structured tabular format
@@ -64,21 +65,32 @@ export interface IDataFrame<IndexT = any, ValueT = any> extends Iterable<ValueT>
         aggregator?: (values: ISeries<number, any>) => any
             ): IDataFrame<number, NewValueT>
 
-    groupBy<GroupT> (selector: SelectorWithIndexFn<ValueT, GroupT>): ISeries<number, IDataFrame<IndexT, ValueT>>
-    orderBy<SortT> (selector: SelectorWithIndexFn<ValueT, SortT>): IOrderedDataFrame<IndexT, ValueT, SortT>
+    groupBy<GroupT>(selector: SelectorWithIndexFn<ValueT, GroupT>): ISeries<number, IDataFrame<IndexT, ValueT>>
+    orderBy<SortT>(selector: SelectorWithIndexFn<ValueT, SortT>): IOrderedDataFrame<IndexT, ValueT, SortT>
 
     first(): ValueT
     last(): ValueT
 
-    concat (...dataframes: (IDataFrame<IndexT, ValueT>[] | IDataFrame<IndexT, ValueT>)[]): IDataFrame<IndexT, ValueT>
+    concat(...dataframes: (IDataFrame<IndexT, ValueT>[] | IDataFrame<IndexT, ValueT>)[]): IDataFrame<IndexT, ValueT>
     insertPair(pair: [IndexT, ValueT]): IDataFrame<IndexT, ValueT>
     appendPair(pair: [IndexT, ValueT]): IDataFrame<IndexT, ValueT>
 
     window (period: number): ISeries<number, IDataFrame<IndexT, ValueT>>
 
+    startAt(indexValue: IndexT): IDataFrame<IndexT, ValueT>
+    endAt(indexValue: IndexT): IDataFrame<IndexT, ValueT>
+    before(indexValue: IndexT): IDataFrame<IndexT, ValueT>
+    after(indexValue: IndexT): IDataFrame<IndexT, ValueT>
+    between(startIndexValue: IndexT, endIndexValue: IndexT): IDataFrame<IndexT, ValueT>
+
     toArray(): ValueT[]
     toPairs(): ([IndexT, ValueT])[]
 
+    parseInts(columnNameOrNames: string | string[]): IDataFrame<IndexT, ValueT>
+    parseFloats(columnNameOrNames: string | string[]): IDataFrame<IndexT, ValueT>
+    parseDates(columnNameOrNames: string | string[], formatString?: string): IDataFrame<IndexT, ValueT>
+
+    toStrings(columnNames: string | string[] | IFormatSpec, formatString?: string): IDataFrame<IndexT, ValueT>
     /**
      * Transpose index and columns.
      * Reflect the DataFrame over its main diagonal by writing rows as columns and vice-versa.
