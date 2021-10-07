@@ -19,6 +19,17 @@ import { isString } from '../utils/isString'
 import moment from 'dayjs'
 import { isDate } from '../utils/isDate'
 import { isNumber } from '../utils/isNumber'
+import { toMap } from '../utils/toMap'
+import { WhichIndex } from './WhichIndex'
+import { Index } from './IndexT'
+import { IIndex } from './IIndex'
+import { SeriesWindowIterable } from '../iterables/SeriesWindowIterable'
+import { SeriesRollingWindowIterable } from '../iterables/SeriesRollingWindowIterable'
+import { ComparerFn } from './ComparerFn'
+import { SeriesVariableWindowIterable } from '../iterables/SeriesVariableWindowIterable'
+import { SelectorFn } from './SelectorFn'
+import { AggregateFn } from './AggregateFn'
+import { SkipIterable } from '../iterables/SkipIterable'
 
 /**
  * One-dimensional ndarray with axis labels (including time series).
@@ -266,7 +277,7 @@ export class Series<IndexT = number, ValueT = any> implements ISeries<IndexT, Va
         }))
     }
 
-    selectMany<ToT> (selector: SelectorWithIndexFn<ValueT, Iterable<ToT>>): ISeries<IndexT, ToT> {
+    selectMany<ToT>(selector: SelectorWithIndexFn<ValueT, Iterable<ToT>>): ISeries<IndexT, ToT> {
         if (!isFunction(selector)) throw new Error('Expected \'selector\' parameter to \'Series.selectMany\' to be a function.')
 
         return new Series(() => ({
@@ -403,6 +414,14 @@ export class Series<IndexT = number, ValueT = any> implements ISeries<IndexT, Va
         return values
     }
 
+    toObject<KeyT = any, FieldT = any, OutT = any>(keySelector: (value: ValueT) => KeyT, valueSelector: (value: ValueT) => FieldT): OutT {
+        if (!isFunction(keySelector))throw new Error('Expected \'keySelector\' parameter to Series.toObject to be a function.')
+        if (!isFunction(valueSelector)) throw new Error('Expected \'valueSelector\' parameter to Series.toObject to be a function.')
+
+        return toMap(this, keySelector, valueSelector)
+    }
+
+
     bake(): ISeries<IndexT, ValueT> {
         if (this.getContent().isBaked) {
             // Already baked.
@@ -419,4 +438,98 @@ export class Series<IndexT = number, ValueT = any> implements ISeries<IndexT, Va
     print() {
         console.log(this + '')
     }
+
+    getIndex(): IIndex<IndexT> {
+        return new Index<IndexT>(() => ({
+            values: this.getContent().index
+        }))
+    }
+    
+    window(period: number, whichIndex?: WhichIndex): ISeries<IndexT, ISeries<IndexT, ValueT>> {
+        if (!isNumber(period)) throw new Error('Expected \'period\' parameter to \'Series.window\' to be a number.')
+
+        return new Series<IndexT, ISeries<IndexT, ValueT>>(() => ({
+            pairs: new SeriesWindowIterable<IndexT, ValueT>(
+                this.getContent().pairs,
+                period,
+                whichIndex || WhichIndex.End
+            )
+        }))
+    }
+
+    rollingWindow(period: number, whichIndex?: WhichIndex): ISeries<IndexT, ISeries<IndexT, ValueT>> {
+        if (!isNumber(period)) throw new Error('Expected \'period\' parameter to \'Series.rollingWindow\' to be a number.')
+
+        return new Series<IndexT, ISeries<IndexT, ValueT>>(() => ({
+            pairs: new SeriesRollingWindowIterable<IndexT, ValueT>(this.getContent().pairs, period, whichIndex || WhichIndex.End)
+        }))
+    }
+
+    variableWindow(comparer: ComparerFn<ValueT, ValueT>): ISeries<number, ISeries<IndexT, ValueT>> {
+        if (!isFunction(comparer)) throw new Error('Expected \'comparer\' parameter to \'Series.variableWindow\' to be a function.')
+
+        return new Series<number, ISeries<IndexT, ValueT>>(() => ({
+            values: new SeriesVariableWindowIterable<IndexT, ValueT>(this.getContent().pairs, comparer)
+        }))
+    }
+
+    sequentialDistinct<ToT = ValueT>(selector?: SelectorFn<ValueT, ToT>): ISeries<IndexT, ValueT> {
+        if (selector) {
+            if (!isFunction(selector)) throw new Error('Expected \'selector\' parameter to \'Series.sequentialDistinct\' to be a selector function that determines the value to compare for duplicates.')
+        } else {
+            selector = (value: ValueT): ToT => <ToT> <any> value
+        }
+        return this.variableWindow((a, b) => selector(a) === selector(b))
+            .select((window): [IndexT, ValueT] => {
+                return [window.getIndex().first(), window.first()]
+            })
+            .withIndex(pair => pair[0])
+            .select(pair => pair[1])
+    }
+
+    withIndex<NewIndexT>(newIndex: Iterable<NewIndexT> | SelectorFn<ValueT, NewIndexT>): ISeries<NewIndexT, ValueT> {
+        if (isFunction(newIndex)) {
+            return new Series<NewIndexT, ValueT>(() => ({
+                values: this.getContent().values,
+                index: this.select(newIndex)
+            }))
+        } else {
+            Series._checkIterable(newIndex as Iterable<NewIndexT>, 'newIndex')
+
+            return new Series<NewIndexT, ValueT>(() => ({
+                values: this.getContent().values,
+                index: newIndex as Iterable<NewIndexT>
+            }))
+        }
+    }
+
+    skip(numValues: number): ISeries<IndexT, ValueT> {
+        return new Series<IndexT, ValueT>(() => ({
+            values: new SkipIterable(this.getContent().values, numValues),
+            index: new SkipIterable(this.getContent().index, numValues),
+            pairs: new SkipIterable(this.getContent().pairs, numValues)
+        }))
+    }
+
+    aggregate<ToT = ValueT>(seedOrSelector: AggregateFn<ValueT, ToT> | ToT, selector?: AggregateFn<ValueT, ToT>): ToT {
+        if (isFunction(seedOrSelector) && !selector) {
+            return this.skip(1).aggregate(<ToT> <any> this.first(), seedOrSelector)
+        } else {
+            if (!isFunction(selector)) throw new Error('Expected \'selector\' parameter to aggregate to be a function.')
+
+            let accum = <ToT> seedOrSelector
+
+            for (const value of this) {
+                accum = selector!(accum, value)
+            }
+
+            return accum
+        }
+    }
+
+    amountRange(period: number, whichIndex?: WhichIndex): ISeries<IndexT, number> {
+        return (<ISeries<IndexT, number>> <any> this) // Have to assume this is a number series.
+            .rollingWindow(period, whichIndex)
+            .select(window => window.max() - window.min())
+    } 
 }

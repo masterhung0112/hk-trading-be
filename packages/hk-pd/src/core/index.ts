@@ -1,6 +1,4 @@
-export * from './ColumnType'
 export * from './IDataFrame'
 export * from './DataFrame'
-export * from './INDframe'
-export * from './NDframe'
 export * from './Series'
+export * from './ISeries'

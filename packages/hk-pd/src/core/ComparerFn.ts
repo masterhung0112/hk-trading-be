@@ -1,0 +1,1 @@
+export type ComparerFn<ValueT1, ValueT2 = ValueT1> = (a: ValueT1, b: ValueT2) => boolean
