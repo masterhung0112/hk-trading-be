@@ -30,6 +30,11 @@ import { SeriesVariableWindowIterable } from '../iterables/SeriesVariableWindowI
 import { SelectorFn } from './SelectorFn'
 import { AggregateFn } from './AggregateFn'
 import { SkipIterable } from '../iterables/SkipIterable'
+import { TakeIterable } from '../iterables/TakeIterable'
+import { WhereIterable } from '../iterables/WhereIterable'
+import { CallbackFn } from './CallbackFn'
+import { SkipWhileIterable } from '../iterables/SkipWhileIterable'
+import { TakeWhileIterable } from '../iterables/TakeWhileIterable'
 
 /**
  * One-dimensional ndarray with axis labels (including time series).
@@ -195,6 +200,29 @@ export class Series<IndexT = number, ValueT = any> implements ISeries<IndexT, Va
         return max
     }
 
+    none(predicate?: PredicateFn<ValueT>): boolean {
+
+        if (predicate) {
+            if (!isFunction(predicate)) throw new Error('Expected \'predicate\' parameter to \'Series.none\' to be a function.')
+        }
+
+        if (predicate) {
+            // Use the predicate to check each value.
+            for (const value of this) {
+                if (predicate(value)) {
+                    return false
+                }
+            }
+        }
+        else {
+            // Just check if empty.
+            const iterator = this[Symbol.iterator]()
+            return iterator.next().done
+        }
+
+        return true // Nothing failed the predicate.
+    }
+
     toPairs(): ([IndexT, ValueT])[] {
         const pairs = []
         for (const pair of this.getContent().pairs) {
@@ -246,12 +274,34 @@ export class Series<IndexT = number, ValueT = any> implements ISeries<IndexT, Va
         return false
     }
 
+    head(numValues: number): ISeries<IndexT, ValueT> {
+        if (!isNumber(numValues)) throw new Error('Expected \'numValues\' parameter to \'Series.head\' function to be a number.')
+
+        if (numValues === 0) {
+            return new Series<IndexT, ValueT>()
+        }
+
+        const toTake = numValues < 0 ? this.count() - Math.abs(numValues) : numValues
+        return this.take(toTake)
+    }
+
     first(): ValueT {
         for (const value of this) {
             return value // Only need the first value.
         }
 
         throw new Error('Series.first: No values in Series.')
+    }
+
+    forEach(callback: CallbackFn<ValueT>): ISeries<IndexT, ValueT> {
+        if (!isFunction(callback)) throw new Error('Expected \'callback\' parameter to \'Series.forEach\' to be a function.')
+
+        let index = 0
+        for (const value of this) {
+            callback(value, index++)
+        }
+
+        return this
     }
 
     last(): ValueT {
@@ -266,6 +316,25 @@ export class Series<IndexT = number, ValueT = any> implements ISeries<IndexT, Va
         }
 
         return lastValue
+    }
+
+    count(): number {
+        let total = 0
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        for (const value of this.getContent().values) {
+            ++total
+        }
+        return total
+    }
+
+    endAt(indexValue: IndexT): ISeries<IndexT, ValueT> {
+        return new Series<IndexT, ValueT>(() => {
+            const lessThanOrEqualTo = this.getIndex().getLessThanOrEqualTo()
+            return {
+                index: new TakeWhileIterable(this.getContent().index, index => lessThanOrEqualTo(index, indexValue)),
+                pairs: new TakeWhileIterable(this.getContent().pairs, pair => lessThanOrEqualTo(pair[0], indexValue)),
+            }
+        })
     }
 
     select<ToT>(selector: SelectorWithIndexFn<ValueT, ToT>): ISeries<IndexT, ToT> {
@@ -435,6 +504,20 @@ export class Series<IndexT = number, ValueT = any> implements ISeries<IndexT, Va
         })
     }
 
+    before(indexValue: IndexT): ISeries<IndexT, ValueT> {
+        return new Series<IndexT, ValueT>(() => {
+            const lessThan = this.getIndex().getLessThan()
+            return {
+                index: new TakeWhileIterable(this.getContent().index, index => lessThan(index, indexValue)),
+                pairs: new TakeWhileIterable(this.getContent().pairs, pair => lessThan(pair[0], indexValue)),
+            }
+        })
+    }
+
+    between(startIndexValue: IndexT, endIndexValue: IndexT): ISeries<IndexT, ValueT> {
+        return this.startAt(startIndexValue).endAt(endIndexValue)
+    }
+
     print() {
         console.log(this + '')
     }
@@ -511,6 +594,56 @@ export class Series<IndexT = number, ValueT = any> implements ISeries<IndexT, Va
         }))
     }
 
+    startAt(indexValue: IndexT): ISeries<IndexT, ValueT> {
+        return new Series<IndexT, ValueT>(() => {
+            const lessThan = this.getIndex().getLessThan()
+            return {                
+                index: new SkipWhileIterable(this.getContent().index, index => lessThan(index, indexValue)),
+                pairs: new SkipWhileIterable(this.getContent().pairs, pair => lessThan(pair[0], indexValue)),
+            }
+        })
+    }
+
+    take(numRows: number): ISeries<IndexT, ValueT> {
+        if (!isNumber(numRows)) throw new Error('Expected \'numRows\' parameter to \'Series.take\' function to be a number.')
+
+        return new Series<IndexT, ValueT>(() => ({
+            index: new TakeIterable(this.getContent().index, numRows),
+            values: new TakeIterable(this.getContent().values, numRows),
+            pairs: new TakeIterable(this.getContent().pairs, numRows),
+        }))
+    }
+
+    tail(numValues: number): ISeries<IndexT, ValueT> {
+        if (!isNumber(numValues)) throw new Error('Expected \'numValues\' parameter to \'Series.tail\' function to be a number.')
+
+        if (numValues === 0) {
+            return new Series<IndexT, ValueT>()
+        }
+
+        const toSkip = numValues > 0 ? this.count() - numValues : Math.abs(numValues)
+        return this.skip(toSkip)
+    }
+
+    where(predicate: PredicateFn<ValueT>): ISeries<IndexT, ValueT> {
+        if (!isFunction(predicate)) throw new Error('Expected \'predicate\' parameter to \'Series.where\' function to be a function.')
+
+        return new Series(() => ({
+            values: new WhereIterable(this.getContent().values, predicate),
+            pairs: new WhereIterable(this.getContent().pairs, pair => predicate(pair[1]))
+        }))
+    }
+
+    after(indexValue: IndexT): ISeries<IndexT, ValueT> {
+        return new Series<IndexT, ValueT>(() => {
+            const lessThanOrEqualTo = this.getIndex().getLessThanOrEqualTo()
+            return {
+                index: new SkipWhileIterable(this.getContent().index, index => lessThanOrEqualTo(index, indexValue)),
+                pairs: new SkipWhileIterable(this.getContent().pairs, pair => lessThanOrEqualTo(pair[0], indexValue)),
+            }
+        })
+    }
+
     aggregate<ToT = ValueT>(seedOrSelector: AggregateFn<ValueT, ToT> | ToT, selector?: AggregateFn<ValueT, ToT>): ToT {
         if (isFunction(seedOrSelector) && !selector) {
             return this.skip(1).aggregate(<ToT> <any> this.first(), seedOrSelector)
@@ -527,9 +660,69 @@ export class Series<IndexT = number, ValueT = any> implements ISeries<IndexT, Va
         }
     }
 
+    all(predicate: PredicateFn<ValueT>): boolean {
+        if (!isFunction(predicate)) throw new Error('Expected \'predicate\' parameter to \'Series.all\' to be a function.')
+
+        let count = 0
+
+        for (const value of this) {
+            if (!predicate(value)) {
+                return false
+            }
+
+            ++count
+        }
+
+        return count > 0
+    }
+
     amountRange(period: number, whichIndex?: WhichIndex): ISeries<IndexT, number> {
         return (<ISeries<IndexT, number>> <any> this) // Have to assume this is a number series.
             .rollingWindow(period, whichIndex)
             .select(window => window.max() - window.min())
-    } 
+    }
+
+    proportionRange(period: number, whichIndex?: WhichIndex): ISeries<IndexT, number> {
+        return (<ISeries<IndexT, number>> <any> this) // Have to assume this is a number series.
+            .rollingWindow(period, whichIndex)
+            .select(window => (window.max() - window.min()) / window.last())
+    }
+
+    percentRange(period: number, whichIndex?: WhichIndex): ISeries<IndexT, number> {
+        return this.proportionRange(period, whichIndex).select(v => v * 100)
+    }
+
+    amountChange(period?: number, whichIndex?: WhichIndex): ISeries<IndexT, number> {
+        return (<ISeries<IndexT, number>> <any> this) // Have to assume this is a number series.
+            .rollingWindow(period === undefined ? 2 : period, whichIndex)
+            .select(window => window.last() - window.first())
+    }
+
+    proportionChange(period?: number, whichIndex?: WhichIndex): ISeries<IndexT, number> {
+        return (<ISeries<IndexT, number>> <any> this) // Have to assume this is a number series.
+            .rollingWindow(period === undefined ? 2 : period, whichIndex)
+            .select(window => (window.last() - window.first())  / window.first())
+    }
+
+    percentChange(period?: number, whichIndex?: WhichIndex): ISeries<IndexT, number> {
+        return this.proportionChange(period, whichIndex).select(v => v * 100)
+    }
+
+    proportionRank(period?: number): ISeries<IndexT, number> {
+        if (period === undefined) {
+            period = 2
+        }
+
+        if (!isNumber(period)) {
+            throw new Error('Expected \'period\' parameter to \'Series.proportionRank\' to be a number that specifies the time period for the ranking.')
+        }
+    
+        return this.rollingWindow(period+1) // +1 to account for the last value being used.
+            .select(window => {
+                const latestValue = window.last()
+                const numLowerValues = window.head(-1).where(prevMomentum => prevMomentum < latestValue).count()
+                const proportionRank = numLowerValues / period!
+                return proportionRank
+            })
+    }
 }

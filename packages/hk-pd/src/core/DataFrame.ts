@@ -47,6 +47,8 @@ export class DataFrame<IndexT, ValueT> implements IDataFrame<IndexT, ValueT> {
     private static readonly _defaultEmptyIterable = new EmptyIterable();
     private static readonly _defaultCountIterable = new CountIterable();
 
+    private _indexedContent: Map<any, ValueT> | null = null
+
     private static _initEmpty<IndexT, ValueT>(): IDataFrameContent<IndexT, ValueT> {
         return {
             index: DataFrame._defaultEmptyIterable,
@@ -231,6 +233,25 @@ export class DataFrame<IndexT, ValueT> implements IDataFrame<IndexT, ValueT> {
         if (this.getContent() === null && this._configFn !== null) {
             this._content = DataFrame._initFromConfig(this._configFn())
         }
+    }
+
+    private _getRowByIndex(index: IndexT): ValueT | undefined {
+        if (!this._indexedContent) {
+            this._indexedContent = new Map<any, ValueT>()
+            for (const pair of this.getContent().pairs) {
+                this._indexedContent.set(pair[0], pair[1])
+            }
+        }
+       
+        return this._indexedContent.get(index)
+    }
+
+    at(index: IndexT): ValueT | undefined {
+        if (this.none()) {
+            return undefined
+        }
+
+        return this._getRowByIndex(index)
     }
 
     getContent() {

@@ -20,6 +20,8 @@ import { IFormatSpec } from './IFormatSpec'
 export interface IDataFrame<IndexT = any, ValueT = any> extends Iterable<ValueT> {
     [Symbol.iterator](): Iterator<ValueT>
 
+    at(index: IndexT): ValueT | undefined
+    
     getColumnNames(): string[]
 
     cast<NewValueT>(): IDataFrame<IndexT, NewValueT>
