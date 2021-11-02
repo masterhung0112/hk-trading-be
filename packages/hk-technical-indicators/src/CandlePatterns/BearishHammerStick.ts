@@ -1,6 +1,8 @@
 import { CandleMultiStickReversedDto } from '../Models/CandleMultiStickReversedDto'
 import { approximateEqual } from '../utils/approximateEqual'
 import { CandlestickFinder } from './CandlestickFinder'
+import { IDataFrame } from 'hk-pd'
+import { CandleStickDTO } from 'hk-trading-contract'
 
 export class BearishHammerStick extends CandlestickFinder {
     constructor() {
@@ -11,17 +13,21 @@ export class BearishHammerStick extends CandlestickFinder {
         })
     }
 
-    logic(data: CandleMultiStickReversedDto) {
-        const daysOpen = data.bo[0]
-        const daysClose = data.bc[0]
-        const daysHigh = data.bh[0]
-        const daysLow = data.bl[0]
-
-        let isBearishHammer = daysOpen > daysClose
-        isBearishHammer = isBearishHammer && approximateEqual(daysOpen, daysHigh)
-        isBearishHammer = isBearishHammer && (daysOpen - daysClose) <= 2 * (daysClose - daysLow)
+    private _isBearishHammerByOCHL(o: number, c: number, h: number, l: number) {
+        let isBearishHammer = o > c
+        isBearishHammer = isBearishHammer && approximateEqual(o, h)
+        isBearishHammer = isBearishHammer && (o - c) <= 2 * (c - l)
 
         return isBearishHammer
+    }
+
+    logic(data: CandleMultiStickReversedDto) {
+        return this._isBearishHammerByOCHL(data.bo[0], data.bc[0], data.bh[0], data.bl[0])
+    }
+
+    logicFirst(data: IDataFrame<number, CandleStickDTO>) {
+        const candleStickDTO = data.first()
+        return this._isBearishHammerByOCHL(candleStickDTO.bo, candleStickDTO.bc, candleStickDTO.bh, candleStickDTO.bl)
     }
 }
 

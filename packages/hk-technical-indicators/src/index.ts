@@ -1,4 +1,4 @@
 export * from './Models'
 export * from './CandlePatterns'
-export * from './Indicator/indicator'
-export * from './Utils'
+export * from './indicator/Indicator'
+export * from './utils'

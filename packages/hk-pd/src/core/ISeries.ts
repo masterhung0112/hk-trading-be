@@ -22,6 +22,7 @@ export interface ISeries<IndexT = number, ValueT = any> extends Iterable<ValueT>
     bake(): ISeries<IndexT, ValueT>
     before(indexValue: IndexT): ISeries<IndexT, ValueT>
     between(startIndexValue: IndexT, endIndexValue: IndexT): ISeries<IndexT, ValueT>
+    concat(...series: (ISeries<IndexT, ValueT>[]|ISeries<IndexT, ValueT>)[]): ISeries<IndexT, ValueT>
     count(): number
     endAt(indexValue: IndexT): ISeries<IndexT, ValueT>
     first(): ValueT
@@ -42,6 +43,7 @@ export interface ISeries<IndexT = number, ValueT = any> extends Iterable<ValueT>
     percentRange(period: number, whichIndex?: WhichIndex): ISeries<IndexT, number>
     proportionChange(period?: number, whichIndex?: WhichIndex): ISeries<IndexT, number>
     proportionRange(period: number, whichIndex?: WhichIndex): ISeries<IndexT, number>
+    reverse(): ISeries<IndexT, ValueT>
     rollingWindow(period: number, whichIndex?: WhichIndex): ISeries<IndexT, ISeries<IndexT, ValueT>>
     select<ToT>(selector: SelectorWithIndexFn<ValueT, ToT>): ISeries<IndexT, ToT>
     selectMany<ToT>(selector: SelectorWithIndexFn<ValueT, Iterable<ToT>>): ISeries<IndexT, ToT>

@@ -41,6 +41,8 @@ import { OrderedIterable } from '../iterables/OrderedIterable'
 import { ISortSpec } from './ISortSpec'
 import { IOrderedSeriesConfig } from './IOrderedSeriesConfig'
 import { SortSelectorFn } from './SortSelectorFn'
+import { ReverseIterable } from '../iterables/ReverseIterable'
+import { ConcatIterable } from '../iterables/ConcatIterable'
 
 /**
  * One-dimensional ndarray with axis labels (including time series).
@@ -587,6 +589,36 @@ export class Series<IndexT = number, ValueT = any> implements ISeries<IndexT, Va
         return this.startAt(startIndexValue).endAt(endIndexValue)
     }
 
+    static concat<IndexT = any, ValueT = any> (series: ISeries<IndexT, ValueT>[]): ISeries<IndexT, ValueT> {
+        if (!isArray(series)) throw new Error('Expected \'series\' parameter to \'Series.concat\' to be an array of series.')
+
+        return new Series(() => {
+            const upcast = <Series<IndexT, ValueT>[]> series // Upcast so that we can access private index, values and pairs.
+            const contents = upcast.map(s => s.getContent())
+            return {
+                values: new ConcatIterable(contents.map(content => content.values)),
+                pairs: new ConcatIterable(contents.map(content => content.pairs)),
+            }
+        })
+    }
+
+    concat(...series: (ISeries<IndexT, ValueT>[]|ISeries<IndexT, ValueT>)[]): ISeries<IndexT, ValueT> {
+        const concatInput: ISeries<IndexT, ValueT>[] = [this]
+
+        for (const input of series) {
+            if (isArray(input)) {
+                for (const subInput of input) {
+                    concatInput.push(subInput)
+                }
+            }
+            else {
+                concatInput.push(input)
+            }
+        }
+
+        return Series.concat<IndexT, ValueT>(concatInput)
+    }
+
     print() {
         console.log(this + '')
     }
@@ -606,6 +638,14 @@ export class Series<IndexT = number, ValueT = any> implements ISeries<IndexT, Va
                 period,
                 whichIndex || WhichIndex.End
             )
+        }))
+    }
+
+    reverse(): ISeries<IndexT, ValueT> {
+        return new Series<IndexT, ValueT>(() => ({
+            values: new ReverseIterable(this.getContent().values),
+            index: new ReverseIterable(this.getContent().index),
+            pairs: new ReverseIterable(this.getContent().pairs)
         }))
     }
 

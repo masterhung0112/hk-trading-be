@@ -1,4 +1,4 @@
-import { Indicator } from '../indicator/indicator'
+import { Indicator } from '../indicator/Indicator'
 import { LinkedList } from '../utils/LinkedList'
 import { MAInput } from './MAInput'
 
