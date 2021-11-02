@@ -3,6 +3,7 @@ import { CallbackFn } from './CallbackFn'
 import { ComparerFn } from './ComparerFn'
 import { IDataFrame } from './IDataFrame'
 import { IIndex } from './IIndex'
+import { IOrderedSeries } from './IOrderedSeries'
 import { PredicateFn } from './PredicateFn'
 import { SelectorFn } from './SelectorFn'
 import { SelectorWithIndexFn } from './SelectorWithIndexFn'
@@ -17,6 +18,7 @@ export interface ISeries<IndexT = number, ValueT = any> extends Iterable<ValueT>
     amountChange(period?: number, whichIndex?: WhichIndex): ISeries<IndexT, number>
     amountRange(period: number, whichIndex?: WhichIndex): ISeries<IndexT, number>
     any(predicate?: PredicateFn<ValueT>): boolean
+    average(): number
     bake(): ISeries<IndexT, ValueT>
     before(indexValue: IndexT): ISeries<IndexT, ValueT>
     between(startIndexValue: IndexT, endIndexValue: IndexT): ISeries<IndexT, ValueT>
@@ -29,8 +31,10 @@ export interface ISeries<IndexT = number, ValueT = any> extends Iterable<ValueT>
     inflate<ToT = ValueT> (selector?: SelectorWithIndexFn<ValueT, ToT>): IDataFrame<IndexT, ToT>
     last(): ValueT
     max(): number
+    median(): number
     min(): number
     none(predicate?: PredicateFn<ValueT>): boolean
+    orderBy<SortT>(selector: SelectorWithIndexFn<ValueT, SortT>): IOrderedSeries<IndexT, ValueT, SortT>
     parseDates(formatString?: string): ISeries<IndexT, Date>
     parseFloats(): ISeries<IndexT, number>
     parseInts(): ISeries<IndexT, number>
@@ -44,6 +48,7 @@ export interface ISeries<IndexT = number, ValueT = any> extends Iterable<ValueT>
     sequentialDistinct<ToT = ValueT>(selector?: SelectorFn<ValueT, ToT>): ISeries<IndexT, ValueT>
     skip(numValues: number): ISeries<IndexT, ValueT>
     startAt(indexValue: IndexT): ISeries<IndexT, ValueT>
+    sum(): number
     tail(numValues: number): ISeries<IndexT, ValueT>
     take(numRows: number): ISeries<IndexT, ValueT>
     toArray(): any[]

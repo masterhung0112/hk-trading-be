@@ -1,8 +1,8 @@
 import { Direction } from './Direction'
-import { SelectorWithIndexFn } from './SelectorWithIndexFn'
+import { SortSelectorFn } from './SortSelectorFn'
 
 export interface ISortSpec {
     sortLevel: number; // Debug helper. Sort level 0 is the first level.
-    selector: SelectorWithIndexFn<any, any>;
+    selector: SortSelectorFn;
     direction: Direction,
 }

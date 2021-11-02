@@ -35,6 +35,12 @@ import { WhereIterable } from '../iterables/WhereIterable'
 import { CallbackFn } from './CallbackFn'
 import { SkipWhileIterable } from '../iterables/SkipWhileIterable'
 import { TakeWhileIterable } from '../iterables/TakeWhileIterable'
+import { IOrderedSeries } from './IOrderedSeries'
+import { Direction } from './Direction'
+import { OrderedIterable } from '../iterables/OrderedIterable'
+import { ISortSpec } from './ISortSpec'
+import { IOrderedSeriesConfig } from './IOrderedSeriesConfig'
+import { SortSelectorFn } from './SortSelectorFn'
 
 /**
  * One-dimensional ndarray with axis labels (including time series).
@@ -200,6 +206,34 @@ export class Series<IndexT = number, ValueT = any> implements ISeries<IndexT, Va
         return max
     }
 
+    static median<IndexT = any> (series: ISeries<IndexT, number>): number {
+        return series.median()
+    }
+
+    median(): number {
+        //
+        // From here: http://stackoverflow.com/questions/5275115/add-a-median-method-to-a-list
+        //
+        // Have to assume we are working with a number series here.
+        const numberSeries = <ISeries<IndexT, number>> <any> this.where(value => value !== null && value !== undefined)
+
+        const count = numberSeries.count()
+        if (count === 0) {
+            return 0
+        }
+
+        const ordered = numberSeries.orderBy(value => value).toArray()
+        if ((count % 2) == 0) {
+            // Even.
+            const a = ordered[count / 2 - 1]
+            const b = ordered[count / 2]
+            return (a + b) / 2	
+        }
+
+        // Odd
+        return ordered[Math.floor(count / 2)]
+    }
+
     none(predicate?: PredicateFn<ValueT>): boolean {
 
         if (predicate) {
@@ -221,6 +255,17 @@ export class Series<IndexT = number, ValueT = any> implements ISeries<IndexT, Va
         }
 
         return true // Nothing failed the predicate.
+    }
+
+    orderBy<SortT> (selector: SelectorWithIndexFn<ValueT, SortT>): IOrderedSeries<IndexT, ValueT, SortT> {
+        const content = this.getContent()
+        return new OrderedSeries<IndexT, ValueT, SortT>({
+            values: content.values, 
+            pairs: content.pairs, 
+            selector: selector, 
+            direction: Direction.Ascending, 
+            parent: null,
+        })
     }
 
     toPairs(): ([IndexT, ValueT])[] {
@@ -254,6 +299,30 @@ export class Series<IndexT = number, ValueT = any> implements ISeries<IndexT, Va
                 }
             })
         }
+    }
+
+    static average<IndexT = any> (series: ISeries<IndexT, number>): number {
+        return series.average()
+    }
+
+    average(): number {
+        let total = 0
+        let count = 0
+
+        for (const value of this) {
+            if (value === null || value === undefined) {
+                continue // Skip empty values.
+            }
+
+            count += 1
+            total += value as any as number // Assumes this is a number series.
+        }
+
+        if (count === 0) {
+            return 0
+        }
+
+        return total / count
     }
 
     any(predicate?: PredicateFn<ValueT>): boolean {
@@ -604,6 +673,24 @@ export class Series<IndexT = number, ValueT = any> implements ISeries<IndexT, Va
         })
     }
 
+    static sum<IndexT = any> (series: ISeries<IndexT, number>): number {
+        return series.sum()
+    }
+
+    sum(): number {
+        let total = 0
+
+        for (const value of this) {
+            if (value === null || value === undefined) {
+                continue // Skip empty values.
+            }
+
+            total += value as any as number // Assumes this is a number series.
+        }
+
+        return total
+    }
+
     take(numRows: number): ISeries<IndexT, ValueT> {
         if (!isNumber(numRows)) throw new Error('Expected \'numRows\' parameter to \'Series.take\' function to be a number.')
 
@@ -724,5 +811,111 @@ export class Series<IndexT = number, ValueT = any> implements ISeries<IndexT, Va
                 const proportionRank = numLowerValues / period!
                 return proportionRank
             })
+    }
+}
+
+class OrderedSeries<IndexT = number, ValueT = any, SortT = any> 
+    extends Series<IndexT, ValueT>
+    implements IOrderedSeries<IndexT, ValueT, SortT> {
+
+    //
+    // Configuration for the ordered series.
+    //
+    config: IOrderedSeriesConfig<IndexT, ValueT, SortT>;
+
+    //
+    // Helper function to create a sort spec.
+    //
+    private static _makeSortSpec(sortLevel: number, selector: SortSelectorFn, direction: Direction): ISortSpec {
+        return { sortLevel: sortLevel, selector: selector, direction: direction }
+    }
+
+    //
+    // Helper function to make a sort selector for pairs, this captures the parent correct when generating the closure.
+    //
+    private static _makePairsSelector(selector: SortSelectorFn): SortSelectorFn {
+        return (pair: any, index: number) => selector(pair[1], index)
+    }
+
+    constructor(config: IOrderedSeriesConfig<IndexT, ValueT, SortT>) {
+
+        const valueSortSpecs: ISortSpec[] = []
+        const pairSortSpecs: ISortSpec[] = []
+        let sortLevel = 0
+
+        let parent = config.parent as OrderedSeries<IndexT, ValueT, SortT>
+        const parents: OrderedSeries<IndexT, ValueT, SortT>[] = []
+
+        while (parent !== null) {
+            parents.push(parent)
+            parent = parent.config.parent as OrderedSeries<IndexT, ValueT, SortT>
+        }
+
+        parents.reverse()
+
+        for (const p of parents) {
+            const parentConfig = p.config
+            valueSortSpecs.push(OrderedSeries._makeSortSpec(sortLevel, parentConfig.selector, parentConfig.direction))
+            pairSortSpecs.push(OrderedSeries._makeSortSpec(sortLevel, OrderedSeries._makePairsSelector(parentConfig.selector), parentConfig.direction))
+            ++sortLevel
+        }
+
+        valueSortSpecs.push(OrderedSeries._makeSortSpec(sortLevel, config.selector, config.direction))
+        pairSortSpecs.push(OrderedSeries._makeSortSpec(sortLevel, OrderedSeries._makePairsSelector(config.selector), config.direction))
+
+        super({
+            values: new OrderedIterable(config.values, valueSortSpecs),
+            pairs: new OrderedIterable(config.pairs, pairSortSpecs)
+        })
+
+        this.config = config
+    }
+
+    /** 
+     * Applys additional sorting (ascending) to an already sorted series.
+     * 
+     * @param selector User-defined selector that selects the additional value to sort by.
+     * 
+     * @return Returns a new series has been additionally sorted by the value chosen by the selector function. 
+     * 
+     * @example
+     * <pre>
+     * 
+     * // Order sales by salesperson and then by amount (from least to most).
+     * const ordered = sales.orderBy(sale => sale.SalesPerson).thenBy(sale => sale.Amount);
+     * </pre>
+     */
+    thenBy(selector: SelectorWithIndexFn<ValueT, SortT>): IOrderedSeries<IndexT, ValueT, SortT> {
+        return new OrderedSeries<IndexT, ValueT, SortT>({
+            values: this.config.values, 
+            pairs: this.config.pairs, 
+            selector: selector, 
+            direction: Direction.Ascending, 
+            parent: this,
+        })
+    }
+
+    /** 
+     * Applys additional sorting (descending) to an already sorted series.
+     * 
+     * @param selector User-defined selector that selects the additional value to sort by.
+     * 
+     * @return Returns a new series has been additionally sorted by the value chosen by the selector function. 
+     * 
+     * @example
+     * <pre>
+     * 
+     * // Order sales by salesperson and then by amount (from most to least).
+     * const ordered = sales.orderBy(sale => sale.SalesPerson).thenByDescending(sale => sale.Amount);
+     * </pre>
+     */
+    thenByDescending(selector: SelectorWithIndexFn<ValueT, SortT>): IOrderedSeries<IndexT, ValueT, SortT> {
+        return new OrderedSeries<IndexT, ValueT, SortT>({
+            values: this.config.values,
+            pairs: this.config.pairs, 
+            selector: selector, 
+            direction: Direction.Descending, 
+            parent: this
+        })
     }
 }
