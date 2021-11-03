@@ -14,6 +14,9 @@ import { IColumnTransformSpec } from './IColumnTransformSpec'
 import { Zip2Fn, Zip3Fn } from './ZipFn'
 import { ComparerFn } from './ComparerFn'
 import { JoinFn } from './JoinFn'
+import { GapFillFn } from './GapFillFn'
+import { ITypeFrequency } from './ITypeFrequency'
+import { IValueFrequency } from './IValueFrequency'
 
 /**
  * A 2D frame object that stores data in structured tabular format
@@ -38,13 +41,17 @@ export interface IDataFrame<IndexT = any, ValueT = any> extends Iterable<ValueT>
     bringToFront(columnOrColumns: string | string[]): IDataFrame<IndexT, ValueT>
     cast<NewValueT>(): IDataFrame<IndexT, NewValueT>
     concat(...dataframes: (IDataFrame<IndexT, ValueT>[] | IDataFrame<IndexT, ValueT>)[]): IDataFrame<IndexT, ValueT>
+    defaultIfEmpty(defaultDataFrame: ValueT[] | IDataFrame<IndexT, ValueT>): IDataFrame<IndexT, ValueT>
     deflate<ToT = ValueT>(selector?: SelectorWithIndexFn<ValueT, ToT>): ISeries<IndexT, ToT>
+    detectTypes(): IDataFrame<number, ITypeFrequency>
+    detectValues(): IDataFrame<number, IValueFrequency>
     distinct<ToT>(selector?: SelectorFn<ValueT, ToT>): IDataFrame<IndexT, ValueT>
     dropSeries<NewValueT = ValueT>(columnOrColumns: string | string[]): IDataFrame<IndexT, NewValueT>
     endAt(indexValue: IndexT): IDataFrame<IndexT, ValueT>
     ensureSeries<SeriesValueT> (columnNameOrSpec: string | IColumnGenSpec, series?: ISeries<IndexT, SeriesValueT> | SeriesSelectorFn<IndexT, ValueT, SeriesValueT>): IDataFrame<IndexT, ValueT>
     except<InnerIndexT = IndexT, InnerValueT = ValueT, KeyT = ValueT>(inner: IDataFrame<InnerIndexT, InnerValueT>, outerSelector?: SelectorFn<ValueT, KeyT>, innerSelector?: SelectorFn<InnerValueT, KeyT>)
     expectSeries<SeriesValueT> (columnName: string): ISeries<IndexT, SeriesValueT>
+    fillGaps(comparer: ComparerFn<[IndexT, ValueT], [IndexT, ValueT]>, generator: GapFillFn<[IndexT, ValueT], [IndexT, ValueT]>): IDataFrame<IndexT, ValueT> 
     first(): ValueT
     generateSeries<NewValueT = ValueT>(generator: SelectorWithIndexFn<any, any> | IColumnTransformSpec): IDataFrame<IndexT, NewValueT>
     getColumnNames(): string[]
@@ -59,7 +66,11 @@ export interface IDataFrame<IndexT = any, ValueT = any> extends Iterable<ValueT>
     insertPair(pair: [IndexT, ValueT]): IDataFrame<IndexT, ValueT>
     intersection<InnerIndexT = IndexT, InnerValueT = ValueT, KeyT = ValueT>(inner: IDataFrame<InnerIndexT, InnerValueT>, outerSelector?: SelectorFn<ValueT, KeyT>, innerSelector?: SelectorFn<InnerValueT, KeyT>): IDataFrame<IndexT, ValueT>
     join<KeyT, InnerIndexT, InnerValueT, ResultValueT>(inner: IDataFrame<InnerIndexT, InnerValueT>, outerKeySelector: SelectorFn<ValueT, KeyT>, innerKeySelector: SelectorFn<InnerValueT, KeyT>, resultSelector: JoinFn<ValueT, InnerValueT, ResultValueT>)
+    joinOuter<KeyT, InnerIndexT, InnerValueT, ResultValueT>(inner: IDataFrame<InnerIndexT, InnerValueT>, outerKeySelector: SelectorFn<ValueT, KeyT>, innerKeySelector: SelectorFn<InnerValueT, KeyT>, resultSelector: JoinFn<ValueT | null, InnerValueT | null, ResultValueT>)
+    joinOuterLeft<KeyT, InnerIndexT, InnerValueT, ResultValueT>(inner: IDataFrame<InnerIndexT, InnerValueT>, outerKeySelector: SelectorFn<ValueT, KeyT>, innerKeySelector: SelectorFn<InnerValueT, KeyT>, resultSelector: JoinFn<ValueT | null, InnerValueT | null, ResultValueT>)
+    joinOuterRight<KeyT, InnerIndexT, InnerValueT, ResultValueT>(inner: IDataFrame<InnerIndexT, InnerValueT>, outerKeySelector: SelectorFn<ValueT, KeyT>, innerKeySelector: SelectorFn<InnerValueT, KeyT>, resultSelector: JoinFn<ValueT | null, InnerValueT | null, ResultValueT>)
     last(): ValueT
+    melt(idColumnOrColumns: string | Iterable<string>, valueColumnOrColumns: string | Iterable<string>): IDataFrame<IndexT, ValueT>
     merge<MergedValueT = ValueT>(...otherDataFrames: IDataFrame<IndexT, any>[]): IDataFrame<IndexT, MergedValueT>
     none(predicate?: PredicateFn<ValueT>): boolean
     orderBy<SortT>(selector: SelectorWithIndexFn<ValueT, SortT>): IOrderedDataFrame<IndexT, ValueT, SortT>
@@ -74,9 +85,20 @@ export interface IDataFrame<IndexT = any, ValueT = any> extends Iterable<ValueT>
     select<ToT>(selector: SelectorWithIndexFn<ValueT, ToT>): IDataFrame<IndexT, ToT>
     selectMany<ToT>(selector: SelectorWithIndexFn<ValueT, Iterable<ToT>>): IDataFrame<IndexT, ToT>
     setIndex<NewIndexT = any>(columnName: string): IDataFrame<NewIndexT, ValueT>
+    skip(numValues: number): IDataFrame<IndexT, ValueT>
+    skipWhile(predicate: PredicateFn<ValueT>): IDataFrame<IndexT, ValueT>
+    skipUntil(predicate: PredicateFn<ValueT>): IDataFrame<IndexT, ValueT>
     startAt(indexValue: IndexT): IDataFrame<IndexT, ValueT>
     subset<NewValueT = ValueT>(columnNames: string[]): IDataFrame<IndexT, NewValueT>
+    summarize<OutputValueT = any>(spec?: IMultiColumnAggregatorSpec): OutputValueT 
+    tail(numValues: number): IDataFrame<IndexT, ValueT>
+    take(numRows: number): IDataFrame<IndexT, ValueT>
+    takeWhile(predicate: PredicateFn<ValueT>): IDataFrame<IndexT, ValueT>
+    takeUntil(predicate: PredicateFn<ValueT>): IDataFrame<IndexT, ValueT>
+    // toCSV(options?: ICSVOutputOptions): string
     toArray(): ValueT[]
+    toHTML(): string
+    toJSON(): string
     toObject<KeyT = any, FieldT = any, OutT = any>(keySelector: (value: ValueT) => KeyT, valueSelector: (value: ValueT) => FieldT): OutT 
     toPairs(): ([IndexT, ValueT])[]
     toRows(): any[][]

@@ -9,11 +9,15 @@ import { DistinctIterable } from '../iterables/DistinctIterable'
 import { EmptyIterable } from '../iterables/EmptyIterable'
 import { ExtractElementIterable } from '../iterables/ExtractElementIterable'
 import { MultiIterable } from '../iterables/MultiTerable'
+import { RavelIterable } from '../iterables/RavelIterable'
+import { RepeatIterable } from '../iterables/RepeatIterable'
 import { SelectIterable } from '../iterables/SelectIterable'
 import { SelectManyIterable } from '../iterables/SelectManyIterable'
+import { SkipIterable } from '../iterables/SkipIterable'
 import { SkipWhileIterable } from '../iterables/SkipWhileIterable'
 import { TakeIterable } from '../iterables/TakeIterable'
 import { TakeWhileIterable } from '../iterables/TakeWhileIterable'
+import { TileIterable } from '../iterables/TileIterable'
 import { WhereIterable } from '../iterables/WhereIterable'
 import { ZipIterable } from '../iterables/ZipIterable'
 import { determineType } from '../utils/determineType'
@@ -28,6 +32,7 @@ import { toMap2 } from '../utils/toMap2'
 import { ComparerFn } from './ComparerFn'
 import { DataFrameConfigFn } from './DataFrameConfigFn'
 import { Direction } from './Direction'
+import { GapFillFn } from './GapFillFn'
 import { IColumn } from './IColumn'
 import { IColumnAggregatorSpec, IMultiColumnAggregatorSpec } from './IColumnAggregatorSpec'
 import { IColumnConfig } from './IColumnConfig'
@@ -42,6 +47,8 @@ import { IIndex } from './IIndex'
 import { Index } from './IndexT'
 import { IOrderedDataFrame } from './IOrderedDataFrame'
 import { ISeries } from './ISeries'
+import { ITypeFrequency } from './ITypeFrequency'
+import { IValueFrequency } from './IValueFrequency'
 import { JoinFn } from './JoinFn'
 import { OrderedDataFrame } from './OrderedDataFrame'
 import { PredicateFn } from './PredicateFn'
@@ -384,22 +391,6 @@ export class DataFrame<IndexT, ValueT> implements IDataFrame<IndexT, ValueT> {
         return this.take(toTake)
     }
 
-    take(numRows: number): IDataFrame<IndexT, ValueT> {
-        if (!isNumber(numRows)) {
-            throw new Error('Expected \'numRows\' parameter to \'DataFrame.take\' function to be a number.')
-        }
-
-        return new DataFrame<IndexT, ValueT>(() => {
-            const content = this.getContent()
-            return {
-                columnNames: content.columnNames,
-                index: new TakeIterable(content.index, numRows),
-                values: new TakeIterable(content.values, numRows),
-                pairs: new TakeIterable(content.pairs, numRows),
-            }
-        })
-    }
-
     withIndex<NewIndexT>(newIndex: Iterable<NewIndexT> | SelectorFn<ValueT, NewIndexT>): IDataFrame<NewIndexT, ValueT> {
         if (isFunction(newIndex)) {
             return new DataFrame<NewIndexT, ValueT>(() => {
@@ -466,6 +457,39 @@ export class DataFrame<IndexT, ValueT> implements IDataFrame<IndexT, ValueT> {
         if (!isString(columnName)) throw new Error('Expected \'columnName\' parameter to \'DataFrame.setIndex\' to be a string that specifies the name of the column to set as the index for the dataframe.')
 
         return this.withIndex<NewIndexT>(this.getSeries(columnName))
+    }
+
+    skip(numValues: number): IDataFrame<IndexT, ValueT> {
+        if (!isNumber(numValues)) throw new Error('Expected \'numValues\' parameter to \'DataFrame.skip\' to be a number.')
+
+        return new DataFrame<IndexT, ValueT>(() => {
+            const content = this.getContent()
+            return {
+                columnNames: content.columnNames,
+                values: new SkipIterable(content.values, numValues),
+                index: new SkipIterable(content.index, numValues),
+                pairs: new SkipIterable(content.pairs, numValues),
+            }
+        })
+    }
+
+    skipWhile(predicate: PredicateFn<ValueT>): IDataFrame<IndexT, ValueT> {
+        if (!isFunction(predicate)) throw new Error('Expected \'predicate\' parameter to \'DataFrame.skipWhile\' function to be a predicate function that returns true/false.')
+
+        return new DataFrame<IndexT, ValueT>(() => {
+            const content = this.getContent()
+            return {
+                columnNames: content.columnNames,
+                values: new SkipWhileIterable(content.values, predicate),
+                pairs: new SkipWhileIterable(content.pairs, pair => predicate(pair[1])),
+            }
+        })
+    }
+
+    skipUntil(predicate: PredicateFn<ValueT>): IDataFrame<IndexT, ValueT> {
+        if (!isFunction(predicate)) throw new Error('Expected \'predicate\' parameter to \'DataFrame.skipUntil\' function to be a predicate function that returns true/false.')
+
+        return this.skipWhile(value => !predicate(value)) 
     }
 
     startAt(indexValue: IndexT): IDataFrame<IndexT, ValueT> {
@@ -708,6 +732,23 @@ export class DataFrame<IndexT, ValueT> implements IDataFrame<IndexT, ValueT> {
         }))
     }
 
+    defaultIfEmpty(defaultDataFrame: ValueT[] | IDataFrame<IndexT, ValueT>): IDataFrame<IndexT, ValueT> {
+        if (this.none()) {
+            if (defaultDataFrame instanceof DataFrame) {
+                return <IDataFrame<IndexT, ValueT>> defaultDataFrame
+            }
+            else if (isArray(defaultDataFrame)) {
+                return new DataFrame<IndexT, ValueT>(defaultDataFrame)
+            }
+            else {
+                throw new Error('Expected \'defaultSequence\' parameter to \'DataFrame.defaultIfEmpty\' to be an array or a series.')
+            }
+        } 
+        else {
+            return this
+        }
+    }
+
     deflate<ToT = ValueT>(selector?: SelectorWithIndexFn<ValueT, ToT>): ISeries<IndexT, ToT> {
         if (selector) {
             if (!isFunction(selector)) throw new Error('Expected \'selector\' parameter to \'DataFrame.deflate\' function to be a selector function.')
@@ -732,6 +773,42 @@ export class DataFrame<IndexT, ValueT> implements IDataFrame<IndexT, ValueT> {
                     values: content.values as any as Iterable<ToT>,
                     pairs: content.pairs as any as Iterable<[IndexT, ToT]>,
                 }
+            }
+        })
+    }
+
+    detectTypes(): IDataFrame<number, ITypeFrequency> {
+        return new DataFrame<number, ITypeFrequency>(() => {
+            const typeFrequencies = this.getColumns()
+                .selectMany(column => {
+                    return column.series.detectTypes()
+                        .select((typeFrequency: any) => {
+                            const output = Object.assign({}, typeFrequency)
+                            output.column = column.name
+                            return output
+                        })
+                })
+            return {
+                columnNames: ['type', 'frequency', 'column'],
+                values: typeFrequencies,
+            }
+        })
+    }
+
+    detectValues(): IDataFrame<number, IValueFrequency> {
+        return new DataFrame<number, IValueFrequency>(() => {
+            const valueFrequencies = this.getColumns()
+                .selectMany(column => {
+                    return column.series.detectValues()
+                        .select((valueFrequency: any) => {
+                            const output = Object.assign({}, valueFrequency)
+                            output.column = column.name
+                            return output
+                        })
+                })
+            return {
+                columnNames: ['value', 'frequency', 'column'],
+                values: valueFrequencies,
             }
         })
     }
@@ -945,6 +1022,70 @@ export class DataFrame<IndexT, ValueT> implements IDataFrame<IndexT, ValueT> {
         })
     }
 
+    melt(idColumnOrColumns: string | Iterable<string>, valueColumnOrColumns: string | Iterable<string>): IDataFrame<IndexT, ValueT> {
+        let idColumnNames: string[]
+        let valueColumnNames: string[]
+
+        if (isString(idColumnOrColumns)) {
+            idColumnNames = [idColumnOrColumns]
+        }
+        else {
+            if (!isArray(idColumnOrColumns)) throw new Error('Expected \'idColumnOrColumns\' parameter to \'DataFrame.melt\' to be a string or an array of strings that identifies the column(s) whose values make the new DataFrame\'s identity columns.')
+
+            idColumnNames = Array.from(idColumnOrColumns)
+
+            for (const columnName of idColumnNames) {
+                if (!isString(columnName)) throw new Error('Expected \'idColumnOrColumns\' parameter to \'DataFrame.melt\' to be a string or an array of strings that identifies the column(s) whose values make the new DataFrame\'s identity columns.')
+            }
+        }
+
+        if (isString(valueColumnOrColumns)) {
+            valueColumnNames = [valueColumnOrColumns]
+        }
+        else {
+            if (!isArray(valueColumnOrColumns)) throw new Error('Expected \'valueColumnOrColumns\' parameter to \'DataFrame.melt\' to be a string or an array of strings that identifies the column(s) whose molten values make the new DataFrame\'s \'variable\' and \'value\' columns.')
+
+            valueColumnNames = Array.from(valueColumnOrColumns)
+
+            for (const columnName of valueColumnNames) {
+                if (!isString(columnName)) throw new Error('Expected \'valueColumnOrColumns\' parameter to \'DataFrame.melt\' to be a string or an array of strings that identifies the column(s) whose molten values make the new DataFrame\'s \'variable\' and \'value\' columns.')
+            }
+        }
+
+        const K: number = valueColumnNames.length
+        const N: number = this.count()
+        let mdata: IDataFrame<IndexT, any> = new DataFrame<IndexT, ValueT>()
+        let original: IDataFrame<IndexT, any> = this.subset(idColumnNames.concat(valueColumnNames))
+
+        for (const col of idColumnNames){
+            original = original.dropSeries(col)
+
+            const idData = this.getSeries(col)
+            const columnData = new TileIterable(idData, K)
+            const columnSeries: ISeries<IndexT, ValueT> = new Series(columnData)
+
+            mdata = mdata.withSeries(col, columnSeries)
+        }
+
+        const seriesArray = []
+
+        for (const col of original.getColumns()) {
+            seriesArray.push(this.getSeries(col.name))
+        }
+
+        const columnData = new RavelIterable(seriesArray)
+        const columnSeries: ISeries<IndexT, any> = new Series(columnData)
+
+        mdata = mdata.withSeries('value', columnSeries)
+
+        const valueColumnData = new RepeatIterable(valueColumnNames, N)
+        const valueColumnSeries: ISeries<IndexT, ValueT> = new Series(valueColumnData)
+
+        mdata = mdata.withSeries('variable', valueColumnSeries)
+
+        return mdata
+    }
+
     static merge<MergedValueT = any, IndexT = any, ValueT = any>(dataFrames: Iterable<IDataFrame<IndexT, ValueT>>): IDataFrame<IndexT, MergedValueT> {
         const rowMap = new Map<IndexT, any>()
         const allColumnNames: string[] = []
@@ -986,6 +1127,50 @@ export class DataFrame<IndexT, ValueT> implements IDataFrame<IndexT, ValueT> {
         return DataFrame.merge<MergedValueT, IndexT, any>([this as IDataFrame<IndexT, ValueT>].concat(otherDataFrames))
     }
 
+    tail(numValues: number): IDataFrame<IndexT, ValueT> {
+        if (!isNumber(numValues)) throw new Error('Expected \'numValues\' parameter to \'DataFrame.tail\' function to be a number.')
+
+        if (numValues === 0) {
+            return new DataFrame<IndexT, ValueT>() // Empty dataframe.
+        }
+
+        const toSkip = numValues > 0 ? this.count() - numValues : Math.abs(numValues)
+        return this.skip(toSkip)
+    }
+
+    take(numRows: number): IDataFrame<IndexT, ValueT> {
+        if (!isNumber(numRows)) throw new Error('Expected \'numRows\' parameter to \'DataFrame.take\' function to be a number.')
+
+        return new DataFrame<IndexT, ValueT>(() => {
+            const content = this.getContent()
+            return {
+                columnNames: content.columnNames,
+                index: new TakeIterable(content.index, numRows),
+                values: new TakeIterable(content.values, numRows),
+                pairs: new TakeIterable(content.pairs, numRows)
+            }
+        })
+    }
+
+    takeWhile(predicate: PredicateFn<ValueT>): IDataFrame<IndexT, ValueT> {
+        if (!isFunction(predicate)) throw new Error('Expected \'predicate\' parameter to \'DataFrame.takeWhile\' function to be a predicate function that returns true/false.')
+
+        return new DataFrame<IndexT, ValueT>(() => {
+            const content = this.getContent()
+            return {
+                columnNames: content.columnNames,
+                values: new TakeWhileIterable(content.values, predicate),
+                pairs: new TakeWhileIterable(content.pairs, pair => predicate(pair[1]))
+            }
+        })
+    }
+
+    takeUntil(predicate: PredicateFn<ValueT>): IDataFrame<IndexT, ValueT> {
+        if (!isFunction(predicate)) throw new Error('Expected \'predicate\' parameter to \'DataFrame.takeUntil\' function to be a predicate function that returns true/false.')
+
+        return this.takeWhile(value => !predicate(value))
+    }
+
     toArray(): ValueT[] {
         const values = []
         for (const value of this.getContent().values) {
@@ -994,6 +1179,55 @@ export class DataFrame<IndexT, ValueT> implements IDataFrame<IndexT, ValueT> {
             }
         }
         return values
+    }
+
+    // toCSV(options?: ICSVOutputOptions): string {
+    //     const headerLine = options === undefined || options.header === undefined || options.header
+    //         ? [this.getColumnNames()]
+    //         : []
+    //         ;
+    //     const rows = headerLine.concat(this.toRows());
+    //     return PapaParse.unparse(rows, options);
+    // }
+
+    toHTML(): string {
+        const columNames = this.getColumnNames()
+        const header = columNames.map(columnName => '            <th>' + columnName + '</th>').join('\n')
+        const pairs = this.toPairs()
+
+        return '<table border="1" class="dataframe">\n' + 
+            '    <thead>\n' +
+            '        <tr style="text-align: right;">\n' +
+            '            <th></th>\n' +
+
+            header +
+
+            '\n' +
+            '       </tr>\n' +
+            '    </thead>\n' +
+            '    <tbody>\n' +
+
+            pairs.map(pair => {
+                const index = pair[0]
+                const value: any = pair[1]
+                return '        <tr>\n' +
+                    '            <th>' + index + '</th>\n' +
+                    columNames.map(columName => {
+                            return '            <td>' + value[columName] + '</td>'
+                        })
+                        .join('\n') +
+                        '\n' +
+                        '        </tr>'
+                })
+                .join('\n') +
+
+            '\n' +
+            '    </tbody>\n' +
+            '</table>'
+    }    
+
+    toJSON(): string {
+        return JSON.stringify(this.toArray(), null, 4)
     }
 
     toObject<KeyT = any, FieldT = any, OutT = any>(keySelector: (value: ValueT) => KeyT, valueSelector: (value: ValueT) => FieldT): OutT {
@@ -1085,6 +1319,52 @@ export class DataFrame<IndexT, ValueT> implements IDataFrame<IndexT, ValueT> {
                 }),
             }
         })
+    }
+
+    summarize<OutputValueT = any>(spec?: IMultiColumnAggregatorSpec): OutputValueT {
+        if (spec && !isObject(spec)) {
+            throw new Error('Expected \'spec\' parameter to \'DataFrame.summarize\' to be an object that specifies how to summarize the dataframe.')
+        }
+
+        if (!spec) {
+            spec = {}
+
+            for (const columnName of this.getColumnNames()) {
+                const columnSpec: any = {}
+                columnSpec[columnName + '_sum'] = Series.sum
+                columnSpec[columnName + '_average'] = Series.average
+                columnSpec[columnName + '_count'] = Series.count
+                spec[columnName] = columnSpec
+
+            }
+        }
+
+        for (const inputColumnName of Object.keys(spec)) {
+            const inputSpec = spec[inputColumnName]
+            if (isFunction(inputSpec)) {
+                spec[inputColumnName] = {}; // Expand the spec.
+                (spec[inputColumnName] as IColumnAggregatorSpec) [inputColumnName] = inputSpec
+            }
+        }
+
+        const inputColumnNames = Object.keys(spec)
+        const outputFieldsMap = toMap(
+            inputColumnNames, 
+            valueColumnName => valueColumnName, 
+            inputColumnName => Object.keys(spec![inputColumnName])
+        )
+
+        const output: any = {}
+        
+        for (const inputColumnName of inputColumnNames) {
+            const outputFieldNames = outputFieldsMap[inputColumnName]
+            for (const outputFieldName of outputFieldNames) {
+                const aggregatorFn = (spec[inputColumnName] as IColumnAggregatorSpec)[outputFieldName]
+                output[outputFieldName] = aggregatorFn(this.getSeries(inputColumnName))
+            }
+        }
+
+        return output
     }
 
     pivot<NewValueT = ValueT> (
@@ -1339,6 +1619,87 @@ export class DataFrame<IndexT, ValueT> implements IDataFrame<IndexT, ValueT> {
         })
     }
 
+    joinOuter<KeyT, InnerIndexT, InnerValueT, ResultValueT> (
+        inner: IDataFrame<InnerIndexT, InnerValueT>, 
+        outerKeySelector: SelectorFn<ValueT, KeyT>, 
+        innerKeySelector: SelectorFn<InnerValueT, KeyT>, 
+        resultSelector: JoinFn<ValueT | null, InnerValueT | null, ResultValueT>):
+            IDataFrame<number, ResultValueT> {
+
+        if (!isFunction(outerKeySelector)) throw new Error('Expected \'outerKeySelector\' parameter of \'DataFrame.joinOuter\' to be a selector function.')
+        if (!isFunction(innerKeySelector)) throw new Error('Expected \'innerKeySelector\' parameter of \'DataFrame.joinOuter\' to be a selector function.')
+        if (!isFunction(resultSelector)) throw new Error('Expected \'resultSelector\' parameter of \'DataFrame.joinOuter\' to be a selector function.')
+
+        // Get the results in the outer that are not in the inner.
+        const outer = this
+        const outerResult = outer.except<InnerIndexT, InnerValueT, KeyT>(inner, outerKeySelector, innerKeySelector)
+            .select(o => resultSelector(o, null))
+            .resetIndex()
+
+        // Get the results in the inner that are not in the outer.
+        const innerResult = inner.except<IndexT, ValueT, KeyT>(outer, innerKeySelector, outerKeySelector)
+            .select(i => resultSelector(null, i))
+            .resetIndex()
+
+        // Get the intersection of results between inner and outer.
+        const intersectionResults = outer.join<KeyT, InnerIndexT, InnerValueT, ResultValueT>(inner, outerKeySelector, innerKeySelector, resultSelector)
+
+        return outerResult
+            .concat(intersectionResults)
+            .concat(innerResult)
+            .resetIndex()
+    }
+
+    joinOuterLeft<KeyT, InnerIndexT, InnerValueT, ResultValueT> (
+        inner: IDataFrame<InnerIndexT, InnerValueT>, 
+        outerKeySelector: SelectorFn<ValueT, KeyT>, 
+        innerKeySelector: SelectorFn<InnerValueT, KeyT>, 
+        resultSelector: JoinFn<ValueT | null, InnerValueT | null, ResultValueT>):
+            IDataFrame<number, ResultValueT> {
+
+        if (!isFunction(outerKeySelector)) throw new Error('Expected \'outerKeySelector\' parameter of \'DataFrame.joinOuterLeft\' to be a selector function.')
+        if (!isFunction(innerKeySelector)) throw new Error('Expected \'innerKeySelector\' parameter of \'DataFrame.joinOuterLeft\' to be a selector function.')
+        if (!isFunction(resultSelector)) throw new Error('Expected \'resultSelector\' parameter of \'DataFrame.joinOuterLeft\' to be a selector function.')
+
+        // Get the results in the outer that are not in the inner.
+        const outer = this
+        const outerResult = outer.except<InnerIndexT, InnerValueT, KeyT>(inner, outerKeySelector, innerKeySelector)
+            .select(o => resultSelector(o, null))
+            .resetIndex()
+
+        // Get the intersection of results between inner and outer.
+        const intersectionResults = outer.join<KeyT, InnerIndexT, InnerValueT, ResultValueT>(inner, outerKeySelector, innerKeySelector, resultSelector)
+
+        return outerResult
+            .concat(intersectionResults)
+            .resetIndex()
+    }
+
+    joinOuterRight<KeyT, InnerIndexT, InnerValueT, ResultValueT> (
+        inner: IDataFrame<InnerIndexT, InnerValueT>, 
+        outerKeySelector: SelectorFn<ValueT, KeyT>, 
+        innerKeySelector: SelectorFn<InnerValueT, KeyT>, 
+        resultSelector: JoinFn<ValueT | null, InnerValueT | null, ResultValueT>):
+            IDataFrame<number, ResultValueT> {
+
+        if (!isFunction(outerKeySelector)) throw new Error('Expected \'outerKeySelector\' parameter of \'DataFrame.joinOuterRight\' to be a selector function.')
+        if (!isFunction(innerKeySelector)) throw new Error('Expected \'innerKeySelector\' parameter of \'DataFrame.joinOuterRight\' to be a selector function.')
+        if (!isFunction(resultSelector)) throw new Error('Expected \'resultSelector\' parameter of \'DataFrame.joinOuterRight\' to be a selector function.')
+
+        // Get the results in the inner that are not in the outer.
+        const outer = this
+        const innerResult = inner.except<IndexT, ValueT, KeyT>(outer, innerKeySelector, outerKeySelector)
+            .select(i => resultSelector(null, i))
+            .resetIndex()
+
+        // Get the intersection of results between inner and outer.
+        const intersectionResults = outer.join<KeyT, InnerIndexT, InnerValueT, ResultValueT>(inner, outerKeySelector, innerKeySelector, resultSelector)
+
+        return intersectionResults
+            .concat(innerResult)
+            .resetIndex()
+    } 
+
     appendPair(pair: [IndexT, ValueT]): IDataFrame<IndexT, ValueT> {
         if (!isArray(pair)) throw new Error('Expected \'pair\' parameter to \'DataFrame.appendPair\' to be an array.')
         if (pair.length !== 2) throw new Error('Expected \'pair\' parameter to \'DataFrame.appendPair\' to be an array with two elements. The first element is the index, the second is the value.')
@@ -1420,6 +1781,30 @@ export class DataFrame<IndexT, ValueT> implements IDataFrame<IndexT, ValueT> {
                 values: new DataFrameRollingWindowIterable<IndexT, ValueT>(content.columnNames, content.pairs, period)
             }            
         })
+    }
+
+    fillGaps(comparer: ComparerFn<[IndexT, ValueT], [IndexT, ValueT]>, generator: GapFillFn<[IndexT, ValueT], [IndexT, ValueT]>): IDataFrame<IndexT, ValueT> {
+        if (!isFunction(comparer)) throw new Error('Expected \'comparer\' parameter to \'DataFrame.fillGaps\' to be a comparer function that compares two values and returns a boolean.')
+        if (!isFunction(generator)) throw new Error('Expected \'generator\' parameter to \'DataFrame.fillGaps\' to be a generator function that takes two values and returns an array of generated pairs to span the gap.')
+
+        return this.rollingWindow(2)
+            .selectMany(window => {
+                const pairs = window.toPairs()
+                const pairA = pairs[0]
+                const pairB = pairs[1]
+                if (!comparer(pairA, pairB)) {
+                    return [pairA]
+                }
+
+                const generatedRows = generator(pairA, pairB)
+                if (!isArray(generatedRows)) throw new Error('Expected return from \'generator\' parameter to \'DataFrame.fillGaps\' to be an array of pairs, instead got a ' + typeof(generatedRows))
+
+                return [pairA].concat(generatedRows)
+            })
+            .withIndex(pair => pair[0])
+            .inflate(pair => pair[1])
+            .concat(this.tail(1))
+            
     }
 
     first(): ValueT {

@@ -4,6 +4,8 @@ import { ComparerFn } from './ComparerFn'
 import { IDataFrame } from './IDataFrame'
 import { IIndex } from './IIndex'
 import { IOrderedSeries } from './IOrderedSeries'
+import { ITypeFrequency } from './ITypeFrequency'
+import { IValueFrequency } from './IValueFrequency'
 import { PredicateFn } from './PredicateFn'
 import { SelectorFn } from './SelectorFn'
 import { SelectorWithIndexFn } from './SelectorWithIndexFn'
@@ -26,6 +28,8 @@ export interface ISeries<IndexT = number, ValueT = any> extends Iterable<ValueT>
     between(startIndexValue: IndexT, endIndexValue: IndexT): ISeries<IndexT, ValueT>
     concat(...series: (ISeries<IndexT, ValueT>[]|ISeries<IndexT, ValueT>)[]): ISeries<IndexT, ValueT>
     count(): number
+    detectTypes(): IDataFrame<number, ITypeFrequency>
+    detectValues(): IDataFrame<number, IValueFrequency>
     endAt(indexValue: IndexT): ISeries<IndexT, ValueT>
     first(): ValueT
     forEach(callback: CallbackFn<ValueT>): ISeries<IndexT, ValueT>

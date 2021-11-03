@@ -45,6 +45,8 @@ import { ReverseIterable } from '../iterables/ReverseIterable'
 import { ConcatIterable } from '../iterables/ConcatIterable'
 import { Zip2Fn, Zip3Fn, ZipNFn } from './ZipFn'
 import { ZipIterable } from '../iterables/ZipIterable'
+import { ITypeFrequency } from './ITypeFrequency'
+import { IValueFrequency } from './IValueFrequency'
 
 /**
  * One-dimensional ndarray with axis labels (including time series).
@@ -398,6 +400,10 @@ export class Series<IndexT = number, ValueT = any> implements ISeries<IndexT, Va
         return lastValue
     }
 
+    static count<IndexT = any> (series: ISeries<IndexT, number>): number {
+        return series.count()
+    }
+
     count(): number {
         let total = 0
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -405,6 +411,74 @@ export class Series<IndexT = number, ValueT = any> implements ISeries<IndexT, Va
             ++total
         }
         return total
+    }
+
+    detectTypes(): IDataFrame<number, ITypeFrequency> {
+        return new DataFrame<number, ITypeFrequency>(() => {
+            const totalValues = this.count()
+
+            const typeFrequencies = this.select(value => {
+                    let valueType: string = typeof(value)
+                    if (valueType === 'object') {
+                        if (isDate(value)) {
+                            valueType = 'date'
+                        }
+                    }
+                    return valueType
+                })
+                .aggregate({}, (accumulated: any, valueType: string) => {
+                    let typeInfo = accumulated[valueType]
+                    if (!typeInfo) {
+                        typeInfo = {
+                            count: 0
+                        }
+                        accumulated[valueType] = typeInfo
+                    }
+                    ++typeInfo.count
+                    return accumulated
+                })
+
+            return {
+                columnNames: ['type', 'frequency'],
+                rows: Object.keys(typeFrequencies)
+                    .map(valueType => {
+                        return [
+                            valueType,
+                            (typeFrequencies[valueType].count / totalValues) * 100
+                        ]
+                    })
+            }
+        })
+    }
+
+    detectValues(): IDataFrame<number, IValueFrequency> {
+        return new DataFrame<number, IValueFrequency>(() => {
+            const totalValues = this.count()
+            const valueFrequencies = this.aggregate(new Map<any, any>(), (accumulated: Map<any, any>, value: any) => {
+                let valueInfo = accumulated.get(value)
+                if (!valueInfo) {
+                    valueInfo = {
+                        count: 0,
+                        value: value,
+                    }
+                    accumulated.set(value, valueInfo)
+                }
+                ++valueInfo.count
+                return accumulated
+            })
+
+            return {
+                columnNames: ['value', 'frequency'],
+                rows: Array.from(valueFrequencies.keys())
+                    .map(value => {
+                        const valueInfo = valueFrequencies.get(value)
+                        return [
+                            valueInfo.value,
+                            (valueInfo.count / totalValues) * 100
+                        ]
+                    }),
+            }
+        })
     }
 
     endAt(indexValue: IndexT): ISeries<IndexT, ValueT> {
