@@ -43,6 +43,8 @@ import { IOrderedSeriesConfig } from './IOrderedSeriesConfig'
 import { SortSelectorFn } from './SortSelectorFn'
 import { ReverseIterable } from '../iterables/ReverseIterable'
 import { ConcatIterable } from '../iterables/ConcatIterable'
+import { Zip2Fn, Zip3Fn, ZipNFn } from './ZipFn'
+import { ZipIterable } from '../iterables/ZipIterable'
 
 /**
  * One-dimensional ndarray with axis labels (including time series).
@@ -208,7 +210,7 @@ export class Series<IndexT = number, ValueT = any> implements ISeries<IndexT, Va
         return max
     }
 
-    static median<IndexT = any> (series: ISeries<IndexT, number>): number {
+    static median<IndexT = any>(series: ISeries<IndexT, number>): number {
         return series.median()
     }
 
@@ -301,6 +303,13 @@ export class Series<IndexT = number, ValueT = any> implements ISeries<IndexT, Va
                 }
             })
         }
+    }
+
+    insertPair(pair: [IndexT, ValueT]): ISeries<IndexT, ValueT> {
+        if (!isArray(pair)) throw new Error('Expected \'pair\' parameter to \'Series.insertPair\' to be an array.')
+        if (pair.length !== 2) throw new Error('Expected \'pair\' parameter to \'Series.insertPair\' to be an array with two elements. The first element is the index, the second is the value.')
+
+        return (new Series<IndexT, ValueT>({ pairs: [pair] })).concat(this)
     }
 
     static average<IndexT = any> (series: ISeries<IndexT, number>): number {
@@ -458,7 +467,7 @@ export class Series<IndexT = number, ValueT = any> implements ISeries<IndexT, Va
         return <ISeries<IndexT, number>> this.select(Series.parseInt)
     }
 
-    static parseFloat (value: any | undefined | null, valueIndex: number): number | undefined {
+    static parseFloat(value: any | undefined | null, valueIndex: number): number | undefined {
         if (value === undefined || value === null) {
             return undefined
         }
@@ -787,6 +796,13 @@ export class Series<IndexT = number, ValueT = any> implements ISeries<IndexT, Va
         }
     }
 
+    appendPair(pair: [IndexT, ValueT]): ISeries<IndexT, ValueT> {
+        if (!isArray(pair)) throw new Error('Expected \'pair\' parameter to \'Series.appendPair\' to be an array.')
+        if (pair.length !== 2) throw new Error('Expected \'pair\' parameter to \'Series.appendPair\' to be an array with two elements. The first element is the index, the second is the value.')
+
+        return this.concat(new Series<IndexT, ValueT>({ pairs: [pair] }))
+    }
+
     all(predicate: PredicateFn<ValueT>): boolean {
         if (!isFunction(predicate)) throw new Error('Expected \'predicate\' parameter to \'Series.all\' to be a function.')
 
@@ -851,6 +867,38 @@ export class Series<IndexT = number, ValueT = any> implements ISeries<IndexT, Va
                 const proportionRank = numLowerValues / period!
                 return proportionRank
             })
+    }
+
+    static zip<IndexT = any, ValueT = any, ResultT = any>(series: Iterable<ISeries<IndexT, ValueT>>, zipper: ZipNFn<ValueT, ResultT>): ISeries<IndexT, ResultT> {
+        const input = Array.from(series)
+
+        if (input.length === 0) {
+            return new Series<IndexT, ResultT>()
+        }
+
+        const firstSeries = input[0]
+        if (firstSeries.none()) {
+            return new Series<IndexT, ResultT>()
+        }
+
+        return new Series<IndexT, ResultT>(() => {
+            const firstSeriesUpCast = <Series<IndexT, ValueT>> firstSeries
+            const upcast = <Series<IndexT, ValueT>[]> input // Upcast so that we can access private index, values and pairs.
+            
+            return {
+                index: <Iterable<IndexT>> firstSeriesUpCast.getContent().index,
+                values: new ZipIterable<ValueT, ResultT>(upcast.map(s => s.getContent().values), zipper),
+            }
+        })
+    }
+
+    zip<Index2T, Value2T, ResultT>(s2: ISeries<Index2T, Value2T>, zipper: Zip2Fn<ValueT, Value2T, ResultT> ): ISeries<IndexT, ResultT>;
+    zip<Index2T, Value2T, Index3T, Value3T, ResultT>(s2: ISeries<Index2T, Value2T>, s3: ISeries<Index3T, Value3T>, zipper: Zip3Fn<ValueT, Value2T, Value3T, ResultT> ): ISeries<IndexT, ResultT>;
+    zip<Index2T, Value2T, Index3T, Value3T, Index4T, Value4T, ResultT>(s2: ISeries<Index2T, Value2T>, s3: ISeries<Index3T, Value3T>, s4: ISeries<Index4T, Value4T>, zipper: Zip3Fn<ValueT, Value2T, Value3T, ResultT> ): ISeries<IndexT, ResultT>;
+    zip<ResultT>(...args: any[]): ISeries<IndexT, ResultT> {
+        const selector: Function = args[args.length-1]
+        const input: ISeries<IndexT, any>[] = [this].concat(args.slice(0, args.length-1))
+        return Series.zip<IndexT, any, ResultT>(input, values => selector(...values))
     }
 }
 

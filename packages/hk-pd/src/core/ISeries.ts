@@ -8,6 +8,7 @@ import { PredicateFn } from './PredicateFn'
 import { SelectorFn } from './SelectorFn'
 import { SelectorWithIndexFn } from './SelectorWithIndexFn'
 import { WhichIndex } from './WhichIndex'
+import { Zip2Fn, Zip3Fn } from './ZipFn'
 
 export interface ISeries<IndexT = number, ValueT = any> extends Iterable<ValueT> {
     [Symbol.iterator](): Iterator<ValueT>
@@ -18,6 +19,7 @@ export interface ISeries<IndexT = number, ValueT = any> extends Iterable<ValueT>
     amountChange(period?: number, whichIndex?: WhichIndex): ISeries<IndexT, number>
     amountRange(period: number, whichIndex?: WhichIndex): ISeries<IndexT, number>
     any(predicate?: PredicateFn<ValueT>): boolean
+    appendPair(pair: [IndexT, ValueT]): ISeries<IndexT, ValueT> 
     average(): number
     bake(): ISeries<IndexT, ValueT>
     before(indexValue: IndexT): ISeries<IndexT, ValueT>
@@ -30,6 +32,7 @@ export interface ISeries<IndexT = number, ValueT = any> extends Iterable<ValueT>
     getIndex(): IIndex<IndexT>
     head(numValues: number): ISeries<IndexT, ValueT>
     inflate<ToT = ValueT> (selector?: SelectorWithIndexFn<ValueT, ToT>): IDataFrame<IndexT, ToT>
+    insertPair (pair: [IndexT, ValueT]): ISeries<IndexT, ValueT>
     last(): ValueT
     max(): number
     median(): number
@@ -61,4 +64,8 @@ export interface ISeries<IndexT = number, ValueT = any> extends Iterable<ValueT>
     where(predicate: PredicateFn<ValueT>): ISeries<IndexT, ValueT>
     window(period: number, whichIndex?: WhichIndex): ISeries<IndexT, ISeries<IndexT, ValueT>>
     withIndex<NewIndexT>(newIndex: Iterable<NewIndexT> | SelectorFn<ValueT, NewIndexT>): ISeries<NewIndexT, ValueT>
+    zip<Index2T, Value2T, Index3T, Value3T, Index4T, Value4T, ResultT>(s2: ISeries<Index2T, Value2T>, s3: ISeries<Index3T, Value3T>, s4: ISeries<Index4T, Value4T>, zipper: Zip3Fn<ValueT, Value2T, Value3T, ResultT> ): ISeries<IndexT, ResultT>
+    zip<Index2T, Value2T, Index3T, Value3T, ResultT>(s2: ISeries<Index2T, Value2T>, s3: ISeries<Index3T, Value3T>, zipper: Zip3Fn<ValueT, Value2T, Value3T, ResultT> ): ISeries<IndexT, ResultT>
+    zip<Index2T, Value2T, ResultT>(s2: ISeries<Index2T, Value2T>, zipper: Zip2Fn<ValueT, Value2T, ResultT> ): ISeries<IndexT, ResultT>
+    zip<ResultT>(...args: any[]): ISeries<IndexT, ResultT>
 }
