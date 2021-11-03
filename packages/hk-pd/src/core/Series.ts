@@ -740,6 +740,24 @@ export class Series<IndexT = number, ValueT = any> implements ISeries<IndexT, Va
         }))
     }
 
+    round(numDecimalPlaces?: number): ISeries<IndexT, ValueT> {
+        if (numDecimalPlaces !== undefined) {
+            if (!isNumber(numDecimalPlaces)) {
+                throw new Error('Expected \'numDecimalPlaces\' parameter to \'Series.round\' to be a number.')
+            }
+        } else {
+            numDecimalPlaces = 2 // Default to two decimal places.
+        }
+        
+        return this.select((value: any) => {
+            if (isNumber(value)) {
+                return parseFloat(value.toFixed(numDecimalPlaces))
+            }
+
+            return value
+        })
+    }
+
     variableWindow(comparer: ComparerFn<ValueT, ValueT>): ISeries<number, ISeries<IndexT, ValueT>> {
         if (!isFunction(comparer)) throw new Error('Expected \'comparer\' parameter to \'Series.variableWindow\' to be a function.')
 

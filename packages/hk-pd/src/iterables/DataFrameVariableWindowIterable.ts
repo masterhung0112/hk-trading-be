@@ -1,3 +1,4 @@
+import { ComparerFn } from '../core/ComparerFn'
 import { IDataFrame } from '../core/IDataFrame'
 import { DataFrameVariableWindowIterator } from '../iterators/DataFrameVariableWindowIterator'
 

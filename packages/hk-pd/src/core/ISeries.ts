@@ -52,6 +52,7 @@ export interface ISeries<IndexT = number, ValueT = any> extends Iterable<ValueT>
     proportionRange(period: number, whichIndex?: WhichIndex): ISeries<IndexT, number>
     reverse(): ISeries<IndexT, ValueT>
     rollingWindow(period: number, whichIndex?: WhichIndex): ISeries<IndexT, ISeries<IndexT, ValueT>>
+    round(numDecimalPlaces?: number): ISeries<IndexT, ValueT>
     select<ToT>(selector: SelectorWithIndexFn<ValueT, ToT>): ISeries<IndexT, ToT>
     selectMany<ToT>(selector: SelectorWithIndexFn<ValueT, Iterable<ToT>>): ISeries<IndexT, ToT>
     sequentialDistinct<ToT = ValueT>(selector?: SelectorFn<ValueT, ToT>): ISeries<IndexT, ValueT>
