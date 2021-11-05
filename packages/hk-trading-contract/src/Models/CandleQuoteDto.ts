@@ -3,4 +3,5 @@ export interface CandleQuoteDto {
     sts: number
     b: number
     a: number
+    v?: number
 }
