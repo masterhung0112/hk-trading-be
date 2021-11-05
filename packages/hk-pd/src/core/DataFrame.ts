@@ -60,6 +60,7 @@ import { SeriesSelectorFn } from './SeriesSelectorFn'
 import { Zip2Fn, Zip3Fn, ZipNFn } from './ZipFn'
 import Table from 'easy-table'
 import { ReverseIterable } from '../iterables/ReverseIterable'
+import { ColumnsToArraysIterable } from '../iterables/ColumnsToArraysIterable'
 
 export class DataFrame<IndexT, ValueT> implements IDataFrame<IndexT, ValueT> {
     private _configFn: DataFrameConfigFn<IndexT, ValueT> | null = null;
@@ -1325,6 +1326,23 @@ export class DataFrame<IndexT, ValueT> implements IDataFrame<IndexT, ValueT> {
             rows.push(row)
         }
         
+        return rows
+    }
+
+    convertColumnsToArrays(columnNames: string[]): any[][] {
+        const rows = []
+        const defaultColumnNames = this.getColumnNames()
+
+        for (const columnName of columnNames) {
+            if (!defaultColumnNames.includes(columnName)) {
+                throw new Error(`Column Name ${columnName} doesn't exist`)
+            }
+        }
+ 
+        for (const row of new ColumnsToArraysIterable(columnNames, this)) {
+           rows.push(row)
+        }
+
         return rows
     }
 

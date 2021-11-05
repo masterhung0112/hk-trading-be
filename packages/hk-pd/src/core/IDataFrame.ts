@@ -45,6 +45,7 @@ export interface IDataFrame<IndexT = any, ValueT = any> extends Iterable<ValueT>
     cast<NewValueT>(): IDataFrame<IndexT, NewValueT>
     concat(...dataframes: (IDataFrame<IndexT, ValueT>[] | IDataFrame<IndexT, ValueT>)[]): IDataFrame<IndexT, ValueT>
     count(): number
+    convertColumnsToArrays(columnNames: string[]): any[][] 
     defaultIfEmpty(defaultDataFrame: ValueT[] | IDataFrame<IndexT, ValueT>): IDataFrame<IndexT, ValueT>
     deflate<ToT = ValueT>(selector?: SelectorWithIndexFn<ValueT, ToT>): ISeries<IndexT, ToT>
     detectTypes(): IDataFrame<number, ITypeFrequency>

@@ -1,5 +1,4 @@
-import { DataFrame, IDataFrame } from 'hk-pd'
-import { CandleStickDTO, createTimeRange, fmtUSD, ITradingChart, ITradingChartDataProvider, ResolutionType, TradingChartConfig, detectIntervalMsFromCandles, IChartItem } from 'hk-trading-contract'
+import { createTimeRange, fmtUSD, ITradingChart, ITradingChartDataProvider, ResolutionType, TradingChartConfig, detectIntervalMsFromCandles, IChartItem } from 'hk-trading-contract'
 import * as uPlot from 'uplot'
 import { candlestickPlugin } from './ChartPlugins/candlestickPlugin'
 import { columnHighlightPlugin } from './ChartPlugins/columnHighlightPlugin'
@@ -46,7 +45,7 @@ export class TradingViewWidget implements ITradingChart {
     currentResolution?: ResolutionType
     currentTimeRange = createTimeRange(-Infinity, Infinity)
 
-    ohlcvData: IDataFrame<number, CandleStickDTO> = new DataFrame<number, CandleStickDTO>()
+    ohlcvData: uPlot.AlignedData = [] as any as uPlot.AlignedData //IDataFrame<number, CandleStickDTO> = new DataFrame<number, CandleStickDTO>()
 
     intervalMs = 0
     interval = 0
@@ -104,7 +103,7 @@ export class TradingViewWidget implements ITradingChart {
             ],
             scales: {
                 x: {
-                    distr: uPlot.Scale.Distr.Ordinal,
+                    distr: 2,
                 },
                 vol: {
                     range: [0, 2000],
@@ -172,7 +171,7 @@ export class TradingViewWidget implements ITradingChart {
 
     protected calcInterval() {
         // const tf = Utils.parse_tf(this.forced_tf)
-        if (this.ohlcvData.count() < 2) {// && !tf) {
+        if (this.ohlcvData.length < 2) {// && !tf) {
             return
         }
         this.intervalMs = detectIntervalMsFromCandles(this.ohlcvData) // tf || detectIntervalMsFromCandles(this.ohlcvData)
@@ -184,7 +183,7 @@ export class TradingViewWidget implements ITradingChart {
     protected calculateDefaultTimeRange() {
         const defaultLen = this.datafeedConfig.defaultLen || TRADINGVIEW_DEFAULT_LEN
         const minimumLen = (this.datafeedConfig.minimumLen || TRADINGVIEW_MINIMUM_LEN) + 0.5
-        const ohlcvLength = this.ohlcvData.count()
+        const ohlcvLength = this.ohlcvData.length
         const l = ohlcvLength - 1
         let s = 0
         let d = 0.5
@@ -203,7 +202,7 @@ export class TradingViewWidget implements ITradingChart {
         if (this.datafeedConfig.indexBased) {
             this.currentTimeRange = createTimeRange(s - this.interval * d, l + this.interval * minimumLen)
         } else {
-            this.currentTimeRange = createTimeRange(this.ohlcvData.at(s).sts - this.interval * d, this.ohlcvData.at(l).sts + this.interval * minimumLen)
+            this.currentTimeRange = createTimeRange(this.ohlcvData[s][0] - this.interval * d, this.ohlcvData[l][0] + this.interval * minimumLen)
         }
     }
 
@@ -231,14 +230,19 @@ export class TradingViewWidget implements ITradingChart {
             })
             if (initialData) {
                 // Clone the initial data
-                this.ohlcvData = new DataFrame<number, CandleStickDTO>(initialData).bake()
+                this.ohlcvData = initialData.convertColumnsToArrays(['sts', 'bo', 'bh', 'bl', 'bc', 'v']) as uPlot.AlignedData
 
                 this.calcInterval()
 
                 // Caldulate the default time range from the data
                 this.calculateDefaultTimeRange()
+
+                this.mainChart.uplot.setData(this.ohlcvData)
             }
         }
+
+        // Performance the first draw
+        this.draw()
     }
 
     draw() {
