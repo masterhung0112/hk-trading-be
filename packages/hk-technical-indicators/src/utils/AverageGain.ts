@@ -1,8 +1,9 @@
-import { Indicator, IndicatorInput } from '../indicator/indicator'
+import { ISeries } from 'hk-pd'
+import { Indicator, IndicatorInput } from '../indicator/Indicator'
 
 export class AverageGainInput extends IndicatorInput {
     period: number
-    values: number[]
+    values: ISeries<number>
 }
 
 export class AverageGain extends Indicator<number> {

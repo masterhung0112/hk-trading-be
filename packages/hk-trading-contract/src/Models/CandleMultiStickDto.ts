@@ -1,3 +1,4 @@
+import { ISeries } from 'hk-pd'
 import { ResolutionType } from './ResolutionType'
 
 export interface CandleMultiStickDto {
@@ -5,18 +6,18 @@ export interface CandleMultiStickDto {
     resolutionType: ResolutionType
     firstStickSts: number //
     lastStickSts: number // UTC timestamp
-    sts: number[] // Start UTC Timestamp
+    sts: ISeries<number> // Start UTC Timestamp
     ets?: number[] // End UTC timestamp
-    bo: number[] // Bid Open
-    bh: number[] // Bid High
-    bl: number[] // Bid Low
-    bc: number[] // Bid Close
-    v?: number[] // Volume
+    bo: ISeries<number> // Bid Open
+    bh: ISeries<number> // Bid High
+    bl: ISeries<number> // Bid Low
+    bc: ISeries<number> // Bid Close
+    v?: ISeries<number> // Volume
 }
 
 export interface CandleMultiStickBidAskDto extends CandleMultiStickDto {
-    ao: number[]
-    ah: number[]
-    al: number[]
-    ac: number[]
+    ao: ISeries<number>
+    ah: ISeries<number>
+    al: ISeries<number>
+    ac: ISeries<number>
 }

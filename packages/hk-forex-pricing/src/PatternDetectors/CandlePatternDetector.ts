@@ -49,8 +49,9 @@ export class CandlePatternDetector {
 
     return stream$.pipe(
       map(([finder, candles]) => {
-        if (candles.bc.length > 0) {
-          if (candles.bc.length < finder.requiredBarNum) {
+        const bcCount = candles.bc.count()
+        if (bcCount > 0) {
+          if (bcCount < finder.requiredBarNum) {
             // Not enough candles for pattern detection
             return null
           } else if (finder.hasPattern(candles)) {

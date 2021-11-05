@@ -1,4 +1,6 @@
 export * from './Entities'
 export * from './Models'
+export * from './Services'
 export * from './Stores'
 export * from './Events'
+export * from './Utils'

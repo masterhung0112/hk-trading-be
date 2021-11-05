@@ -1,0 +1,1 @@
+export type CallbackFn<ValueT> = (value: ValueT, index: number) => void

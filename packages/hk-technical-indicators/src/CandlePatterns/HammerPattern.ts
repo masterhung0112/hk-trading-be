@@ -26,8 +26,8 @@ export class HammerPattern extends CandlestickFinder {
     downwardTrend(data: CandleMultiStickReversedDto, confirm = true) {
         const end = confirm ? 3 : 4
         // Analyze trends in closing prices of the first three or four candlesticks
-        const gains = AverageGain.calculate({ values: data.bc.slice(0, end), period: end - 1 })
-        const losses = AverageLoss.calculate({ values: data.bc.slice(0, end), period: end - 1 })
+        const gains = AverageGain.calculate({ values: data.bc.take(end), period: end - 1 })
+        const losses = AverageLoss.calculate({ values: data.bc.take(end), period: end - 1 })
         // Downward trend, so more losses than gains
         return losses > gains
     }
@@ -41,10 +41,10 @@ export class HammerPattern extends CandlestickFinder {
             lastStickSts: data.lastStickSts,
             sym: data.sym,
             sts: data.sts,
-            bo: data.bo.slice(start, end),
-            bc: data.bc.slice(start, end),
-            bl: data.bl.slice(start, end),
-            bh: data.bh.slice(start, end),
+            bo: data.bo.between(start, end),
+            bc: data.bc.between(start, end),
+            bl: data.bl.between(start, end),
+            bh: data.bh.between(start, end),
             reversedInput: data.reversedInput
         }
 

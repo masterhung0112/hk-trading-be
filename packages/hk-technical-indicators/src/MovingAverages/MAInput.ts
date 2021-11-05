@@ -1,4 +1,4 @@
-import { IndicatorInput } from '../indicator/indicator'
+import { IndicatorInput } from '../indicator/Indicator'
 
 export class MAInput extends IndicatorInput {
     constructor(public period:number, 

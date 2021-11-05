@@ -57,11 +57,11 @@ export default class QuoteTo1m extends Command {
             num: 1
           }))
         }),
-        distinctUntilChanged((previous, current) => (current.bl.length > 0 && previous.bo[0] === current.bo[0] && previous.bh[0] === current.bh[0] && previous.bl[0] === current.bl[0] && previous.bc[0] === current.bc[0]))
+        distinctUntilChanged((previous, current) => (current.bl.count() > 0 && previous.bo[0] === current.bo[0] && previous.bh[0] === current.bh[0] && previous.bl[0] === current.bl[0] && previous.bc[0] === current.bc[0]))
     )
     .subscribe({
         next: (candleMultiStickDto) => {
-          if (candleMultiStickDto.sts.length > 0) {
+          if (candleMultiStickDto.sts.count() > 0) {
             console.log(candleMultiStickDto)
             // patternDetector.getOutputStream()
           }

@@ -1,5 +1,6 @@
+import { Series } from 'hk-pd'
 import { CandleMultiStickReversedDto } from '../Models/CandleMultiStickReversedDto'
-import { resolutionTypeToSecond } from '../Utils'
+import { resolutionTypeToSecond } from '../utils'
 import { ICandlestickFinder } from './ICandlestickFinder'
 
 export interface CandlestickFinderArgs {
@@ -23,7 +24,7 @@ export class CandlestickFinder implements ICandlestickFinder {
 
     isTimeApplicable(data: CandleMultiStickReversedDto): boolean {
         if (!this.clsArgs.ignoreTimestamp) {
-            if (data.sts.length === 0) {
+            if (data.sts.count() === 0) {
                 return false
             }
             const resolutionSecond = resolutionTypeToSecond(data.resolutionType)
@@ -46,7 +47,7 @@ export class CandlestickFinder implements ICandlestickFinder {
     }
 
     getAllPatternIndex(data: CandleMultiStickReversedDto) {
-        if (data.bc.length < this.clsArgs.requiredBarNum) {
+        if (data.bc.count() < this.clsArgs.requiredBarNum) {
             console.warn('Data count less than data required for the strategy ', this.clsArgs.name)
             return []
         }
@@ -58,16 +59,16 @@ export class CandlestickFinder implements ICandlestickFinder {
         }
         const strategyFn = this.logic
         return this._generateDataForCandleStick(data)
-            .map((current, index) => {
+            .select((current, index) => {
                 return strategyFn.call(this, current) ? index : undefined
-            }).filter((hasIndex) => {
-                return hasIndex
+            }).where((hasIndex) => {
+                return !!hasIndex
             })
     }
 
     // Get only the last items from array and check if it has the corresponding pattern
     hasPattern(data: CandleMultiStickReversedDto): boolean {
-        if (data.bc.length < this.clsArgs.requiredBarNum) {
+        if (data.bc.count() < this.clsArgs.requiredBarNum) {
             console.warn('Data count less than data required for the strategy ', this.clsArgs.name)
             return false
         }
@@ -89,7 +90,7 @@ export class CandlestickFinder implements ICandlestickFinder {
 
     protected _getLastDataForCandleStick(data: CandleMultiStickReversedDto) {
         const requiredCount = this.clsArgs.requiredBarNum
-        if (data.bc.length === requiredCount) {
+        if (data.bc.count() === requiredCount) {
             return data
         } else {
             const returnVal: CandleMultiStickReversedDto = {
@@ -98,21 +99,21 @@ export class CandlestickFinder implements ICandlestickFinder {
                 lastStickSts: -1,
                 sym: data.sym,
                 sts: data.sts,
-                bo: [],
-                bh: [],
-                bl: [],
-                bc: [],
+                bo: new Series(),
+                bh: new Series(),
+                bl: new Series(),
+                bc: new Series(),
                 reversedInput: data.reversedInput
             }
             let i = 0
-            const index = data.bc.length - requiredCount
+            const index = data.bc.count() - requiredCount
             while (i < requiredCount) {
                 returnVal.firstStickSts = returnVal.firstStickSts < 0 ? data.firstStickSts : Math.min(data.firstStickSts, returnVal.firstStickSts)
                 returnVal.lastStickSts = returnVal.lastStickSts < 0 ? data.lastStickSts : Math.max(data.lastStickSts, returnVal.lastStickSts)
-                returnVal.bo.push(data.bo[index + i])
-                returnVal.bh.push(data.bh[index + i])
-                returnVal.bl.push(data.bl[index + i])
-                returnVal.bc.push(data.bc[index + i])
+                returnVal.bo = returnVal.bo.concat(data.bo[index + i])
+                returnVal.bh = returnVal.bh.concat(data.bh[index + i])
+                returnVal.bl = returnVal.bl.concat(data.bl[index + i])
+                returnVal.bc = returnVal.bc.concat(data.bc[index + i])
                 i++
             }
             return returnVal
@@ -121,7 +122,7 @@ export class CandlestickFinder implements ICandlestickFinder {
 
     protected _generateDataForCandleStick(data: CandleMultiStickReversedDto) {
         const requiredCount = this.clsArgs.requiredBarNum
-        const generatedData = data.bc.map(function (currentData, index) {
+        const generatedData = data.bc.select(function (currentData, index) {
             let i = 0
             const returnVal: CandleMultiStickReversedDto = {
                 resolutionType: data.resolutionType,
@@ -129,23 +130,23 @@ export class CandlestickFinder implements ICandlestickFinder {
                 lastStickSts: -1,
                 sym: data.sym,
                 sts: data.sts,
-                bo: [],
-                bh: [],
-                bl: [],
-                bc: [],
+                bo: new Series<number, number>(),
+                bh: new Series<number, number>(),
+                bl: new Series<number, number>(),
+                bc: new Series<number, number>(),
                 reversedInput: data.reversedInput
             } 
             while (i < requiredCount) {
                 returnVal.firstStickSts = returnVal.firstStickSts < 0 ? data.firstStickSts : Math.min(data.firstStickSts, returnVal.firstStickSts)
                 returnVal.lastStickSts = returnVal.lastStickSts < 0 ? data.lastStickSts : Math.max(data.lastStickSts, returnVal.lastStickSts)
-                returnVal.bo.push(data.bo[index + i])
-                returnVal.bh.push(data.bh[index + i])
-                returnVal.bl.push(data.bl[index + i])
-                returnVal.bc.push(data.bc[index + i])
+                returnVal.bo = returnVal.bo.concat(data.bo[index + i])
+                returnVal.bh = returnVal.bh.concat(data.bh[index + i])
+                returnVal.bl = returnVal.bl.concat(data.bl[index + i])
+                returnVal.bc = returnVal.bc.concat(data.bc[index + i])
                 i++
             }
             return returnVal
-        }).filter((val, index) => { return (index <= (data.bc.length - requiredCount)) })
+        }).take(requiredCount)
         return generatedData
     }
 }

@@ -1,5 +1,5 @@
 import { resolutionTypeToSecond } from 'hk-technical-indicators'
-import { DataFrame } from 'hk-tf-node'
+import { DataFrame, Series } from 'hk-pd'
 import { IForexCandlesReadStore, CandleStickDTO, CandleMultiStickDto, ResolutionType } from 'hk-trading-contract'
 import { dateToMysqlFormat, MySQLTable, PoolPlus } from 'mysql-plus'
 
@@ -114,28 +114,34 @@ export class SqlForexCandleStore implements IForexCandlesReadStore {
         resolutionType: options.resolutionType,
         firstStickSts: -1,
         lastStickSts: -1,
-        sts: [],
-        bo: [],
-        bh: [],
-        bl: [],
-        bc: []
+        sts: new Series<number, number>(),
+        bo: new Series<number, number>(),
+        bh: new Series<number, number>(),
+        bl: new Series<number, number>(),
+        bc: new Series<number, number>()
       }
     }
-    const df = new DataFrame(result)
+    const df = new DataFrame<number, {
+      sts: number,
+      bo: number,
+      bh: number,
+      bl: number,
+      bc: number,
+    }>(result)
 
 
     // const maxT =  df.column('maxtime').max()
-    console.log(df.column('mintime').values, df.column('maxtime').values)
+    console.log(df.getSeries('mintime'), df.getSeries('maxtime'))
     return {
       sym: options.symbol,
       resolutionType: options.resolutionType,
-      firstStickSts: Math.min(...df.column('mintime').values),
-      lastStickSts: Math.max(...df.column('maxtime').values),
-      sts: df.column('sts').values,
-      bo: df.column('bo').values as number[],
-      bh: df.column('bh').values as number[],
-      bl: df.column('bl').values as number[],
-      bc: df.column('bc').values as number[],
+      firstStickSts: df.getSeries('mintime').min(),
+      lastStickSts: df.getSeries('maxtime').max(),
+      sts: df.getSeries('sts'),
+      bo: df.getSeries('bo'),
+      bh: df.getSeries('bh'),
+      bl: df.getSeries('bl'),
+      bc: df.getSeries('bc'),
     }
   }
 

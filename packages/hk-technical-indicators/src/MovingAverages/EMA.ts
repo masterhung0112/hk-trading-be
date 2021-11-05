@@ -1,4 +1,4 @@
-import { Indicator } from '../indicator/indicator'
+import { Indicator } from '../indicator/Indicator'
 import { MAInput } from './MAInput'
 import { SMA } from './SMA'
 

@@ -1,5 +1,5 @@
 import { CandleMultiStickReversedDto } from '../Models'
-import { approximateEqual } from '../Utils'
+import { approximateEqual } from '../utils'
 import { CandlestickFinder } from './CandlestickFinder'
 
 export class BullishHaramiCross extends CandlestickFinder {

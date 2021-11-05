@@ -1,3 +1,5 @@
+import { IDataFrame } from 'hk-pd'
+import { CandleStickDTO } from 'hk-trading-contract'
 import { CandleMultiStickReversedDto } from '../Models'
 import { CandlestickFinder } from './CandlestickFinder'
 
@@ -26,5 +28,24 @@ export class BullishHarami extends CandlestickFinder {
             (firstdaysHigh > seconddaysHigh))
 
         return (isBullishHaramiPattern)
+    }
+
+    logicFirst(data: IDataFrame<number, CandleStickDTO>) {
+        const firstStick = data.at(0)
+        const secondStick = data.at(1)
+
+        if (firstStick === undefined) {
+            throw new Error('BullishHarami: first stick cannot be undefined')
+        }
+        
+        if (secondStick === undefined) {
+            throw new Error('BullishHarami: second stick cannot be undefined')
+        }
+
+        return ((firstStick.bo > secondStick.bo) &&
+            (firstStick.bc < secondStick.bo) &&
+            (firstStick.bc < secondStick.bc) &&
+            (firstStick.bo > secondStick.bl) &&
+            (firstStick.bh > secondStick.bh))
     }
 }
