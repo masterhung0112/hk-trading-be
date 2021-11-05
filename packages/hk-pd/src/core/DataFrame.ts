@@ -29,6 +29,7 @@ import { isString } from '../utils/isString'
 import { makeDistinct } from '../utils/makeDistinct'
 import { toMap } from '../utils/toMap'
 import { toMap2 } from '../utils/toMap2'
+import { CallbackFn } from './CallbackFn'
 import { ComparerFn } from './ComparerFn'
 import { DataFrameConfigFn } from './DataFrameConfigFn'
 import { Direction } from './Direction'
@@ -57,6 +58,8 @@ import { SelectorWithIndexFn } from './SelectorWithIndexFn'
 import { Series } from './Series'
 import { SeriesSelectorFn } from './SeriesSelectorFn'
 import { Zip2Fn, Zip3Fn, ZipNFn } from './ZipFn'
+import Table from 'easy-table'
+import { ReverseIterable } from '../iterables/ReverseIterable'
 
 export class DataFrame<IndexT, ValueT> implements IDataFrame<IndexT, ValueT> {
     private _configFn: DataFrameConfigFn<IndexT, ValueT> | null = null;
@@ -70,7 +73,7 @@ export class DataFrame<IndexT, ValueT> implements IDataFrame<IndexT, ValueT> {
     private static _initEmpty<IndexT, ValueT>(): IDataFrameContent<IndexT, ValueT> {
         return {
             index: DataFrame._defaultEmptyIterable,
-            values: DataFrame._defaultEmptyIterable,
+            values: [], //DataFrame._defaultEmptyIterable,
             pairs: DataFrame._defaultEmptyIterable,
             isBaked: true,
             columnNames: []
@@ -223,6 +226,11 @@ export class DataFrame<IndexT, ValueT> implements IDataFrame<IndexT, ValueT> {
             isBaked = config.baked
         }
 
+        // Convert values to Array type
+        if (isBaked && !isArray(values)) {
+            values = Array.from(values)
+        }
+
         return {
             index: index,
             values: values,
@@ -365,9 +373,14 @@ export class DataFrame<IndexT, ValueT> implements IDataFrame<IndexT, ValueT> {
     }
 
     count(): number {
+        const content = this.getContent()
+        if (content.isBaked && isArray(content.values)) {
+            return content.values.length
+        }
+
         let total = 0
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        for (const value of this.getContent().values) {
+        for (const value of content.values) {
             ++total
         }
         return total
@@ -413,6 +426,18 @@ export class DataFrame<IndexT, ValueT> implements IDataFrame<IndexT, ValueT> {
                 }
             })
         }
+    }
+
+    reverse(): IDataFrame<IndexT, ValueT> {
+        return new DataFrame<IndexT, ValueT>(() => {
+            const content = this.getContent()
+            return {
+                columnNames: content.columnNames,
+                values: new ReverseIterable(content.values),
+                index: new ReverseIterable(content.index),
+                pairs: new ReverseIterable(content.pairs)
+            }
+        })
     }
 
     resetIndex(): IDataFrame<number, ValueT> {
@@ -517,9 +542,8 @@ export class DataFrame<IndexT, ValueT> implements IDataFrame<IndexT, ValueT> {
     }
 
     bake(): IDataFrame<IndexT, ValueT> {
-
         if (this.getContent().isBaked) {
-            // Already baked.
+            // Already baked
             return this
         }
 
@@ -553,6 +577,22 @@ export class DataFrame<IndexT, ValueT> implements IDataFrame<IndexT, ValueT> {
                 pairs: new SkipWhileIterable(content.pairs, pair => lessThanOrEqualTo(pair[0], indexValue)),
             }
         })
+    }
+
+    all(predicate: PredicateFn<ValueT>): boolean {
+        if (!isFunction(predicate)) throw new Error('Expected \'predicate\' parameter to \'DataFrame.all\' to be a function.')
+
+        let count = 0
+
+        for (const value of this) {
+            if (!predicate(value)) {
+                return false
+            }
+
+            ++count
+        }
+
+        return count > 0
     }
 
     between(startIndexValue: IndexT, endIndexValue: IndexT): IDataFrame<IndexT, ValueT> {
@@ -1019,6 +1059,32 @@ export class DataFrame<IndexT, ValueT> implements IDataFrame<IndexT, ValueT> {
                     return [pair[0], <NewValueT> output]
                 }),
             }
+        })
+    }
+
+    round(numDecimalPlaces?: number): IDataFrame<IndexT, ValueT> {
+
+        if (numDecimalPlaces !== undefined) {
+            if (!isNumber(numDecimalPlaces)) {
+                throw new Error('Expected \'numDecimalPlaces\' parameter to \'DataFrame.round\' to be a number.')
+            }
+        }
+        else {
+            numDecimalPlaces = 2 // Default to two decimal places.
+        }
+
+        return this.select((row: any) => {
+            const output: any = {}
+            for (const key of Object.keys(row)) {
+                const value = row[key]
+                if (isNumber(value)) {
+                    output[key] = parseFloat(value.toFixed(numDecimalPlaces))
+                }
+                else {
+                    output[key] = value
+                }
+            }
+           return <ValueT> output
         })
     }
 
@@ -1815,6 +1881,17 @@ export class DataFrame<IndexT, ValueT> implements IDataFrame<IndexT, ValueT> {
         throw new Error('DataFrame.first: No values in DataFrame.')
     }
 
+    forEach (callback: CallbackFn<ValueT>): IDataFrame<IndexT, ValueT> {
+        if (!isFunction(callback)) throw new Error('Expected \'callback\' parameter to \'DataFrame.forEach\' to be a function.')
+
+        let index = 0
+        for (const value of this) {
+            callback(value, index++)
+        }
+
+        return this
+    }
+
     last(): ValueT {
         let lastValue = null
 
@@ -1877,6 +1954,27 @@ export class DataFrame<IndexT, ValueT> implements IDataFrame<IndexT, ValueT> {
         }
     }
 
+    toString(): string {
+
+        const columnNames = this.getColumnNames()
+        const header = ['__index__'].concat(columnNames)
+
+        const table = new Table()
+        //TODO: for (const pair of this.asPairs()) {
+        for (const pair of this.toPairs()) {
+            const index = pair[0]
+            const value = pair[1] as any
+            table.cell(header[0], index)
+            for (let columnIndex = 0; columnIndex < columnNames.length; ++columnIndex) {
+                const columnName = columnNames[columnIndex]
+                table.cell(header[columnIndex+1], value[columnName])
+            }
+            table.newRow()
+        }
+
+        return table.toString()
+    }
+
     toStrings(columnNames: string | string[] | IFormatSpec, formatString?: string): IDataFrame<IndexT, ValueT> {
         if (isObject(columnNames)) {
             for (const columnName of Object.keys(columnNames)) {
@@ -1935,6 +2033,24 @@ export class DataFrame<IndexT, ValueT> implements IDataFrame<IndexT, ValueT> {
         }
 
         return working
+    }
+
+    truncateStrings(maxLength: number): IDataFrame<IndexT, ValueT> {
+        if (!isNumber(maxLength)) throw new Error('Expected \'maxLength\' parameter to \'truncateStrings\' to be an integer.')
+
+        return this.select((row: any) => {
+            const output: any = {}
+            for (const key of Object.keys(row)) {
+                const value = row[key]
+                if (isString(value)) {
+                    output[key] = value.substring(0, maxLength)
+                }
+                else {
+                    output[key] = value
+                }
+            }
+           return <ValueT> output
+        })
     }
 
     union<KeyT = ValueT>(other: IDataFrame<IndexT, ValueT>, selector?: SelectorFn<ValueT, KeyT>): IDataFrame<IndexT, ValueT> {

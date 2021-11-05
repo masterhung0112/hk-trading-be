@@ -1,7 +1,8 @@
-import { SelectIterator, SelectorFn } from '../iterators/SelectIterator'
+import { SelectorWithIndexFn } from '../core/SelectorWithIndexFn'
+import { SelectIterator } from '../iterators/SelectIterator'
 
 export class SelectIterable<ValueT, ToT> implements Iterable<ToT> {
-    constructor(private _iterable: Iterable<ValueT>, private _selector: SelectorFn<ValueT, ToT>) {
+    constructor(private _iterable: Iterable<ValueT>, private _selector: SelectorWithIndexFn<ValueT, ToT>) {
 
     }
 

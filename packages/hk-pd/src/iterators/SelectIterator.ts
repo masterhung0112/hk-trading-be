@@ -1,9 +1,9 @@
-export type SelectorFn<ValueT, ToT> = (value: ValueT, index: number) => ToT
+import { SelectorWithIndexFn } from '../core/SelectorWithIndexFn'
 
 export class SelectIterator<ValueT, ToT> implements Iterator<ToT> {
     private _index = 0
     
-    constructor(private _iterator: Iterator<ValueT>, private _selector: SelectorFn<ValueT, ToT>) {
+    constructor(private _iterator: Iterator<ValueT>, private _selector: SelectorWithIndexFn<ValueT, ToT>) {
 
     }
 

@@ -17,6 +17,7 @@ import { JoinFn } from './JoinFn'
 import { GapFillFn } from './GapFillFn'
 import { ITypeFrequency } from './ITypeFrequency'
 import { IValueFrequency } from './IValueFrequency'
+import { CallbackFn } from './CallbackFn'
 
 /**
  * A 2D frame object that stores data in structured tabular format
@@ -30,7 +31,9 @@ import { IValueFrequency } from './IValueFrequency'
 export interface IDataFrame<IndexT = any, ValueT = any> extends Iterable<ValueT> {
     [Symbol.iterator](): Iterator<ValueT>
 
+    // toCSV(options?: ICSVOutputOptions): string
     after(indexValue: IndexT): IDataFrame<IndexT, ValueT>
+    all(predicate: PredicateFn<ValueT>): boolean
     any(predicate?: PredicateFn<ValueT>): boolean
     appendPair(pair: [IndexT, ValueT]): IDataFrame<IndexT, ValueT>
     at(index: IndexT): ValueT | undefined
@@ -41,6 +44,7 @@ export interface IDataFrame<IndexT = any, ValueT = any> extends Iterable<ValueT>
     bringToFront(columnOrColumns: string | string[]): IDataFrame<IndexT, ValueT>
     cast<NewValueT>(): IDataFrame<IndexT, NewValueT>
     concat(...dataframes: (IDataFrame<IndexT, ValueT>[] | IDataFrame<IndexT, ValueT>)[]): IDataFrame<IndexT, ValueT>
+    count(): number
     defaultIfEmpty(defaultDataFrame: ValueT[] | IDataFrame<IndexT, ValueT>): IDataFrame<IndexT, ValueT>
     deflate<ToT = ValueT>(selector?: SelectorWithIndexFn<ValueT, ToT>): ISeries<IndexT, ToT>
     detectTypes(): IDataFrame<number, ITypeFrequency>
@@ -53,6 +57,7 @@ export interface IDataFrame<IndexT = any, ValueT = any> extends Iterable<ValueT>
     expectSeries<SeriesValueT> (columnName: string): ISeries<IndexT, SeriesValueT>
     fillGaps(comparer: ComparerFn<[IndexT, ValueT], [IndexT, ValueT]>, generator: GapFillFn<[IndexT, ValueT], [IndexT, ValueT]>): IDataFrame<IndexT, ValueT> 
     first(): ValueT
+    forEach(callback: CallbackFn<ValueT>): IDataFrame<IndexT, ValueT>
     generateSeries<NewValueT = ValueT>(generator: SelectorWithIndexFn<any, any> | IColumnTransformSpec): IDataFrame<IndexT, NewValueT>
     getColumnNames(): string[]
     getColumns(): ISeries<number, IColumn>
@@ -81,29 +86,32 @@ export interface IDataFrame<IndexT = any, ValueT = any> extends Iterable<ValueT>
     pivot<NewValueT = ValueT> (columnOrColumns: string | Iterable<string>, valueColumnNameOrSpec: string | IMultiColumnAggregatorSpec, aggregator?: (values: ISeries<number, any>) => any): IDataFrame<number, NewValueT>
     renameSeries<NewValueT = ValueT> (newColumnNames: IColumnRenameSpec): IDataFrame<IndexT, NewValueT>
     reorderSeries<NewValueT = ValueT>(columnNames: string[]): IDataFrame<IndexT, NewValueT>
+    round(numDecimalPlaces?: number): IDataFrame<IndexT, ValueT> 
+    reverse(): IDataFrame<IndexT, ValueT>
     resetIndex(): IDataFrame<number, ValueT>
     select<ToT>(selector: SelectorWithIndexFn<ValueT, ToT>): IDataFrame<IndexT, ToT>
     selectMany<ToT>(selector: SelectorWithIndexFn<ValueT, Iterable<ToT>>): IDataFrame<IndexT, ToT>
     setIndex<NewIndexT = any>(columnName: string): IDataFrame<NewIndexT, ValueT>
     skip(numValues: number): IDataFrame<IndexT, ValueT>
-    skipWhile(predicate: PredicateFn<ValueT>): IDataFrame<IndexT, ValueT>
     skipUntil(predicate: PredicateFn<ValueT>): IDataFrame<IndexT, ValueT>
+    skipWhile(predicate: PredicateFn<ValueT>): IDataFrame<IndexT, ValueT>
     startAt(indexValue: IndexT): IDataFrame<IndexT, ValueT>
     subset<NewValueT = ValueT>(columnNames: string[]): IDataFrame<IndexT, NewValueT>
     summarize<OutputValueT = any>(spec?: IMultiColumnAggregatorSpec): OutputValueT 
     tail(numValues: number): IDataFrame<IndexT, ValueT>
     take(numRows: number): IDataFrame<IndexT, ValueT>
-    takeWhile(predicate: PredicateFn<ValueT>): IDataFrame<IndexT, ValueT>
     takeUntil(predicate: PredicateFn<ValueT>): IDataFrame<IndexT, ValueT>
-    // toCSV(options?: ICSVOutputOptions): string
+    takeWhile(predicate: PredicateFn<ValueT>): IDataFrame<IndexT, ValueT>
     toArray(): ValueT[]
     toHTML(): string
     toJSON(): string
     toObject<KeyT = any, FieldT = any, OutT = any>(keySelector: (value: ValueT) => KeyT, valueSelector: (value: ValueT) => FieldT): OutT 
     toPairs(): ([IndexT, ValueT])[]
     toRows(): any[][]
+    toString(): string
     toStrings(columnNames: string | string[] | IFormatSpec, formatString?: string): IDataFrame<IndexT, ValueT>
     transformSeries<NewValueT = ValueT>(columnSelectors: IColumnTransformSpec): IDataFrame<IndexT, NewValueT>
+    truncateStrings(maxLength: number): IDataFrame<IndexT, ValueT>
     union<KeyT = ValueT>(other: IDataFrame<IndexT, ValueT>, selector?: SelectorFn<ValueT, KeyT>)
     variableWindow(comparer: ComparerFn<ValueT, ValueT>): ISeries<number, IDataFrame<IndexT, ValueT>>
     where(predicate: PredicateFn<ValueT>): IDataFrame<IndexT, ValueT>

@@ -1,10 +1,11 @@
+import { ComparerFn } from '../core/ComparerFn'
 import { DataFrame } from '../core/DataFrame'
 import { IDataFrame } from '../core/IDataFrame'
 
 /**
  * Compares to values and returns true if they are equivalent.
  */
-export type ComparerFn<ValueT> = (a: ValueT, b: ValueT) => boolean;
+// export type ComparerFn<ValueT> = (a: ValueT, b: ValueT) => boolean;
 
 export class DataFrameVariableWindowIterator<IndexT, ValueT> implements Iterator<IDataFrame<IndexT, ValueT>> {
 
