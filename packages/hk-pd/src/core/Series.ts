@@ -11,7 +11,7 @@ import { SeriesConfigFn } from './SeriesConfigFn'
 import { ISeriesConfig } from './ISeriesConfig'
 import { SelectorWithIndexFn } from './SelectorWithIndexFn'
 import { IDataFrame } from './IDataFrame'
-import { DataFrame } from '.'
+import { DataFrame } from './DataFrame'
 import { SelectIterable } from '../iterables/SelectIterable'
 import { PredicateFn } from './PredicateFn'
 import { SelectManyIterable } from '../iterables/SelectManyIterable'
@@ -21,8 +21,6 @@ import { isDate } from '../utils/isDate'
 import { isNumber } from '../utils/isNumber'
 import { toMap } from '../utils/toMap'
 import { WhichIndex } from './WhichIndex'
-import { Index } from './IndexT'
-import { IIndex } from './IIndex'
 import { SeriesWindowIterable } from '../iterables/SeriesWindowIterable'
 import { SeriesRollingWindowIterable } from '../iterables/SeriesRollingWindowIterable'
 import { ComparerFn } from './ComparerFn'
@@ -54,6 +52,9 @@ import { JoinFn } from './JoinFn'
 import { IFrequencyTableEntry } from './IFrequencyTableEntry'
 import { IFrequencyTableOptions } from './IFrequencyTableOptions'
 import { GapFillFn } from './GapFillFn'
+import { IIndex, IIndexPredicateFn } from './IIndex'
+// import { Index } from './IndexT'
+import { determineType } from '../utils/determineType'
 
 /**
  * One-dimensional ndarray with axis labels (including time series).
@@ -1821,5 +1822,62 @@ class OrderedSeries<IndexT = number, ValueT = any, SortT = any>
             direction: Direction.Descending,
             parent: this
         })
+    }
+}
+
+export class Index<IndexT> extends Series<number, IndexT> implements IIndex<IndexT> {
+    private _type?: string
+
+    constructor(config?: any | SeriesConfigFn<number, IndexT>) {
+        super(config)
+    }
+
+    getType(): string {
+        if (!this._type) {
+            if (this.any()) {
+                this._type = determineType(this.first())
+            } else {
+                this._type = 'empty'
+            }
+        }
+        return this._type
+    }
+
+    getLessThan(): IIndexPredicateFn {
+        switch (this.getType()) {
+            case 'date':
+                return (d1: Date, d2: Date) => moment(d1).isBefore(d2)
+
+            case 'string':
+            case 'number':
+                return (v1: any, v2: any) => v1 < v2
+
+            case 'empty':
+                return () => true // Series is empty, so this makes no difference.
+
+            default:
+                throw new Error('No less than operation available for type: ' + this.getType())
+        }
+    }
+
+    getLessThanOrEqualTo(): IIndexPredicateFn {
+        return (v1: any, v2: any) => !this.getGreaterThan()(v1, v2) //TODO: Should expand  this out.
+    }
+
+    getGreaterThan(): IIndexPredicateFn {
+        switch (this.getType()) {
+            case 'date':
+                return (d1: Date, d2: Date) => moment(d1).isAfter(d2)
+
+            case 'string':
+            case 'number':
+                return (v1: any, v2: any) => v1 > v2
+
+            case 'empty':
+                return () => true // Series is empty, so this makes no difference.
+
+            default:
+                throw new Error('No greater than operation available for type: ' + this.getType())
+        }
     }
 }

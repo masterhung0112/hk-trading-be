@@ -45,22 +45,25 @@ import { IDataFrameConfig } from './IDataFrameConfig'
 import { IDataFrameContent } from './IDataFrameContent'
 import { IFormatSpec } from './IFormatSpec'
 import { IIndex } from './IIndex'
-import { Index } from './IndexT'
+// import { Index } from './IndexT'
 import { IOrderedDataFrame } from './IOrderedDataFrame'
 import { ISeries } from './ISeries'
 import { ITypeFrequency } from './ITypeFrequency'
 import { IValueFrequency } from './IValueFrequency'
 import { JoinFn } from './JoinFn'
-import { OrderedDataFrame } from './OrderedDataFrame'
+// import { OrderedDataFrame } from './OrderedDataFrame'
 import { PredicateFn } from './PredicateFn'
 import { SelectorFn } from './SelectorFn'
 import { SelectorWithIndexFn } from './SelectorWithIndexFn'
-import { Series } from './Series'
+import { Index, Series } from './Series'
 import { SeriesSelectorFn } from './SeriesSelectorFn'
 import { Zip2Fn, Zip3Fn, ZipNFn } from './ZipFn'
 import Table from 'easy-table'
 import { ReverseIterable } from '../iterables/ReverseIterable'
 import { ColumnsToArraysIterable } from '../iterables/ColumnsToArraysIterable'
+import { OrderedIterable } from '../iterables/OrderedIterable'
+import { IOrderedDataFrameConfig } from './IOrderedDataFrameConfig'
+import { ISortSpec } from './ISortSpec'
 
 export class DataFrame<IndexT, ValueT> implements IDataFrame<IndexT, ValueT> {
     private _configFn: DataFrameConfigFn<IndexT, ValueT> | null = null;
@@ -257,7 +260,7 @@ export class DataFrame<IndexT, ValueT> implements IDataFrame<IndexT, ValueT> {
     }
 
     private _lazyInit() {
-        if (this.getContent() === null && this._configFn !== null) {
+        if (this._content === null && this._configFn !== null) {
             this._content = DataFrame._initFromConfig(this._configFn())
         }
     }
@@ -2121,4 +2124,77 @@ export class DataFrame<IndexT, ValueT> implements IDataFrame<IndexT, ValueT> {
         const input: IDataFrame<IndexT, any>[] = [this].concat(args.slice(0, args.length-1))
         return DataFrame.zip<IndexT, any, ResultT>(input, values => selector(...values))
     } 
+}
+
+export class OrderedDataFrame<IndexT = number, ValueT = any, SortT = any>
+    extends DataFrame<IndexT, ValueT>
+    implements IOrderedDataFrame<IndexT, ValueT, SortT> {
+
+        private _config: IOrderedDataFrameConfig<IndexT, ValueT, SortT>
+
+        private static _makeSortSpec<ValueT, SortT>(sortLevel: number, selector: SelectorWithIndexFn<ValueT, SortT>, direction: Direction): ISortSpec {
+            return { sortLevel: sortLevel, selector: selector, direction: direction }
+        }
+    
+        //
+        // Helper function to make a sort selector for pairs, this captures the parent correct when generating the closure.
+        //
+        private static _makePairsSelector<ValueT, SortT>(selector: SelectorWithIndexFn<ValueT, SortT>): SelectorWithIndexFn<ValueT, SortT> {
+            return (pair: any, index: number) => selector(pair[1], index)
+        }
+
+        constructor(config: IOrderedDataFrameConfig<IndexT, ValueT, SortT>) {
+            const valueSortSpecs: ISortSpec[] = []
+            const pairSortSpecs: ISortSpec[] = []
+            let sortLevel = 0
+
+            let parent = config.parent as OrderedDataFrame<IndexT, ValueT, SortT>
+            const parents: OrderedDataFrame<IndexT, ValueT, SortT>[] = []
+            while (parent !== null) {
+                parents.push(parent)
+                parent = parent._config.parent as OrderedDataFrame<IndexT, ValueT, SortT>
+            }
+
+            parents.reverse()
+            
+            for (const p of parents) {
+                const parentConfig = p._config
+                valueSortSpecs.push(OrderedDataFrame._makeSortSpec(sortLevel, parentConfig.selector, parentConfig.direction))
+                pairSortSpecs.push(OrderedDataFrame._makeSortSpec(sortLevel, OrderedDataFrame._makePairsSelector(parentConfig.selector), parentConfig.direction))
+                ++sortLevel
+            }
+
+            valueSortSpecs.push(OrderedDataFrame._makeSortSpec(sortLevel, config.selector, config.direction))
+            pairSortSpecs.push(OrderedDataFrame._makeSortSpec(sortLevel, OrderedDataFrame._makePairsSelector(config.selector), config.direction))
+
+            super({
+                columnNames: config.columnNames,
+                values: new OrderedIterable(config.values, valueSortSpecs),
+                pairs: new OrderedIterable(config.pairs, pairSortSpecs)
+            })
+
+            this._config = config
+        }
+    
+        thenBy(selector: SelectorWithIndexFn<ValueT, SortT>): IOrderedDataFrame<IndexT, ValueT, SortT> {
+            return new OrderedDataFrame<IndexT, ValueT, SortT>({
+                columnNames: this._config.columnNames,
+                values: this._config.values, 
+                pairs: this._config.pairs, 
+                selector: selector, 
+                direction: Direction.Ascending, 
+                parent: this,
+            })
+        }
+
+        thenByDescending(selector: SelectorWithIndexFn<ValueT, SortT>): IOrderedDataFrame<IndexT, ValueT, SortT> {
+            return new OrderedDataFrame<IndexT, ValueT, SortT>({
+                columnNames: this._config.columnNames,
+                values: this._config.values, 
+                pairs: this._config.pairs, 
+                selector: selector, 
+                direction: Direction.Descending, 
+                parent: this,
+            })
+        }
 }
