@@ -1,5 +1,5 @@
 import { createTimeRange, fmtUSD, ITradingChart, ITradingChartDataProvider, ResolutionType, TradingChartConfig, detectIntervalMsFromCandles, IChartItem } from 'hk-trading-contract'
-import * as uPlot from 'uplot'
+import uPlot from 'uplot'
 import { candlestickPlugin } from './ChartPlugins/candlestickPlugin'
 import { columnHighlightPlugin } from './ChartPlugins/columnHighlightPlugin'
 import { legendAsTooltipPlugin } from './ChartPlugins/legendAsTooltipPlugin'
@@ -149,11 +149,13 @@ export class TradingViewWidget implements ITradingChart {
         }
 
         // Create uplot for main chart
-        if (!this.mainChart) {
+        if (this.mainChart) {
             this.mainChart = {
                 ...this.mainChart,
                 uplot: new uPlot(mainchartOpts, undefined, containerDomNode)
             }
+        } else {
+            throw new Error('failed to create context for main chart')
         }
 
         // Create uplot for offchart

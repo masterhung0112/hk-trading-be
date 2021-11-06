@@ -1,16 +1,27 @@
-import * as uPlot from 'uplot'
+import uPlot from 'uplot'
 
 // draws candlestick symbols (expects data in OHLC order)
 export function candlestickPlugin({ gap = 2, shadowColor = '#000000', bearishColor = '#e54245', bullishColor = '#4ab650', bodyMaxWidth = 20, shadowWidth = 2, bodyOutline = 1 } = {}) {
-
     function drawCandles(u) {
+        if (u.data.length == 0) {
+            return
+        }
+
+        const [iMin, iMax] = u.series[0].idxs
+
+        if (!iMin || !iMax) {
+            return
+        }
+
+        if (u.data[0].length < iMax) {
+            return
+        }
+
         u.ctx.save()
 
         const offset = (shadowWidth % 2) / 2
 
         u.ctx.translate(offset, offset)
-
-        const [iMin, iMax] = u.series[0].idxs
 
         const vol0AsY = u.valToPos(0, 'vol', true)
 

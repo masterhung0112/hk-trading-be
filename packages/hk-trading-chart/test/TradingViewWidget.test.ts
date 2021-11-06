@@ -1,7 +1,8 @@
-import { ITradingChartDataProvider, TradingChartConfig } from 'hk-trading-contract'
+import { CandleStickDTO, ITradingChartDataProvider, TradingChartConfig } from 'hk-trading-contract'
 import { TradingViewWidget } from '../src/TradingViewWidget'
 import { mock } from 'jest-mock-extended'
 import waitForExpect from 'wait-for-expect'
+import { DataFrame } from 'hk-pd'
 
 describe('TradingViewWidget', () => {
     beforeEach(() => {
@@ -26,6 +27,7 @@ describe('TradingViewWidget', () => {
         }
 
         dataFeedMock.onReady.mockResolvedValue(tradingChartConfig)
+        dataFeedMock.getBars.mockResolvedValue(new DataFrame<number, CandleStickDTO>())
 
         const tradingView = new TradingViewWidget({
             containerId: 'testContainerId',

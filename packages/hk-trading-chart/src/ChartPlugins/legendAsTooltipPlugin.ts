@@ -1,4 +1,4 @@
-import * as uPlot from 'uplot'
+import uPlot from 'uplot'
 
 // converts the legend into a simple tooltip
 export function legendAsTooltipPlugin({ className = '', style = { backgroundColor:'rgba(255, 249, 196, 0.92)', color: 'black' } } = {}) {

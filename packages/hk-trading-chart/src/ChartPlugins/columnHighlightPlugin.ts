@@ -1,4 +1,4 @@
-import * as uPlot from 'uplot'
+import uPlot from 'uplot'
 
 // column-highlights the hovered x index
 export function columnHighlightPlugin({ className = '', style = {backgroundColor: 'rgba(51,204,255,0.3)'} } = {}) {

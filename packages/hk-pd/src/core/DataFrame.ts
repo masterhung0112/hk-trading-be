@@ -1336,6 +1336,11 @@ export class DataFrame<IndexT, ValueT> implements IDataFrame<IndexT, ValueT> {
         const rows = []
         const defaultColumnNames = this.getColumnNames()
 
+        // There's no data in the dataframe yet
+        if (defaultColumnNames.length === 0) {
+            return rows
+        }
+
         for (const columnName of columnNames) {
             if (!defaultColumnNames.includes(columnName)) {
                 throw new Error(`Column Name ${columnName} doesn't exist`)

@@ -6,6 +6,10 @@
         "outDir": "dist",
         "declaration": true,
         "sourceMap": true,
-        "allowJs": true
-    }
+        "allowJs": true,
+        "allowSyntheticDefaultImports": true,
+    },
+    "include": [
+        "src/**/*.ts"
+    ]
 }
