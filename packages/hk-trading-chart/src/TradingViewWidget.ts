@@ -1,3 +1,4 @@
+import { is1DArray } from 'hk-pd'
 import { createTimeRange, fmtUSD, ITradingChart, ITradingChartDataProvider, ResolutionType, TradingChartConfig, detectIntervalMsFromCandles, IChartItem } from 'hk-trading-contract'
 import uPlot from 'uplot'
 import { candlestickPlugin } from './ChartPlugins/candlestickPlugin'
@@ -231,8 +232,16 @@ export class TradingViewWidget implements ITradingChart {
                 to: '',
             })
             if (initialData) {
+                if (initialData.length > 0) {
+                    if (!Array.isArray(initialData[0])) {
+                        throw new Error(`the element of data in getBars is not of Array type, we got ${typeof initialData[0]}`)
+                    }
+                    if (initialData[0].length !== 5 && initialData[0].length !== 6) {
+                        throw new Error(`The data returned from getBars must have length of 5 or 6, but we got ${initialData[0].length}`)
+                    }
+                }
                 // Clone the initial data
-                this.ohlcvData = initialData.convertColumnsToArrays(['sts', 'bo', 'bh', 'bl', 'bc', 'v']) as uPlot.AlignedData
+                this.ohlcvData = initialData as any as uPlot.AlignedData //initialData.convertColumnsToArrays(['sts', 'bo', 'bh', 'bl', 'bc', 'v']) as uPlot.AlignedData
 
                 this.calcInterval()
 

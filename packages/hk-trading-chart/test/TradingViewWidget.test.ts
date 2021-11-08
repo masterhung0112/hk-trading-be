@@ -1,33 +1,35 @@
-import { CandleStickDTO, ITradingChartDataProvider, TradingChartConfig } from 'hk-trading-contract'
+import {  ITradingChartDataProvider, TradingChartConfig } from 'hk-trading-contract'
 import { TradingViewWidget } from '../src/TradingViewWidget'
-import { mock } from 'jest-mock-extended'
+import { mock, MockProxy } from 'jest-mock-extended'
 import waitForExpect from 'wait-for-expect'
-import { DataFrame } from 'hk-pd'
+import Ohlcv from './data/ohlcv.json'
 
 describe('TradingViewWidget', () => {
+    const tradingChartConfig: TradingChartConfig = {
+        exchanges: [{
+            name: 'FXCM',
+            value: 'FXCM',
+            desc: 'FXCM'
+        }],
+        indexBased: false,
+        supportedResolutions: ['5m'],
+        symbolTypes: [{
+            name: 'EUR/USD',
+            value: 'EURUSD'
+        }]
+    }
+
+    let dataFeedMock: MockProxy<ITradingChartDataProvider>
+
     beforeEach(() => {
+        dataFeedMock = mock<ITradingChartDataProvider>()
+
         document.body.innerHTML = '<div id="testContainerId"></div>'
     })
 
-    it('onReady was called', async () => {
-        const dataFeedMock = mock<ITradingChartDataProvider>()
-
-        const tradingChartConfig: TradingChartConfig = {
-            exchanges: [{
-                name: 'FXCM',
-                value: 'FXCM',
-                desc: 'FXCM'
-            }],
-            indexBased: false,
-            supportedResolutions: ['5m'],
-            symbolTypes: [{
-                name: 'EUR/USD',
-                value: 'EURUSD'
-            }]
-        }
-
+    it('onReady was called', async () => {     
         dataFeedMock.onReady.mockResolvedValue(tradingChartConfig)
-        dataFeedMock.getBars.mockResolvedValue(new DataFrame<number, CandleStickDTO>())
+        dataFeedMock.getBars.mockResolvedValue(Ohlcv['ohlcv'])
 
         const tradingView = new TradingViewWidget({
             containerId: 'testContainerId',

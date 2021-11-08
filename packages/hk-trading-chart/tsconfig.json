@@ -1,9 +1,8 @@
 {
     "compilerOptions": {
-        "moduleResolution": "node",
-        "module": "esnext",
-        "rootDir": "src",
-        "outDir": "dist",
+        "module": "commonjs",
+        "target": "es5",
+        "outDir": "./dist",
         "declaration": true,
         "sourceMap": true,
         "allowJs": true,
@@ -11,5 +10,9 @@
     },
     "include": [
         "src/**/*.ts"
+    ],
+    "exclude": [
+        "node_modules",
+        "dist"
     ]
 }

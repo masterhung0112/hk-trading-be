@@ -98,36 +98,36 @@ export class CandleProvider {
 
     // Take a single trade, and subscription record, return updated bar
     updateBar(data: CandleStickDTO, lastBar: CandleStickDTO, resolutionSecond: number) {
-        const coeff = resolutionSecond
+        // const coeff = resolutionSecond
         // console.log({coeff})
-        const rounded = Math.floor(data.ts / coeff) * coeff
-        const lastBarSec = lastBar.time / 1000
+        // const rounded = Math.floor(data.ts / coeff) * coeff
+        // const lastBarSec = lastBar.time / 1000
         let updatedLastBar: CandleStickDTO = {...lastBar}
 
-        if (rounded > lastBarSec) {
-            // create a new candle, use last close as open **PERSONAL CHOICE**
-            updatedLastBar = {
-                ...updatedLastBar,
-                sts: rounded * 1000,
-                bo: lastBar.bc,
-                bh: lastBar.bc,
-                bl: lastBar.bc,
-                bc: data.price,
-                v: data.v
-            }
+        // if (rounded > lastBarSec) {
+        //     // create a new candle, use last close as open **PERSONAL CHOICE**
+        //     updatedLastBar = {
+        //         ...updatedLastBar,
+        //         sts: rounded * 1000,
+        //         bo: lastBar.bc,
+        //         bh: lastBar.bc,
+        //         bl: lastBar.bc,
+        //         bc: data.price,
+        //         v: data.v
+        //     }
 
-        } else {
-            // update lastBar candle!
-            if (data.price < lastBar.bl) {
-                lastBar.bl = data.price
-            } else if (data.price > lastBar.bh) {
-                lastBar.bh = data.price
-            }
+        // } else {
+        //     // update lastBar candle!
+        //     if (data.price < lastBar.bl) {
+        //         lastBar.bl = data.price
+        //     } else if (data.price > lastBar.bh) {
+        //         lastBar.bh = data.price
+        //     }
 
-            lastBar.v += data.v
-            lastBar.bc = data.price
-            updatedLastBar = lastBar
-        }
+        //     lastBar.v += data.v
+        //     lastBar.bc = data.price
+        //     updatedLastBar = lastBar
+        // }
         return updatedLastBar
     }
    

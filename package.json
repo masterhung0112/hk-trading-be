@@ -5,7 +5,8 @@
   "license": "MIT",
   "scripts": {
     "bootstrap": "lerna bootstrap",
-    "build": "lerna run build"
+    "build": "lerna run build",
+    "build:dev:hk-trading-chart": "lerna run build:dev --scope hk-trading-chart --stream"
   },
   "dependencies": {
     "lerna": "^3.22.1"

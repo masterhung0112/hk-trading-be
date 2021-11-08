@@ -18,15 +18,15 @@ export class DataPulseProvider {
         this.requestsPending = 0
         const loop1 = function (listenerGuid) {
             self.requestsPending += 1
-            self.updateDataForSubscriber(listenerGuid)
-                .then(function () {
-                    self.requestsPending -= 1
-                // logMessage('DataPulseProvider: data for #' + listenerGuid + ' updated successfully, pending=' + _this._requestsPending)
-            })
-                .catch(function () {
-                    self.requestsPending -= 1
-                // logMessage('DataPulseProvider: data for #' + listenerGuid + ' updated with error=' + getErrorMessage(reason) + ', pending=' + _this._requestsPending)
-            })
+            // self.updateDataForSubscriber(listenerGuid)
+            //     .then(function () {
+            //         self.requestsPending -= 1
+            //     // logMessage('DataPulseProvider: data for #' + listenerGuid + ' updated successfully, pending=' + _this._requestsPending)
+            // })
+            //     .catch(function () {
+            //         self.requestsPending -= 1
+            //     // logMessage('DataPulseProvider: data for #' + listenerGuid + ' updated with error=' + getErrorMessage(reason) + ', pending=' + _this._requestsPending)
+            // })
         }
         for (const listenerGuid in this.subscribers) {
             loop1(listenerGuid)
@@ -64,16 +64,16 @@ export class DataPulseProvider {
 
     protected updateDataForSubscriber(listenerGuid: string) {
         // eslint-disable-next-line @typescript-eslint/no-this-alias
-        const self = this
-        const subscriptionRecord = this.subscribers[listenerGuid]
-        const rangeEndTime = parseInt((Date.now() / 1000).toString())
+        // const self = this
+        // const subscriptionRecord = this.subscribers[listenerGuid]
+        // const rangeEndTime = parseInt((Date.now() / 1000).toString())
         // BEWARE: please note we really need 2 bars, not the only last one
         // see the explanation below. `10` is the `large enough` value to work around holidays
-        const rangeStartTime = rangeEndTime - resolutionTypeToSeconds(subscriptionRecord.resolution, 10)
-        return this.historyProvider.getBars(subscriptionRecord.symbolInfo, subscriptionRecord.resolution, rangeStartTime, rangeEndTime)
-            .then(function (result) {
-                self.onSubscriberDataReceived(listenerGuid, result)
-        })
+        // const rangeStartTime = rangeEndTime - resolutionTypeToSeconds(subscriptionRecord.resolution, 10)
+        // return this.historyProvider.getBars(subscriptionRecord.symbolInfo, subscriptionRecord.resolution, rangeStartTime, rangeEndTime)
+            // .then(function (result) {
+                // self.onSubscriberDataReceived(listenerGuid, result)
+        // })
     }
 
     subscribeBars(symbolInfo: string, resolution: ResolutionType, newDataCallback: () => void, listenerGuid: string) {
