@@ -5,7 +5,7 @@ export function detectIntervalMsFromCandles(ohlcv: number[][]): number {
     let min = Infinity
 
     ohlcv.slice(0, len).forEach((x, i) => {
-        const d = ohlcv.at(i + 1)[0] - x[0]
+        const d = ohlcv[i + 1][0] - x[0]
         if (d === d && d < min) {
             min = d
         }

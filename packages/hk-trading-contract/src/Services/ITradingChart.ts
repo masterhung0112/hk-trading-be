@@ -83,7 +83,7 @@ export interface ITradingChartDataProvider {
         symbolInfo: string,
         resolution: ResolutionType,
         periodParams: TradingChartPeriodParams,
-    ): Promise<IDataFrame<number, CandleStickDTO>>
+    ): Promise<number[][]>
 
     // search symbols every time a user types a text in the symbol search box.
     // Changing symbols also works using the symbol search.
