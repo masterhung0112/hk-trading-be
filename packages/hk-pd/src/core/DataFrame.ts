@@ -1332,8 +1332,8 @@ export class DataFrame<IndexT, ValueT> implements IDataFrame<IndexT, ValueT> {
         return rows
     }
 
-    convertColumnsToArrays<ArrayType>(columnNames: string[]): ArrayType[] {
-        const rows: ArrayType[] = []
+    convertColumnsToArrays(columnNames: string[]): any[][] {
+        const rows: any[] = []
         const defaultColumnNames = this.getColumnNames()
 
         // There's no data in the dataframe yet
@@ -1347,8 +1347,9 @@ export class DataFrame<IndexT, ValueT> implements IDataFrame<IndexT, ValueT> {
             }
         }
  
-        for (const row of new ColumnsToArraysIterable(columnNames, this)) {
-           rows.push(row as ArrayType)
+        const iterable =  new ColumnsToArraysIterable(columnNames, this)
+        for (const row of iterable) {
+           rows.push(row)
         }
 
         return rows

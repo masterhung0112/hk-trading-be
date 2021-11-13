@@ -9,7 +9,7 @@ export function candlestickPlugin({ gap = 2, shadowColor = '#000000', bearishCol
 
         const [iMin, iMax] = u.series[0].idxs
 
-        if (!iMin || !iMax) {
+        if (iMin === null || iMax === null) {
             return
         }
 

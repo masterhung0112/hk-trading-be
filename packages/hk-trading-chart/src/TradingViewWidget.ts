@@ -93,9 +93,10 @@ export class TradingViewWidget implements ITradingChart {
         this.createContainerDiv(containerDomNode, this.offChartMap)
 
         const mainchartOpts: uPlot.Options = {
-            width: 1920,
-            height: 600,
-            title: 'Gold',
+            width: 1900,
+            height: 800,
+            title: 'Trading Chart',
+            mode: 1,
             tzDate,
             plugins: [
                 columnHighlightPlugin(),
@@ -232,21 +233,21 @@ export class TradingViewWidget implements ITradingChart {
                 to: '',
             })
             if (initialData) {
-                if (initialData.length > 0) {
-                    if (!Array.isArray(initialData[0])) {
-                        throw new Error(`the element of data in getBars is not of Array type, we got ${typeof initialData[0]}`)
-                    }
-                    if (initialData[0].length !== 5 && initialData[0].length !== 6) {
-                        throw new Error(`The data returned from getBars must have length of 5 or 6, but we got ${initialData[0].length}`)
-                    }
-                }
+                // if (initialData.length > 0) {
+                //     if (!Array.isArray(initialData[0])) {
+                //         throw new Error(`the element of data in getBars is not of Array type, we got ${typeof initialData[0]}`)
+                //     }
+                //     if (initialData[0].length !== 5 && initialData[0].length !== 6) {
+                //         throw new Error(`The data returned from getBars must have length of 5 or 6, but we got ${initialData[0].length}`)
+                //     }
+                // }
                 // Clone the initial data
                 this.ohlcvData = initialData as any as uPlot.AlignedData //initialData.convertColumnsToArrays(['sts', 'bo', 'bh', 'bl', 'bc', 'v']) as uPlot.AlignedData
 
-                this.calcInterval()
+                // this.calcInterval()
 
                 // Caldulate the default time range from the data
-                this.calculateDefaultTimeRange()
+                // this.calculateDefaultTimeRange()
 
                 this.mainChart.uplot.setData(this.ohlcvData)
             }

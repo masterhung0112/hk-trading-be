@@ -6,7 +6,7 @@ import path from 'path'
 
 const extensions = ['.js', '.jsx', '.ts', '.tsx']
 
-const demoExternalPackages = ['hk-trading-contract']
+// const demoExternalPackages = ['hk-trading-contract']
 
 const plugins = [
     nodeResolve({
@@ -26,6 +26,34 @@ const plugins = [
     json(),
 ]
 
+const watch = {
+    // include and exclude govern which files to watch. by
+    // default, all dependencies will be watched
+    exclude: ['node_modules/**']
+}
+
+const demoInput = {
+    InitialData: './samples/src/InitialData.ts',
+    CandleStickUplot: './samples/src/CandleStickUplot.ts'
+}
+
+const demoOutput = Object.keys(demoInput).map((key) => {
+    const input = {}
+    input[key] = demoInput[key]
+    return {
+        input,
+        output: {
+            dir: './samples/dist/',
+            format: 'iife',
+            esModule: false,
+            sourcemap: true,
+        },
+        plugins,
+        // external: demoExternalPackages,
+        watch
+    }
+})
+
 export default [
     {
         input:  './src/index.ts',
@@ -35,7 +63,8 @@ export default [
             format: 'es',
             sourcemap: true,
         },
-        plugins
+        plugins,
+        watch
     },
     {
         input:  './src/index.ts',
@@ -47,16 +76,16 @@ export default [
         },
         plugins
     },
-    {
-        input: './src/index.ts',
-        output: {
-            file: './dist/hk-trading-chart.iife.js',
-            format: 'iife',
-            esModule: false,
-            sourcemap: true,
-        },
-        plugins
-    },
+    // {
+    //     input: './src/index.ts',
+    //     output: {
+    //         file: './dist/hk-trading-chart.iife.js',
+    //         format: 'iife',
+    //         esModule: false,
+    //         sourcemap: true,
+    //     },
+    //     plugins
+    // },
     // {
     //     input: './samples/src/index.ts',
     //     output: {
@@ -67,18 +96,22 @@ export default [
     //     },
     //     plugins
     // },
-    {
-        input: {
-            InitialData: './samples/src/InitialData.ts',
-        },
-        output: {
-            // file: './samples/dist/hk-trading-chart-demo.iife.js',
-            dir: './samples/dist/',
-            format: 'iife',
-            esModule: false,
-            sourcemap: true,
-        },
-        plugins,
-        external: demoExternalPackages
-    }
+    // {
+    //     input: {
+    //         InitialData: './samples/src/InitialData.ts',
+    //         CandleStickUplot: './samples/src/CandleStickUplot.ts'
+    //     },
+    //     output: {
+    //         // file: './samples/dist/hk-trading-chart-demo.iife.js',
+    //         dir: './samples/dist/',
+    //         format: 'iife',
+    //         esModule: false,
+    //         sourcemap: true,
+    //         inlineDynamicImports: true
+    //     },
+    //     plugins,
+    //     // external: demoExternalPackages,
+    //     watch
+    // }
+    ...demoOutput
 ]

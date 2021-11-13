@@ -8,7 +8,7 @@
   "scripts": {
     "build": "cross-env NODE_ENV=production rollup -c",
     "build:dev": "cross-env NODE_ENV=development rollup -c",
-    "build:sample": "tsc -p ./samples/tsconfig.json",
+    "build:dev:watch": "cross-env NODE_ENV=development rollup -c -w",
     "lint": "eslint ."
   },
   "files": [
