@@ -71,6 +71,11 @@ export interface IChartItem {
     hooks: Record<string, ITradingChartHookCb>
 }
 
+export interface GetBarsReply {
+    data: number[][]
+    isLast?: boolean
+}
+
 export interface ITradingChartDataProvider {
     // This is the first method of the datafeed that is called
     onReady(): Promise<TradingChartConfig>
@@ -83,7 +88,7 @@ export interface ITradingChartDataProvider {
         symbolInfo: string,
         resolution: ResolutionType,
         periodParams: TradingChartPeriodParams,
-    ): Promise<number[][]>
+    ): Promise<GetBarsReply>
 
     // search symbols every time a user types a text in the symbol search box.
     // Changing symbols also works using the symbol search.

@@ -1,4 +1,4 @@
-import { ITradingChartDataProvider, ResolutionType, SymbolInfo, TradingChartConfig, TradingChartPeriodParams } from 'hk-trading-contract'
+import { GetBarsReply, ITradingChartDataProvider, ResolutionType, SymbolInfo, TradingChartConfig, TradingChartPeriodParams } from 'hk-trading-contract'
 import { TradingViewWidget } from '../../dist/hk-trading-chart.esm'
 
 export class SampleTradingChartDataProvider implements ITradingChartDataProvider {
@@ -37,8 +37,10 @@ export class SampleTradingChartDataProvider implements ITradingChartDataProvider
         this.data.push(this.data[0].map(v => this.randInt(10, 250)))
     }
 
-    async getBars(symbolInfo: string, resolution: ResolutionType, periodParams: TradingChartPeriodParams): Promise<number[][]> {
-        return this.data
+    async getBars(symbolInfo: string, resolution: ResolutionType, periodParams: TradingChartPeriodParams): Promise<GetBarsReply> {
+        return {
+            data: this.data
+        }
     }
     searchSymbols(userInput: string, exchange: string, symbolType: string): Promise<any[]> {
         throw new Error('Method not implemented.')

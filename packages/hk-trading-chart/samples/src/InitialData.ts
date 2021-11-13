@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { ITradingChartDataProvider, ResolutionType, SymbolInfo, TradingChartConfig, TradingChartPeriodParams } from 'hk-trading-contract'
+import { GetBarsReply, ITradingChartDataProvider, ResolutionType, SymbolInfo, TradingChartConfig, TradingChartPeriodParams } from 'hk-trading-contract'
 import { DataFrame } from 'hk-pd'
 import Ohlcv from '../../data/ohlcv.json'
 import { TradingViewWidget } from '../../dist/hk-trading-chart.esm'
@@ -22,7 +22,7 @@ export class SampleTradingChartDataProvider implements ITradingChartDataProvider
         return tradingChartConfig
     }
 
-    async getBars(symbolInfo: string, resolution: ResolutionType, periodParams: TradingChartPeriodParams): Promise<number[][]> {
+    async getBars(symbolInfo: string, resolution: ResolutionType, periodParams: TradingChartPeriodParams): Promise<GetBarsReply> {
         const ohlcvObj = Ohlcv['ohlcv'].map((v) => ({
           sts: v[0] / 1000,
           bo: v[1],
@@ -33,7 +33,10 @@ export class SampleTradingChartDataProvider implements ITradingChartDataProvider
         }))
         const initialData = new DataFrame(ohlcvObj)
         // console.log(initialData.head(5).toString())
-        return initialData.convertColumnsToArrays(['sts', 'bo', 'bh', 'bl', 'bc', 'v'])
+        return {
+            data: initialData.convertColumnsToArrays(['sts', 'bo', 'bh', 'bl', 'bc', 'v']),
+            isLast: true,
+        }
     }
     searchSymbols(userInput: string, exchange: string, symbolType: string): Promise<any[]> {
         throw new Error('Method not implemented.')

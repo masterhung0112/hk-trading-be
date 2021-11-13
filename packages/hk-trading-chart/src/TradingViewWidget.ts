@@ -1,9 +1,9 @@
-import { is1DArray } from 'hk-pd'
 import { createTimeRange, fmtUSD, ITradingChart, ITradingChartDataProvider, ResolutionType, TradingChartConfig, detectIntervalMsFromCandles, IChartItem } from 'hk-trading-contract'
 import uPlot from 'uplot'
 import { candlestickPlugin } from './ChartPlugins/candlestickPlugin'
 import { columnHighlightPlugin } from './ChartPlugins/columnHighlightPlugin'
 import { legendAsTooltipPlugin } from './ChartPlugins/legendAsTooltipPlugin'
+import { wheelZoomPlugin } from './ChartPlugins/wheelZoomPlugin'
 import { TRADINGVIEW_DEFAULT_LEN, TRADINGVIEW_MINIMUM_LEN } from './TradingViewConstants'
 
 export interface TradingViewWidgetConfig {
@@ -101,7 +101,8 @@ export class TradingViewWidget implements ITradingChart {
             plugins: [
                 columnHighlightPlugin(),
                 legendAsTooltipPlugin(),
-                candlestickPlugin()
+                candlestickPlugin(),
+                wheelZoomPlugin(),
             ],
             scales: {
                 x: {
@@ -242,14 +243,18 @@ export class TradingViewWidget implements ITradingChart {
                 //     }
                 // }
                 // Clone the initial data
-                this.ohlcvData = initialData as any as uPlot.AlignedData //initialData.convertColumnsToArrays(['sts', 'bo', 'bh', 'bl', 'bc', 'v']) as uPlot.AlignedData
+                if (Array.isArray(initialData.data)) {
+                    this.ohlcvData = initialData.data as any as uPlot.AlignedData //initialData.convertColumnsToArrays(['sts', 'bo', 'bh', 'bl', 'bc', 'v']) as uPlot.AlignedData
 
-                // this.calcInterval()
+                    // this.calcInterval()
 
-                // Caldulate the default time range from the data
-                // this.calculateDefaultTimeRange()
+                    // Caldulate the default time range from the data
+                    // this.calculateDefaultTimeRange()
 
-                this.mainChart.uplot.setData(this.ohlcvData)
+                    this.mainChart.uplot.setData(this.ohlcvData)
+                } else {
+                    console.error('data of getBars isn\'t of type array')
+                }
             }
         }
 
