@@ -66,11 +66,11 @@ import { IOrderedDataFrameConfig } from './IOrderedDataFrameConfig'
 import { ISortSpec } from './ISortSpec'
 
 export class DataFrame<IndexT, ValueT> implements IDataFrame<IndexT, ValueT> {
-    private _configFn: DataFrameConfigFn<IndexT, ValueT> | null = null;
-    private _content: IDataFrameContent<IndexT, ValueT> | null = null;
+    private _configFn: DataFrameConfigFn<IndexT, ValueT> | null = null
+    private _content: IDataFrameContent<IndexT, ValueT> = null!
 
-    private static readonly _defaultEmptyIterable = new EmptyIterable();
-    private static readonly _defaultCountIterable = new CountIterable();
+    private static readonly _defaultEmptyIterable = new EmptyIterable()
+    private static readonly _defaultCountIterable = new CountIterable()
 
     private _indexedContent: Map<any, ValueT> | null = null
 
@@ -163,7 +163,7 @@ export class DataFrame<IndexT, ValueT> implements IDataFrame<IndexT, ValueT> {
 
         if (config.columns) {
             let columnsConfig = config.columns
-            if (isArray(columnsConfig) || isFunction(columnsConfig)[Symbol.iterator]) {
+            if (isArray(columnsConfig) || isFunction((columnsConfig as any)[Symbol.iterator])) {
                 const iterableColumnsConfig = columnsConfig as Iterable<IColumnConfig>
                 columnNames = Array.from(iterableColumnsConfig).map(column => column.name)
                 columnsConfig = toMap(iterableColumnsConfig, column => column.name, column => column.series)
@@ -177,8 +177,8 @@ export class DataFrame<IndexT, ValueT> implements IDataFrame<IndexT, ValueT> {
 
             const columnIterables: any[] = []
             for (const columnName of columnNames) {
-                DataFrame._checkIterable(columnsConfig[columnName], columnName)
-                columnIterables.push(columnsConfig[columnName])
+                DataFrame._checkIterable((columnsConfig as any)[columnName], columnName)
+                columnIterables.push((columnsConfig as any)[columnName])
             }
 
             values = new CsvRowsIterable(columnNames, new MultiIterable(columnIterables))
@@ -1332,8 +1332,8 @@ export class DataFrame<IndexT, ValueT> implements IDataFrame<IndexT, ValueT> {
         return rows
     }
 
-    convertColumnsToArrays(columnNames: string[]): any[][] {
-        const rows = []
+    convertColumnsToArrays<ArrayType>(columnNames: string[]): ArrayType[] {
+        const rows: ArrayType[] = []
         const defaultColumnNames = this.getColumnNames()
 
         // There's no data in the dataframe yet
@@ -1348,7 +1348,7 @@ export class DataFrame<IndexT, ValueT> implements IDataFrame<IndexT, ValueT> {
         }
  
         for (const row of new ColumnsToArraysIterable(columnNames, this)) {
-           rows.push(row)
+           rows.push(row as ArrayType)
         }
 
         return rows

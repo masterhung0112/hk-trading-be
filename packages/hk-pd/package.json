@@ -1,18 +1,21 @@
 {
   "name": "hk-pd",
   "version": "0.0.1",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "./dist/hk-pd.cjs.js",
+  "module": "./dist/hk-pd.esm.js",
+  "types": "./dist/hk-pd.d.ts",
   "license": "MIT",
   "scripts": {
-    "build": "tsc"
+    "build": "cross-env NODE_ENV=production rollup -c && tsc",
+    "build:dev": "cross-env NODE_ENV=development rollup -c && tsc",
+    "build:dev:watch": "cross-env NODE_ENV=development rollup -c -w"
   },
   "dependencies": {
     "@types/jest": "^27.0.1",
     "jest": "^27.0.6",
     "table": "^6.7.1",
     "typy": "^3.0.1",
-    "easy-table": "1.1.0",
+    "easy-table": "^1.2.0",
     "dayjs": "^1.8.12",
     "numeral": "^2.0.6"
   },
@@ -23,6 +26,12 @@
     "eslint-config-hk": "^1.0.0",
     "@rushstack/eslint-patch": "^1.0.6",
     "eslint": "^7.32.0",
-    "@types/numeral": "0.0.22"
+    "@types/numeral": "0.0.22",
+    "cross-env": "^7.0.3",
+    "@rollup/plugin-babel": "^5.3.0",
+    "rollup": "^2.59.0",
+    "@rollup/plugin-commonjs": "^21.0.1",
+    "@rollup/plugin-typescript": "^8.3.0",
+    "@rollup/plugin-node-resolve": "^13.0.6"
   }
 }

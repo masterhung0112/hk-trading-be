@@ -371,7 +371,7 @@ export class Series<IndexT = number, ValueT = any> implements ISeries<IndexT, Va
         else {
             // Just check if empty.
             const iterator = this[Symbol.iterator]()
-            return iterator.next().done
+            return !!iterator.next().done
         }
 
         return true // Nothing failed the predicate.
@@ -1424,7 +1424,7 @@ export class Series<IndexT = number, ValueT = any> implements ISeries<IndexT, Va
         } else {
             selector = (value: ValueT): ToT => <ToT><any>value
         }
-        return this.variableWindow((a, b) => selector(a) === selector(b))
+        return this.variableWindow((a, b) => selector!(a) === selector!(b))
             .select((window): [IndexT, ValueT] => {
                 return [window.getIndex().first(), window.first()]
             })

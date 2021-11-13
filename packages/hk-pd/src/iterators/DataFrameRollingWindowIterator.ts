@@ -2,8 +2,8 @@ import { IDataFrame } from '../core/IDataFrame'
 import { DataFrame } from '../core/DataFrame'
 
 export class DataFrameRollingWindowIterator<IndexT, ValueT> implements Iterator<IDataFrame<IndexT, ValueT>> {
-    curWindow: [IndexT, ValueT][] | undefined;
-    iterator: Iterator<[IndexT, ValueT]> | undefined;
+    curWindow: [IndexT, ValueT][] | undefined
+    iterator: Iterator<[IndexT, ValueT]> | undefined
 
     constructor(
         public columnNames: Iterable<string>, 
@@ -15,7 +15,7 @@ export class DataFrameRollingWindowIterator<IndexT, ValueT> implements Iterator<
     next(): IteratorResult<IDataFrame<IndexT, ValueT>> {
         if (!this.curWindow) {
             this.curWindow = []
-            this.iterator = this.iterator[Symbol.iterator]()
+            this.iterator = this.iterable[Symbol.iterator]()
             for (let i = 0; i < this.period; ++i) {
                 const curPos = this.iterator.next()
                 if (curPos.done) {
