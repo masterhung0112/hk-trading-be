@@ -1,6 +1,6 @@
 import { Series } from 'hk-pd'
+import { resolutionTypeToSeconds } from 'hk-trading-contract'
 import { CandleMultiStickReversedDto } from '../Models/CandleMultiStickReversedDto'
-import { resolutionTypeToSecond } from '../utils'
 import { ICandlestickFinder } from './ICandlestickFinder'
 
 export interface CandlestickFinderArgs {
@@ -27,7 +27,7 @@ export class CandlestickFinder implements ICandlestickFinder {
             if (data.sts.count() === 0) {
                 return false
             }
-            const resolutionSecond = resolutionTypeToSecond(data.resolutionType)
+            const resolutionSecond = resolutionTypeToSeconds(data.resolutionType)
             // const remainingFirst = Math.abs(resolutionSecond - data.sts[0]) 
             const remainingLast = resolutionSecond - (data.lastStickSts % resolutionSecond)
             // console.log('remainingLast', new Date(data.lastStickSts), remainingLast)

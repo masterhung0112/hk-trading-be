@@ -1,7 +1,7 @@
 import { PoolPlus } from 'mysql-plus'
-import { SqlForexCandleStore } from '../../src/Stores/SqlForexCandleStore'
+import { SqlForeCandleFromQuoteStore } from '../../src/Stores/SqlForeCandleFromQuoteStore'
 
-describe('SqlForexCandleStore', () => {
+describe('SqlForeCandleFromQuoteStore', () => {
   const poolPlus = new PoolPlus({
     host: process.env.MYSQL_HOST,
     port: parseInt(process.env.MYSQL_PORT),
@@ -10,7 +10,7 @@ describe('SqlForexCandleStore', () => {
     database: process.env.MYSQL_DB,
     decimalNumbers: true,
   })
-  const store = new SqlForexCandleStore(poolPlus)
+  const store = new SqlForeCandleFromQuoteStore(poolPlus)
   store.init()
 
   it('query OK', async () => {
@@ -26,22 +26,22 @@ describe('SqlForexCandleStore', () => {
         num: num,
       })
 
-      expect(candles.sym).toBeTruthy()
-      expect(candles.resolutionType).toBeTruthy()
-      expect(candles.sts).toHaveLength(num)
-      expect(candles.bo).toHaveLength(num)
-      expect(candles.bh).toHaveLength(num)
-      expect(candles.bl).toHaveLength(num)
-      expect(candles.bc).toHaveLength(num)
+      expect(candles[0].sym).toBeTruthy()
+      expect(candles[0].resolutionType).toBeTruthy()
+      expect(candles[0].sts).toHaveLength(num)
+      expect(candles[0].bo).toHaveLength(num)
+      expect(candles[0].bh).toHaveLength(num)
+      expect(candles[0].bl).toHaveLength(num)
+      expect(candles[0].bc).toHaveLength(num)
       // expect(candles.firstStickSts).toBeLessThan(candles.lastStickSts)
-      expect(candles.firstStickSts).toBeGreaterThan(candles.sts[0])
-      expect(candles.lastStickSts).toBeGreaterThan(candles.sts[1])
-      expect(candles.sts[0]).toBeLessThan(candles.sts[1])
+      expect(candles[0].firstStickSts).toBeGreaterThan(candles[0].sts)
+      expect(candles[0].lastStickSts).toBeGreaterThan(candles[1].sts)
+      expect(candles[0].sts).toBeLessThan(candles[1].sts)
 
-      console.log(fromTime, nowTime, {
-        ...candles,
-        firstStickSts: new Date(candles.firstStickSts),
-        lastStickSts: new Date(candles.lastStickSts)
-      })
+      // console.log(fromTime, nowTime, {
+      //   ...candles,
+      //   firstStickSts: new Date(candles.firstStickSts),
+      //   lastStickSts: new Date(candles.lastStickSts)
+      // })
   })
 })

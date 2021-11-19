@@ -1,6 +1,6 @@
 export type ResolutionType = '1s' | '1m' | '5m' | '1h' | '4h' | '1d' | '1w'
 
-export function resolutionTypeToSeconds(resolution: ResolutionType, requiredPeriodsCount: number | undefined | null) {
+export function resolutionTypeToSeconds(resolution: ResolutionType, requiredPeriodsCount?: number | null) {
     if (requiredPeriodsCount === null || requiredPeriodsCount === undefined) {
         requiredPeriodsCount = 1
     }

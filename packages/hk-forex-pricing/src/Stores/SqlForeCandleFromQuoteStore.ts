@@ -1,9 +1,9 @@
 import { resolutionTypeToSecond } from 'hk-technical-indicators'
-import { DataFrame, Series } from 'hk-pd'
-import { IForexCandlesReadStore, CandleStickDTO, CandleMultiStickDto, ResolutionType } from 'hk-trading-contract'
+import { DataFrame, IDataFrame } from 'hk-pd'
+import { IForexCandlesReadStore, CandleStickDTO, ResolutionType, secondToResolutionType } from 'hk-trading-contract'
 import { dateToMysqlFormat, MySQLTable, PoolPlus } from 'mysql-plus'
 
-export class SqlForexCandleStore implements IForexCandlesReadStore {
+export class SqlForeCandleFromQuoteStore implements IForexCandlesReadStore {
   private forexCandleTable: MySQLTable
   private forexQuoteTable: MySQLTable
 
@@ -59,7 +59,7 @@ export class SqlForexCandleStore implements IForexCandlesReadStore {
     }
   }
 
-  async getCandles(options: { resolutionType: ResolutionType; symbol: string; fromTime?: Date; toTime?: Date; num?: number }): Promise<CandleMultiStickDto> {
+  async getCandles(options: { resolutionType: ResolutionType; symbol: string; fromTime?: Date; toTime?: Date; num?: number }): Promise<IDataFrame<number, CandleStickDTO>> {
 
     if ((!options.fromTime || !options.toTime) && !options.num) {
       throw new Error('fromTime or toTime must be available when options.num is not available')
@@ -107,42 +107,25 @@ export class SqlForexCandleStore implements IForexCandlesReadStore {
     ) result ORDER BY sts ASC;
     `
     // console.log('statement', statement)
-    const result = await this._poolPlus.pquery(statement)
-    if (result.length == 0) {
-      return {
-        sym: options.symbol,
-        resolutionType: options.resolutionType,
-        firstStickSts: -1,
-        lastStickSts: -1,
-        sts: new Series<number, number>(),
-        bo: new Series<number, number>(),
-        bh: new Series<number, number>(),
-        bl: new Series<number, number>(),
-        bc: new Series<number, number>()
-      }
+    const results = await this._poolPlus.pquery(statement)
+    if (results.length == 0) {
+      return new DataFrame<number, CandleStickDTO>([])
     }
-    const df = new DataFrame<number, {
-      sts: number,
-      bo: number,
-      bh: number,
-      bl: number,
-      bc: number,
-    }>(result)
-
-
     // const maxT =  df.column('maxtime').max()
-    console.log(df.getSeries('mintime'), df.getSeries('maxtime'))
-    return {
-      sym: options.symbol,
-      resolutionType: options.resolutionType,
-      firstStickSts: df.getSeries('mintime').min(),
-      lastStickSts: df.getSeries('maxtime').max(),
-      sts: df.getSeries('sts'),
-      bo: df.getSeries('bo'),
-      bh: df.getSeries('bh'),
-      bl: df.getSeries('bl'),
-      bc: df.getSeries('bc'),
-    }
+    // console.log(df.getSeries('mintime'), df.getSeries('maxtime'))
+    const c: CandleStickDTO[] = results.map((r) => ({
+      sym: r.sym,
+      resolutionType: secondToResolutionType(r.resolution),
+      sts: r.sts,
+      ets: r.ets,
+      bc: r.bc,
+      bh: r.bh,
+      bl: r.bl,
+      bo: r.bo,
+      v: r.v,
+    } as CandleStickDTO))
+
+    return new DataFrame<number, CandleStickDTO>(c)
   }
 
   async getCandle(options: {

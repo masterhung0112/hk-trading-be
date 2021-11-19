@@ -93,7 +93,7 @@ export class TradingViewWidget implements ITradingChart {
         this.createContainerDiv(containerDomNode, this.offChartMap)
 
         const mainchartOpts: uPlot.Options = {
-            width: 1900,
+            width: 1920,
             height: 800,
             title: 'Trading Chart',
             mode: 1,

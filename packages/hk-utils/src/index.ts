@@ -1,0 +1,7 @@
+export * from './assign'
+export * from './copy'
+export * from './fastIsObj'
+export * from './isArray'
+export * from './isObject'
+export * from './isString'
+export * from './microTask'

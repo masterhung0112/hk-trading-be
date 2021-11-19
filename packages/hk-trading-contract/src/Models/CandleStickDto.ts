@@ -23,3 +23,25 @@ export interface CandleStickBidAskDTO extends CandleStickDTO {
     al: number
     ac: number
 }
+
+export function preSaveCandleStickDto(candleStick: CandleStickDTO) {
+    if (!candleStick) {
+        throw new Error('candleStick cannot be null')
+    }
+
+    if (!candleStick.sym) {
+        throw new Error('candleStick.sym cannot be null')
+    }
+
+    if (!candleStick.resolutionType) {
+        throw new Error('candleStick.resolutionType cannot be null')
+    }
+
+    if (!candleStick.sts) {
+        throw new Error('candleStick.sts cannot be null')
+    }
+
+    if (!candleStick.bo) {
+        throw new Error('candleStick.bo cannot be null')
+    }
+}

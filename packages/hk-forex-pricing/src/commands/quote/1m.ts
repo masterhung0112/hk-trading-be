@@ -4,7 +4,7 @@ import { PoolPlus } from 'mysql-plus'
 import { FxcmAdapter } from '../../PriceSourceAdapters/FxcmAdapter'
 import { SqlForexQuoteStore } from '../../Stores/SqlForexQuoteStore'
 import dotenv from 'dotenv'
-import { SqlForexCandleStore } from '../../Stores/SqlForexCandleStore'
+import { SqlForeCandleFromQuoteStore } from '../../Stores/SqlForeCandleFromQuoteStore'
 
 dotenv.config({path: './env/.env.local'})
 
@@ -34,7 +34,7 @@ export default class QuoteTo1m extends Command {
         decimalNumbers: true,
     })
     const forexQuoteStore = new SqlForexQuoteStore(poolPlus)
-    const forexCandlesStore = new SqlForexCandleStore(poolPlus)
+    const forexCandlesStore = new SqlForeCandleFromQuoteStore(poolPlus)
     const adapter = new FxcmAdapter()
 
     of(forexQuoteStore.init()).pipe(

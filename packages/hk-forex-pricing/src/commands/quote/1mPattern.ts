@@ -4,7 +4,7 @@ import { PoolPlus } from 'mysql-plus'
 import { FxcmAdapter } from '../../PriceSourceAdapters/FxcmAdapter'
 import { SqlForexQuoteStore } from '../../Stores/SqlForexQuoteStore'
 import dotenv from 'dotenv'
-import { SqlForexCandleStore } from '../../Stores/SqlForexCandleStore'
+import { SqlForeCandleFromQuoteStore } from '../../Stores/SqlForeCandleFromQuoteStore'
 import { CandlePatternDetector } from '../../PatternDetectors/CandlePatternDetector'
 import { BearishHammerStick, Doji, HammerPattern, BearishInvertedHammerStick, BullishInvertedHammerStick, BullishHammerStick, BullishEngulfingPattern, BullishHarami, BullishHaramiCross, BullishMarubozu, BullishSpinningTop } from 'hk-technical-indicators'
 
@@ -36,7 +36,7 @@ export default class QuoteTo1mPattern extends Command {
       decimalNumbers: true,
     })
     const forexQuoteStore = new SqlForexQuoteStore(poolPlus)
-    const forexCandlesStore = new SqlForexCandleStore(poolPlus)
+    const forexCandlesStore = new SqlForeCandleFromQuoteStore(poolPlus)
     const adapter = new FxcmAdapter()
     const patternDetector = new CandlePatternDetector([
       new BearishHammerStick(),
