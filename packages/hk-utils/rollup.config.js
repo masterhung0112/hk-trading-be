@@ -32,6 +32,15 @@ export default [
     {
         input:  './src/index.ts',
         output: {
+            file: './dist/hk-utils.cjs.js',
+            format: 'cjs',
+            sourcemap: true,
+        },
+        plugins,
+    },
+    {
+        input:  './src/index.ts',
+        output: {
             file: './dist/hk-utils.esm.js',
             format: 'es',
             sourcemap: true,

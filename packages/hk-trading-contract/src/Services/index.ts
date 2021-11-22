@@ -1,4 +1,4 @@
 export * from './ITradingChart'
-export * from './IForexCandleProvider'
+export * from './ICandleProviderDashboard'
 export * from './IMarketDataAdapter'
-export * from './IDataProvider'
+export * from './ICandleStickProvider'

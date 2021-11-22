@@ -1,1 +1,1 @@
-export * from './ForexCandleProviders'
+export * from './CandleProviderDashboard'

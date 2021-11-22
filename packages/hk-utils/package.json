@@ -1,6 +1,7 @@
 {
   "name": "hk-utils",
   "version": "0.0.1",
+  "main": "./dist/hk-utils.cjs.js",
   "module": "./dist/hk-utils.esm.js",
   "types": "./dist/index.d.ts",
   "license": "MIT",

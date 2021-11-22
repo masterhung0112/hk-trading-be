@@ -1,5 +1,6 @@
 export * from './CandleMultiStickDto'
 export * from './constants'
+export * from './GetOhlcvOptions'
 export * from './ResolutionType'
 export * from './CandleStickDto'
 export * from './PatternRecognitionDto'

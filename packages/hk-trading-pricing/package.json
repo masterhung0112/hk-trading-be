@@ -16,6 +16,7 @@
     "hk-cloud": "^0.0.1",
     "hk-technical-indicators": "^0.0.1",
     "hk-trading-contract": "^0.0.1",
+    "hk-utils": "^0.0.1",
     "mysql-plus": "^0.0.1",
     "oclif": "^1.18.1",
     "rxjs": "^7.3.0",
@@ -29,6 +30,7 @@
     "mysql2": "^2.3.0"
   },
   "devDependencies": {
+    "moq.ts": "^7.3.4",
     "cross-env": "^7.0.3",
     "@oclif/dev-cli": "^1",
     "@oclif/test": "^1",
