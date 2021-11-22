@@ -1,4 +1,4 @@
-import { CandleMultiStickReversedDto } from '../Models/CandleMultiStickReversedDto'
+import { CandleStickDTO } from 'hk-trading-contract'
 import { approximateEqual } from '../utils/approximateEqual'
 import { CandlestickFinder } from './CandlestickFinder'
 
@@ -11,11 +11,11 @@ export class Doji extends CandlestickFinder {
         })
     }
 
-    logic(data: CandleMultiStickReversedDto): boolean {
-        const daysOpen = data.bo[0]
-        const daysClose = data.bc[0]
-        const daysHigh = data.bh[0]
-        const daysLow = data.bl[0]
+    logic(data: CandleStickDTO[]): boolean {
+        const daysOpen = data[0].bo
+        const daysClose = data[0].bc
+        const daysHigh = data[0].bh
+        const daysLow = data[0].bl
         const isOpenEqualsClose = approximateEqual(daysOpen, daysClose)
         const isHighEqualsOpen = isOpenEqualsClose && approximateEqual(daysOpen, daysHigh)
         const isLowEqualsClose = isOpenEqualsClose && approximateEqual(daysClose, daysLow)
@@ -23,6 +23,6 @@ export class Doji extends CandlestickFinder {
     }
 }
 
-export function doji(data: CandleMultiStickReversedDto) {
+export function doji(data: CandleStickDTO[]) {
     return new Doji().hasPattern(data)
 }

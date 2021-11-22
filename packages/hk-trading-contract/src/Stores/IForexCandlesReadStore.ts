@@ -1,4 +1,3 @@
-import { IDataFrame } from 'hk-pd'
 import { CandleStickDTO } from '../Models'
 import { ResolutionType } from '../Models/ResolutionType'
 
@@ -9,7 +8,7 @@ export interface IForexCandlesReadStore {
         fromTime?: Date
         toTime?: Date
         num?: number
-    }): Promise<IDataFrame<number, CandleStickDTO>>
+    }): Promise<CandleStickDTO[]>
 
     getCandle(options: {
         resolutionType: ResolutionType

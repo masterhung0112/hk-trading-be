@@ -1,18 +1,16 @@
-import mysql from 'mysql2/promise'
-import { SqlForexCandleStore } from '../../src/Stores/SqlForexCandleStore'
+import { PoolPlus } from 'mysql-plus'
+import { SqlForexCandleFromQuoteStore } from '../../src/Stores/SqlForexCandleFromQuoteStore'
 
-describe('SqlForexCandleStore', () => {
-  const mysqlPool = mysql.createPool({
+describe('SqlForexCandleFromQuoteStore', () => {
+  const poolPlus = new PoolPlus({
     host: process.env.MYSQL_HOST,
     port: parseInt(process.env.MYSQL_PORT),
     user: process.env.MYSQL_USER,
     password: process.env.MYSQL_PASS,
     database: process.env.MYSQL_DB,
-    waitForConnections: true,
-    connectionLimit: 10,
-    queueLimit: 0
+    decimalNumbers: true,
   })
-  const store = new SqlForexCandleStore(mysqlPool)
+  const store = new SqlForexCandleFromQuoteStore(poolPlus)
   store.init()
 
   it('query OK', async () => {
@@ -20,8 +18,8 @@ describe('SqlForexCandleStore', () => {
       const num = 2
       const dateNow = Date.UTC(2021, 12, 1, 10, 0, 0)
       const nowTime = new Date(dateNow)
-      const fromTime = new Date(dateNow - (80 * 60 * 1000))
-      await store.saveCandle({
+      const fromTime =  new Date(dateNow - (80 * 60 * 1000))
+      store.saveCandle({
         resolutionType: '1m',
         sym: 'FM:EURUSD',
         sts: fromTime,

@@ -1,5 +1,3 @@
-import { resolutionTypeToSecond } from 'hk-technical-indicators'
-import { DataFrame, IDataFrame } from 'hk-pd'
 import { IForexCandlesReadStore, CandleStickDTO, ResolutionType, resolutionTypeToSeconds, secondToResolutionType } from 'hk-trading-contract'
 import { Pool, RowDataPacket } from 'mysql2/promise'
 import { dateToMysqlFormat } from 'mysql-plus'
@@ -36,15 +34,15 @@ export class SqlForexCandleStore implements IForexCandlesReadStore {
   async saveCandle(candle: CandleStickDTO) {
     await this.mysqlPool.execute(
       `INSERT INTO ${FOREX_CANDLE_TABLE_NAME}(sym, resolution, sts, ets, bo, bh, bl, bc, v)
-      VALUES (${candle.sym}, ${resolutionTypeToSecond(candle.resolutionType)}, ${candle.sts}, ${candle.ets}, ${candle.bo}, ${candle.bh}, ${candle.bl}, ${candle.bc}, ${candle.v})`
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`, [candle.sym, resolutionTypeToSeconds(candle.resolutionType), dateToMysqlFormat(candle.sts), dateToMysqlFormat(candle.ets), candle.bo, candle.bh, candle.bl, candle.bc, candle.v]
     )
   }
 
-  async getCandles(options: { resolutionType: ResolutionType; symbol: string; fromTime?: Date; toTime?: Date; num?: number }): Promise<IDataFrame<number, CandleStickDTO>> {
+  async getCandles(options: { resolutionType: ResolutionType; symbol: string; fromTime?: Date; toTime?: Date; num?: number }): Promise<CandleStickDTO[]> {
     if ((!options.fromTime || !options.toTime) && !options.num) {
       throw new Error('fromTime or toTime must be available when options.num is not available')
     }
-    const intervalSecond = resolutionTypeToSecond(options.resolutionType)
+    const intervalSecond = resolutionTypeToSeconds(options.resolutionType)
 
     // Calculate fromTime to ToTime
     if (options.num) {
@@ -74,9 +72,9 @@ export class SqlForexCandleStore implements IForexCandlesReadStore {
       rowsAsArray: true,
     })
     if (results.length == 0) {
-      return new DataFrame<number, CandleStickDTO>([])
+      return []
     }
-    const c: CandleStickDTO[] = results.map((r) => ({
+    return results.map((r) => ({
       sym: r.sym,
       resolutionType: secondToResolutionType(r.resolution),
       sts: r.sts,
@@ -87,8 +85,6 @@ export class SqlForexCandleStore implements IForexCandlesReadStore {
       bo: r.bo,
       v: r.v,
     } as CandleStickDTO))
-
-    return new DataFrame<number, CandleStickDTO>(c)
   }
 
   async getCandle(options: {

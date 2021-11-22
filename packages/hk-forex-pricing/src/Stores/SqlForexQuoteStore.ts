@@ -34,6 +34,7 @@ export class SqlForexQuoteStore implements IForexQuoteReadStore, IForexQuoteWrit
     })
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   GetTicks(options: { symbol: string; fromTime: number; toTime?: number; limit?: number }): Promise<CandleQuoteDto[]> {
     throw new Error('Method not implemented.')
   }

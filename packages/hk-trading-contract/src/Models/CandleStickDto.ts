@@ -4,8 +4,8 @@ import { ResolutionType } from './ResolutionType'
 export interface CandleStickDTO {
     sym: string // Symbol
     resolutionType: ResolutionType
-    sts: number // Start Timestamp
-    ets?: number // End Timestamp
+    sts: Date // Start Timestamp
+    ets?: Date // End Timestamp
     bo: number // Bid Open
     bh: number // Bid High
     bl: number // Bid Low

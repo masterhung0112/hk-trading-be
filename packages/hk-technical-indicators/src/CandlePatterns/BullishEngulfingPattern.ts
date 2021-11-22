@@ -1,4 +1,4 @@
-import { CandleMultiStickReversedDto } from '../Models'
+import { CandleStickDTO } from 'hk-trading-contract'
 import { CandlestickFinder } from './CandlestickFinder'
 
 export class BullishEngulfingPattern extends CandlestickFinder {
@@ -10,11 +10,11 @@ export class BullishEngulfingPattern extends CandlestickFinder {
         })
     }
 
-    logic(data: CandleMultiStickReversedDto) {
-        const firstdaysOpen = data.bo[0]
-        const firstdaysClose = data.bc[0]
-        const seconddaysOpen = data.bo[1]
-        const seconddaysClose = data.bl[1]
+    logic(data: CandleStickDTO[]) {
+        const firstdaysOpen = data[0].bo
+        const firstdaysClose = data[0].bc
+        const seconddaysOpen = data[1].bo
+        const seconddaysClose = data[1].bl
 
         const isBullishEngulfing = ((firstdaysClose < firstdaysOpen) &&
             (firstdaysOpen > seconddaysOpen) &&

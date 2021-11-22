@@ -2,7 +2,7 @@ import { Command, flags } from '@oclif/command'
 import { of, mergeMap, interval } from 'rxjs'
 import { PoolPlus } from 'mysql-plus'
 import { FxcmAdapter } from '../../PriceSourceAdapters/FxcmAdapter'
-import { SqlForeCandleFromQuoteStore } from '../../Stores/SqlForeCandleFromQuoteStore'
+import { SqlForexCandleFromQuoteStore } from '../../Stores/SqlForexCandleFromQuoteStore'
 import dotenv from 'dotenv'
 import { CandleStickBidAskDTO } from 'hk-trading-contract'
 
@@ -33,7 +33,7 @@ export default class QuoteToDB extends Command {
       database: process.env.MYSQL_DB,
       decimalNumbers: true,
     })
-    const store = new SqlForeCandleFromQuoteStore(poolPlus)
+    const store = new SqlForexCandleFromQuoteStore(poolPlus)
     const adapter = new FxcmAdapter()
 
     let lastTimestamp = new Date(Date.now() - (120 * 1000))

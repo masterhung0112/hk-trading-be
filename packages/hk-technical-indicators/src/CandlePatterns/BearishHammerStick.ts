@@ -1,4 +1,3 @@
-import { CandleMultiStickReversedDto } from '../Models/CandleMultiStickReversedDto'
 import { approximateEqual } from '../utils/approximateEqual'
 import { CandlestickFinder } from './CandlestickFinder'
 import { IDataFrame } from 'hk-pd'
@@ -21,8 +20,8 @@ export class BearishHammerStick extends CandlestickFinder {
         return isBearishHammer
     }
 
-    logic(data: CandleMultiStickReversedDto) {
-        return this._isBearishHammerByOCHL(data.bo[0], data.bc[0], data.bh[0], data.bl[0])
+    logic(data: CandleStickDTO[]) {
+        return this._isBearishHammerByOCHL(data[0].bo, data[0].bc, data[0].bh, data[0].bl)
     }
 
     logicFirst(data: IDataFrame<number, CandleStickDTO>) {
@@ -31,6 +30,6 @@ export class BearishHammerStick extends CandlestickFinder {
     }
 }
 
-export function hasBearishHammerStick(data: CandleMultiStickReversedDto) {
+export function hasBearishHammerStick(data: CandleStickDTO[]) {
     return new BearishHammerStick().hasPattern(data)
 }

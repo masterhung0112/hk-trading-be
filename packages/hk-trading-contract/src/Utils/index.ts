@@ -1,5 +1,5 @@
 export * from './createTimeRange'
 export * from './detectIntervalMsFromCandles'
 export * from './fmtUSD'
-export * from './resolutionTypeToSecond'
+export * from './resolutionTypeToSeconds'
 export * from './secondToResolutionType'

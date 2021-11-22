@@ -4,7 +4,7 @@ import { PoolPlus } from 'mysql-plus'
 import { FxcmAdapter } from '../../PriceSourceAdapters/FxcmAdapter'
 import { SqlForexQuoteStore } from '../../Stores/SqlForexQuoteStore'
 import dotenv from 'dotenv'
-import { SqlForeCandleFromQuoteStore } from '../../Stores/SqlForeCandleFromQuoteStore'
+import { SqlForexCandleFromQuoteStore } from '../../Stores/SqlForexCandleFromQuoteStore'
 
 dotenv.config({path: './env/.env.local'})
 
@@ -34,7 +34,7 @@ export default class QuoteTo1m extends Command {
         decimalNumbers: true,
     })
     const forexQuoteStore = new SqlForexQuoteStore(poolPlus)
-    const forexCandlesStore = new SqlForeCandleFromQuoteStore(poolPlus)
+    const forexCandlesStore = new SqlForexCandleFromQuoteStore(poolPlus)
     const adapter = new FxcmAdapter()
 
     of(forexQuoteStore.init()).pipe(
@@ -57,11 +57,11 @@ export default class QuoteTo1m extends Command {
             num: 1
           }))
         }),
-        distinctUntilChanged((previous, current) => (current.bl.count() > 0 && previous.bo[0] === current.bo[0] && previous.bh[0] === current.bh[0] && previous.bl[0] === current.bl[0] && previous.bc[0] === current.bc[0]))
+        distinctUntilChanged((previous, current) => (current.length > 0 && previous[0].bo === current[0].bo && previous[0].bh === current[0].bh && previous[0].bl === current[0].bl && previous[0].bc === current[0].bc))
     )
     .subscribe({
         next: (candleMultiStickDto) => {
-          if (candleMultiStickDto.sts.count() > 0) {
+          if (candleMultiStickDto.length > 0) {
             console.log(candleMultiStickDto)
             // patternDetector.getOutputStream()
           }

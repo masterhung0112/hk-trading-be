@@ -1,36 +1,31 @@
-import { resolutionTypeToSecond } from 'hk-technical-indicators'
-import { DataFrame, IDataFrame } from 'hk-pd'
-import { IForexCandlesReadStore, CandleStickDTO, ResolutionType, secondToResolutionType } from 'hk-trading-contract'
+import { IForexCandlesReadStore, CandleStickDTO, ResolutionType, secondToResolutionType, resolutionTypeToSeconds } from 'hk-trading-contract'
 import { dateToMysqlFormat, MySQLTable, PoolPlus } from 'mysql-plus'
 
-export class SqlForeCandleFromQuoteStore implements IForexCandlesReadStore {
+export class SqlForexCandleFromQuoteStore implements IForexCandlesReadStore {
   private forexCandleTable: MySQLTable
-  private forexQuoteTable: MySQLTable
 
   constructor(private _poolPlus: PoolPlus) {
     this.forexCandleTable = new MySQLTable('forex_candlesticks', {}, this._poolPlus)
-    this.forexQuoteTable = new MySQLTable('forex_quote', {}, this._poolPlus)
-
   }
 
   async init() {
-    // return await this._poolPlus.pquery(`
-    //     CREATE TABLE IF NOT EXISTS forex_candlesticks(
-    //         sym VARCHAR(32) NOT NULL,
-    //         sts TIMESTAMP(3) NOT NULL,
-    //         ets TIMESTAMP(3),
-    //         bo DECIMAL(16, 6) NOT NULL,
-    //         bh DECIMAL(16, 6) NOT NULL,
-    //         bl DECIMAL(16, 6) NOT NULL,
-    //         bc DECIMAL(16, 6) NOT NULL,
-    //         ao DECIMAL(16, 6),
-    //         ah DECIMAL(16, 6),
-    //         al DECIMAL(16, 6),
-    //         ac DECIMAL(16, 6),
-    //         v DECIMAL(20, 4),
-    //         PRIMARY KEY (sym, sts)
+    return await this._poolPlus.pquery(`
+        CREATE TABLE IF NOT EXISTS forex_candlesticks(
+            sym VARCHAR(32) NOT NULL,
+            sts TIMESTAMP(3) NOT NULL,
+            ets TIMESTAMP(3),
+            bo DECIMAL(16, 6) NOT NULL,
+            bh DECIMAL(16, 6) NOT NULL,
+            bl DECIMAL(16, 6) NOT NULL,
+            bc DECIMAL(16, 6) NOT NULL,
+            ao DECIMAL(16, 6),
+            ah DECIMAL(16, 6),
+            al DECIMAL(16, 6),
+            ac DECIMAL(16, 6),
+            v DECIMAL(20, 4),
+            PRIMARY KEY (sym, sts)
 
-    //     )`)
+        )`)
   }
 
   async saveCandle(candle: CandleStickDTO) {
@@ -59,12 +54,12 @@ export class SqlForeCandleFromQuoteStore implements IForexCandlesReadStore {
     }
   }
 
-  async getCandles(options: { resolutionType: ResolutionType; symbol: string; fromTime?: Date; toTime?: Date; num?: number }): Promise<IDataFrame<number, CandleStickDTO>> {
+  async getCandles(options: { resolutionType: ResolutionType; symbol: string; fromTime?: Date; toTime?: Date; num?: number }): Promise<CandleStickDTO[]> {
 
     if ((!options.fromTime || !options.toTime) && !options.num) {
       throw new Error('fromTime or toTime must be available when options.num is not available')
     }
-    const intervalSecond = resolutionTypeToSecond(options.resolutionType)
+    const intervalSecond = resolutionTypeToSeconds(options.resolutionType)
 
     // Calculate fromTime to ToTime
     if (options.num) {
@@ -109,11 +104,11 @@ export class SqlForeCandleFromQuoteStore implements IForexCandlesReadStore {
     // console.log('statement', statement)
     const results = await this._poolPlus.pquery(statement)
     if (results.length == 0) {
-      return new DataFrame<number, CandleStickDTO>([])
+      return []
     }
     // const maxT =  df.column('maxtime').max()
     // console.log(df.getSeries('mintime'), df.getSeries('maxtime'))
-    const c: CandleStickDTO[] = results.map((r) => ({
+    return results.map((r) => ({
       sym: r.sym,
       resolutionType: secondToResolutionType(r.resolution),
       sts: r.sts,
@@ -124,8 +119,6 @@ export class SqlForeCandleFromQuoteStore implements IForexCandlesReadStore {
       bo: r.bo,
       v: r.v,
     } as CandleStickDTO))
-
-    return new DataFrame<number, CandleStickDTO>(c)
   }
 
   async getCandle(options: {

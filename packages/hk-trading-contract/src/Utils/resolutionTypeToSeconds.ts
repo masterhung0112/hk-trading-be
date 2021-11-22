@@ -1,6 +1,6 @@
 import { ResolutionType } from '../Models/ResolutionType'
 
-export function resolutionTypeToSecond(resolutionType: ResolutionType) {
+export function resolutionTypeToSeconds(resolutionType: ResolutionType) {
     switch (resolutionType) {
         case '1d':
             return 86400
