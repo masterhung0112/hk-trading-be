@@ -1,4 +1,5 @@
 import { isBoolean } from './isBoolean'
+import { isDate } from './isDate'
 import { isNumber } from './isNumber'
 import { isString } from './isString'
 
@@ -12,7 +13,7 @@ export function determineType (value: any): string {
     else if (isString(value)) {
         return 'string'
     }
-    else if (value instanceof Date) {
+    else if (isDate(value)) {
         return 'date'
     }
     else if (isBoolean(value)) {

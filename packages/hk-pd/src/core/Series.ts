@@ -1,6 +1,5 @@
 import { EmptyIterable } from '../iterables/EmptyIterable'
-import { isFunction } from '../utils/isFunction'
-import { isArray } from '../utils/isArray'
+import { isFunction } from '../../../hk-utils/src/isFunction'
 import { CountIterable } from '../iterables/CountIterable'
 import { MultiIterable } from '../iterables/MultiTerable'
 import { ExtractElementIterable } from '../iterables/ExtractElementIterable'
@@ -15,10 +14,9 @@ import { DataFrame } from './DataFrame'
 import { SelectIterable } from '../iterables/SelectIterable'
 import { PredicateFn } from './PredicateFn'
 import { SelectManyIterable } from '../iterables/SelectManyIterable'
-import { isString } from '../utils/isString'
 import moment from 'dayjs'
-import { isDate } from '../utils/isDate'
-import { isNumber } from '../utils/isNumber'
+import { isDate } from '../../../hk-utils/src/isDate'
+import { isNumber } from '../../../hk-utils/src/isNumber'
 import { toMap } from '../utils/toMap'
 import { WhichIndex } from './WhichIndex'
 import { SeriesWindowIterable } from '../iterables/SeriesWindowIterable'
@@ -54,7 +52,7 @@ import { IFrequencyTableOptions } from './IFrequencyTableOptions'
 import { GapFillFn } from './GapFillFn'
 import { IIndex, IIndexPredicateFn } from './IIndex'
 // import { Index } from './IndexT'
-import { determineType } from '../utils/determineType'
+import { determineType, isArray, isString } from 'hk-utils'
 
 /**
  * One-dimensional ndarray with axis labels (including time series).
@@ -684,7 +682,7 @@ export class Series<IndexT = number, ValueT = any> implements ISeries<IndexT, Va
             .concat(this.tail(1))
     }
 
-    frequency (options?: IFrequencyTableOptions): IDataFrame<number, IFrequencyTableEntry> {
+    frequency(options?: IFrequencyTableOptions): IDataFrame<number, IFrequencyTableEntry> {
         if (this.none()) {
             return new DataFrame()
         }

@@ -20,13 +20,7 @@ import { TakeWhileIterable } from '../iterables/TakeWhileIterable'
 import { TileIterable } from '../iterables/TileIterable'
 import { WhereIterable } from '../iterables/WhereIterable'
 import { ZipIterable } from '../iterables/ZipIterable'
-import { determineType } from '../utils/determineType'
-import { isArray } from '../utils/isArray'
-import { isFunction } from '../utils/isFunction'
-import { isNumber } from '../utils/isNumber'
-import { isObject } from '../utils/isObject'
-import { isString } from '../utils/isString'
-import { makeDistinct } from '../utils/makeDistinct'
+import { makeDistinct, isString, isObject, isNumber, isFunction, isArray, determineType } from 'hk-utils'
 import { toMap } from '../utils/toMap'
 import { toMap2 } from '../utils/toMap2'
 import { CallbackFn } from './CallbackFn'
@@ -2029,10 +2023,10 @@ export class DataFrame<IndexT, ValueT> implements IDataFrame<IndexT, ValueT> {
             
             return working
         }
-        else if (isArray(columnNames)) {
+        else if (isArray<string>(columnNames)) {
             let working: IDataFrame<IndexT, ValueT> = this
-            for (const columnName of columnNames) {
-                const columnFormatString = (columnNames as any)[columnName]
+            for (const columnName of columnNames as string[]) {
+                const columnFormatString = columnNames[columnName]
                 working = working.toStrings(columnName, columnFormatString)
             }
             

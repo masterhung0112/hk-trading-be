@@ -12,6 +12,6 @@
         "skipLibCheck": true,
         "sourceMap": true
     },
-    "include": ["src/**/*"],
+    "include": ["src/**/*", "../hk-trading-contract/src/Services/IMarketDataAdapter.ts"],
     "exclude": ["dist", "node_modules"]
 }

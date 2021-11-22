@@ -1,4 +1,4 @@
-import { IMarketDataAdapter } from '../constracts/IMarketDataAdapter'
+import { IMarketDataAdapter } from 'hk-trading-contract/src/Services/IMarketDataAdapter'
 import io from 'socket.io-client'
 import querystring from 'querystring'
 import { catchError, fromEvent, map, mergeMap, Observable, of, Subject, switchMap, take, takeUntil, tap } from 'rxjs'

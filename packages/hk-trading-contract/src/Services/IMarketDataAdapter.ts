@@ -1,5 +1,7 @@
 import { Observable } from 'rxjs'
-import { CandleStickDTO, CandleQuoteDto, ResolutionType } from 'hk-trading-contract'
+import { CandleQuoteDto } from '../Models/CandleQuoteDto'
+import { CandleStickDTO } from '../Models/CandleStickDto'
+import { ResolutionType } from '../Models/ResolutionType'
 
 export interface IMarketDataAdapter {
   // get RequestUriString(): string

@@ -11,6 +11,6 @@ hk-trading-contract
 |- serverless.common.yml
 
 
-hk-forex-pricing
+hk-tradng-pricing
 |-
 ```

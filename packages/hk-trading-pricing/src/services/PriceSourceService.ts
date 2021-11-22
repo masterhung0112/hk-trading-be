@@ -1,6 +1,6 @@
 import { Subscription } from 'rxjs'
 import { CurrencyPair } from '../constracts/CurrencyPair'
-import { IMarketDataAdapter } from '../constracts/IMarketDataAdapter'
+import { IMarketDataAdapter } from 'hk-trading-contract/src/Services/IMarketDataAdapter'
 import { IPriceGenerator } from '../constracts/IPriceGenerator'
 import { HardCodedSourceName } from '../contants/PriceSource'
 import { MeanReversionRandomWalkPriceGenerator } from '../PriceGenerator/MeanReversionRandomWalkPriceGenerator'

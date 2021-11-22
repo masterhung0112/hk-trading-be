@@ -6,4 +6,4 @@ lib
 coverage
 package-lock.json
 dist/
-hk-forex-pricing/src/scripts/data/fxcm
+hk-tradng-pricing/src/scripts/data/fxcm

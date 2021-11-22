@@ -1,4 +1,5 @@
 export * from './core'
+export * from './io'
 export * from './utils'
 export * from './iterables'
 export * from './iterators'

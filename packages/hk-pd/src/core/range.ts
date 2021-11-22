@@ -1,4 +1,4 @@
-import { isNumber } from '../utils/isNumber'
+import { isNumber } from 'hk-utils'
 import { ISeries } from './ISeries'
 import { Series } from './Series'
 

@@ -6,6 +6,7 @@
   "license": "MIT",
   "scripts": {
     "build": "tsc",
+    "build:dev": "tsc",
     "lint": "eslint .",
     "proto:gen": "yarn run proto:js:gen && yarn run proto:ts:gen",
     "proto:js:gen": "pbjs --es6 -t static-module -o ./src/protodef.js ./protos/*.proto",

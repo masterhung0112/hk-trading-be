@@ -17,7 +17,9 @@
     "typy": "^3.0.1",
     "easy-table": "^1.2.0",
     "dayjs": "^1.8.12",
-    "numeral": "^2.0.6"
+    "numeral": "^2.0.6",
+    "hk-utils": "^0.0.1",
+    "papaparse": "^5.3.1"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.15.0",
