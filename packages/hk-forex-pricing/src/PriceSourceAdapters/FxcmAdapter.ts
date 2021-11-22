@@ -440,7 +440,7 @@ export class FxcmAdapter implements IMarketDataAdapter {
                 candles.push({
                   resolutionType: '1m',
                   sym: 'FM:EURUSD',
-                  sts: timestamp,
+                  sts: new Date(timestamp),
                   // ets?: number;
                   bo: bidOpen,
                   bh: bidHigh,

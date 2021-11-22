@@ -78,8 +78,8 @@ export default class QuoteTo1mPattern extends Command {
             console.log({
               ...patternRecognitionDto,
               sts: new Date(patternRecognitionDto.sts),
-              firstStickSts: new Date(patternRecognitionDto.firstStickSts),
-              lastStickSts: new Date(patternRecognitionDto.lastStickSts)
+              // firstStickSts: new Date(patternRecognitionDto.firstStickSts),
+              // lastStickSts: new Date(patternRecognitionDto.lastStickSts)
             })
           }
         },
