@@ -1,4 +1,4 @@
-import { CandleMultiStickDto, CandleStickDTO, IForexCandlesReadStore, PatternRecognitionDto } from 'hk-trading-contract'
+import { CandleMultiStickDto, CandleStickDTO, ICandlesReadStore, PatternRecognitionDto } from 'hk-trading-contract'
 import { Subject } from 'rxjs'
 import { CandlePatternDetector } from '../../src/PatternDetectors/CandlePatternDetector'
 import { ICandlestickFinder } from 'hk-technical-indicators'
@@ -7,7 +7,7 @@ describe('CandlePatternDetector', () => {
   const getCandles = jest.fn()
   // const saveCandle = jest.fn()
   // const saveManyCandles = jest.fn()
-  const forexCandlesStore: IForexCandlesReadStore = {
+  const forexCandlesStore: ICandlesReadStore = {
     getCandles,
   }
 

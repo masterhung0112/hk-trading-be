@@ -1,5 +1,5 @@
 import { EmptyIterable } from '../iterables/EmptyIterable'
-import { isFunction } from '../../../hk-utils/src/isFunction'
+import { isFunction, isDate, isNumber, determineType, isArray, isString } from 'hk-utils'
 import { CountIterable } from '../iterables/CountIterable'
 import { MultiIterable } from '../iterables/MultiTerable'
 import { ExtractElementIterable } from '../iterables/ExtractElementIterable'
@@ -15,8 +15,6 @@ import { SelectIterable } from '../iterables/SelectIterable'
 import { PredicateFn } from './PredicateFn'
 import { SelectManyIterable } from '../iterables/SelectManyIterable'
 import moment from 'dayjs'
-import { isDate } from '../../../hk-utils/src/isDate'
-import { isNumber } from '../../../hk-utils/src/isNumber'
 import { toMap } from '../utils/toMap'
 import { WhichIndex } from './WhichIndex'
 import { SeriesWindowIterable } from '../iterables/SeriesWindowIterable'
@@ -52,7 +50,6 @@ import { IFrequencyTableOptions } from './IFrequencyTableOptions'
 import { GapFillFn } from './GapFillFn'
 import { IIndex, IIndexPredicateFn } from './IIndex'
 // import { Index } from './IndexT'
-import { determineType, isArray, isString } from 'hk-utils'
 
 /**
  * One-dimensional ndarray with axis labels (including time series).

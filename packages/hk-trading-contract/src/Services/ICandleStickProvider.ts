@@ -14,6 +14,6 @@ export interface ICandleStickProvider {
         :param pair: pair to get the data for
         :param timeframe: timeframe to get data for
     */
-    getOhlcvBeforeTime(options: GetOhlcvOptions): CandleStickDTO[]
-    getOhlcvAfterTime(options: GetOhlcvOptions): CandleStickDTO[]
+    getOhlcvBeforeTime(options: GetOhlcvOptions): Promise<CandleStickDTO[]>
+    getOhlcvAfterTime(options: GetOhlcvOptions): Promise<CandleStickDTO[]>
 }

@@ -1,15 +1,16 @@
-import { IForexCandlesReadStore, CandleStickDTO, ResolutionType, resolutionTypeToSeconds, secondToResolutionType } from 'hk-trading-contract'
+import { ICandlesReadStore, CandleStickDTO, resolutionTypeToSeconds, secondToResolutionType, GetCandlesOption, GetCandleOption, ICandlesWriteStore, ICandlesDeleteStore, DeleteCandleOption, DeleteCandlesOption } from 'hk-trading-contract'
 import { Pool, RowDataPacket } from 'mysql2/promise'
 import { dateToMysqlFormat } from 'mysql-plus'
 
 const FOREX_CANDLE_TABLE_NAME = 'forex_candlesticks'
 
-export class SqlForexCandleStore implements IForexCandlesReadStore {
+export class SqlForexCandleStore implements ICandlesReadStore, ICandlesWriteStore, ICandlesDeleteStore {
   // private forexCandleTable: MySQLTable
 
   constructor(protected mysqlPool: Pool) {
     // this.forexCandleTable = new MySQLTable('forex_candlesticks', {}, this._poolPlus)
   }
+
 
   init() {
     return this.mysqlPool.query(`
@@ -38,7 +39,13 @@ export class SqlForexCandleStore implements IForexCandlesReadStore {
     )
   }
 
-  async getCandles(options: { resolutionType: ResolutionType; symbol: string; fromTime?: Date; toTime?: Date; num?: number }): Promise<CandleStickDTO[]> {
+  async saveManyCandles(candles: CandleStickDTO[]): Promise<void> {
+    const sql = `INSERT INTO ${FOREX_CANDLE_TABLE_NAME}(sym, resolution, sts, ets, bo, bh, bl, bc, v) VALUES ?`
+    const values = candles.map((candle) => ([candle.sym, resolutionTypeToSeconds(candle.resolutionType), dateToMysqlFormat(candle.sts), dateToMysqlFormat(candle.ets), candle.bo, candle.bh, candle.bl, candle.bc, candle.v]))
+    await this.mysqlPool.query(sql, [values])
+  }
+
+  async getCandles(options: GetCandlesOption): Promise<CandleStickDTO[]> {
     if ((!options.fromTime || !options.toTime) && !options.num) {
       throw new Error('fromTime or toTime must be available when options.num is not available')
     }
@@ -62,8 +69,8 @@ export class SqlForexCandleStore implements IForexCandlesReadStore {
 
     const statement = `
     SELECT (sym, resolution, sts, ets, bo, bh, bl, bc, v) FROM ${FOREX_CANDLE_TABLE_NAME}
-    WHERE symbol = "${options.symbol}" AND resolution = ${interval} ${fromTime ? `AND sts >= "${fromTime}"` : ''} ${toTime ? `AND sts <= "${toTime}"` : ''}
-    ORDER BY symbol ASC, sts ASC
+    WHERE sym = "${options.symbolId}" AND resolution = ${interval} ${fromTime ? `AND sts >= "${fromTime}"` : ''} ${toTime ? `AND sts <= "${toTime}"` : ''}
+    ORDER BY sym ASC, sts ASC
     ${options.num ? `LIMIT ${options.num}` : ''}
     `
     // console.log('statement', statement)
@@ -87,19 +94,14 @@ export class SqlForexCandleStore implements IForexCandlesReadStore {
     } as CandleStickDTO))
   }
 
-  async getCandle(options: {
-    resolutionType: ResolutionType
-    symbol: string
-    fromTime?: Date
-    toTime?: Date
-  }): Promise<CandleStickDTO | null> {
+  async getCandle(options: GetCandleOption): Promise<CandleStickDTO | null> {
     const fromTime = dateToMysqlFormat(options.fromTime)
     const toTime = dateToMysqlFormat(options.toTime)
     const interval = resolutionTypeToSeconds(options.resolutionType)
     const statement = `
   SELECT (sym, resolution, sts, ets, bo, bh, bl, bc, v)
   FROM ${FOREX_CANDLE_TABLE_NAME}
-      WHERE symbol = "${options.symbol}" AND resolution = ${interval} ${fromTime ? `AND sts >= "${fromTime}"` : ''} ${toTime ? `AND sts <= "${toTime}"` : ''}
+      WHERE sym = "${options.symbolId}" AND resolution = ${interval} ${fromTime ? `AND sts >= "${fromTime}"` : ''} ${toTime ? `AND sts <= "${toTime}"` : ''}
       ORDER BY sts DESC
       LIMIT 1;
   `
@@ -111,7 +113,7 @@ export class SqlForexCandleStore implements IForexCandlesReadStore {
       return null
     }
     return {
-      sym: options.symbol,
+      sym: options.symbolId,
       resolutionType: options.resolutionType,
       sts: result[0].sts,
       bo: result[0].bo,
@@ -119,5 +121,17 @@ export class SqlForexCandleStore implements IForexCandlesReadStore {
       bl: result[0].bl,
       bc: result[0].bc
     }
+  }
+
+  async deleteCandle(option: DeleteCandleOption): Promise<void> {
+    await this.mysqlPool.execute(
+      `DELETE FROM ${FOREX_CANDLE_TABLE_NAME}
+      WHERE sym = ? AND resolution = ? AND sts = ?`, [option.symbolId, resolutionTypeToSeconds(option.resolutionType), dateToMysqlFormat(option.sts)]
+    )
+  }
+
+  async deleteCandles(option: DeleteCandlesOption): Promise<void> {
+    const sql = `DELETE FROM ${FOREX_CANDLE_TABLE_NAME} WHERE sym = "${option.symbolId}" AND resolution = ${resolutionTypeToSeconds(option.resolutionType)} ${option.fromTime ? `AND sts >= "${dateToMysqlFormat(option.fromTime)}"` : ''} ${option.toTime ? `AND sts <= "${dateToMysqlFormat(option.toTime)}"` : ''}`
+    await this.mysqlPool.query(sql)
   }
 }

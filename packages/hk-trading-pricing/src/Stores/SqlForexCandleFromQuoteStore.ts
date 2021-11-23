@@ -1,7 +1,7 @@
-import { IForexCandlesReadStore, CandleStickDTO, ResolutionType, secondToResolutionType, resolutionTypeToSeconds } from 'hk-trading-contract'
+import { ICandlesReadStore, CandleStickDTO, ResolutionType, secondToResolutionType, resolutionTypeToSeconds, GetCandlesOption, GetCandleOption } from 'hk-trading-contract'
 import { dateToMysqlFormat, MySQLTable, PoolPlus } from 'mysql-plus'
 
-export class SqlForexCandleFromQuoteStore implements IForexCandlesReadStore {
+export class SqlForexCandleFromQuoteStore implements ICandlesReadStore {
   private forexCandleTable: MySQLTable
 
   constructor(private _poolPlus: PoolPlus) {
@@ -54,7 +54,7 @@ export class SqlForexCandleFromQuoteStore implements IForexCandlesReadStore {
     }
   }
 
-  async getCandles(options: { resolutionType: ResolutionType; symbol: string; fromTime?: Date; toTime?: Date; num?: number }): Promise<CandleStickDTO[]> {
+  async getCandles(options: GetCandlesOption): Promise<CandleStickDTO[]> {
 
     if ((!options.fromTime || !options.toTime) && !options.num) {
       throw new Error('fromTime or toTime must be available when options.num is not available')
@@ -121,12 +121,7 @@ export class SqlForexCandleFromQuoteStore implements IForexCandlesReadStore {
     } as CandleStickDTO))
   }
 
-  async getCandle(options: {
-    resolutionType: ResolutionType
-    symbol: string
-    fromTime?: Date
-    toTime?: Date
-  }): Promise<CandleStickDTO> {
+  async getCandle(options: GetCandleOption): Promise<CandleStickDTO> {
     const fromTime = dateToMysqlFormat(options.fromTime)
     const toTime = dateToMysqlFormat(options.toTime)
     const interval = this.resolutionTypeToInverval(options.resolutionType)

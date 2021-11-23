@@ -1,6 +1,7 @@
 import { IDataFrame } from '../core/IDataFrame'
-import { ICsvOptions } from './ICsvOptions'
+import { ICsvOption } from './ICsvOption'
 
 export interface ICsvFileReader {
-    parseCSV(config?: ICsvOptions): Promise<IDataFrame<number, any>>
+    parseCSV<T = any>(config?: ICsvOption<T>): Promise<IDataFrame<number, T>>
+    parseCSVStep<T = any>(config?: ICsvOption<T>): Promise<void>
 }

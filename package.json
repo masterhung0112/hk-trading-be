@@ -7,9 +7,12 @@
     "bootstrap": "lerna bootstrap",
     "build": "lerna run build",
     "build:dev": "lerna run build:dev",
+    "build:dev:hk-pd": "lerna run build:dev --scope hk-pd --stream",
     "build:dev:hk-trading-contract": "lerna run build:dev --scope hk-trading-contract --stream",
     "build:dev:hk-trading-pricing": "lerna run build:dev --scope hk-trading-pricing --stream",
-    "build:dev:hk-trading-chart": "lerna run build:dev --scope hk-trading-chart --stream"
+    "build:dev:hk-trading-chart": "lerna run build:dev --scope hk-trading-chart --stream",
+    "build:dev:mysql-plus": "lerna run build:dev --scope mysql-plus --stream"
+
   },
   "dependencies": {
     "lerna": "^3.22.1"

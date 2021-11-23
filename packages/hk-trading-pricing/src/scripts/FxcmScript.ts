@@ -1,14 +1,13 @@
 import path from 'path'
-import fs from 'fs'
 import { RxMySQL } from 'hk-cloud'
 import { CandleQuoteDto } from 'hk-trading-contract'
+import { CsvFileReader } from 'hk-pd'
 
-export const tryReadCsv = () => {
+export const tryReadCsv = async () => {
     const csvPath = path.resolve(__dirname, './data/fxcm/2021_1.csv')
-
+    const csvFileReader = new CsvFileReader(csvPath)
     console.log(
-        df.fromCSV(fs.readFileSync(csvPath, 'utf16le'))
-        // .parseCSV()
+        (await csvFileReader.parseCSV({fileEncoding: 'utf16le'}))
         .parseDates('DateTime', 'MM/DD/YYYY HH:mm:ss.SSS')
         .take(1)
         .select((row => {

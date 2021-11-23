@@ -4,6 +4,6 @@ import { SymbolInfo } from '../Models/SymbolInfo'
 
 export interface ICandleProviderDashboard {
     getSymbols(): SymbolInfo[]
-    getCandlesAfter(options: GetOhlcvOptions): CandleStickDTO[]
-    getCandlesBefore(options: GetOhlcvOptions): CandleStickDTO[]
+    getCandlesAfter(options: GetOhlcvOptions): Promise<CandleStickDTO[]>
+    getCandlesBefore(options: GetOhlcvOptions): Promise<CandleStickDTO[]>
 }

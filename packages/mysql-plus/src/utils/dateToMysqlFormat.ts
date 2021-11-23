@@ -6,10 +6,10 @@ function twoDigits(d) {
 
 
 export function dateToMysqlFormat(d: Date) {
-  if (!d) return ''
+  if (!d) return null
   
-  let dStr = d.getUTCFullYear() + '-' + twoDigits(1 + d.getUTCMonth()) + '-' + twoDigits(d.getUTCDate()) + ' ' + twoDigits(d.getUTCHours()) + ':' + twoDigits(d.getUTCMinutes()) + ':' + twoDigits(d.getUTCSeconds())
-  const utcMilli = d.getUTCMilliseconds()
+  let dStr = d.getFullYear() + '-' + twoDigits(1 + d.getMonth()) + '-' + twoDigits(d.getDate()) + ' ' + twoDigits(d.getHours()) + ':' + twoDigits(d.getMinutes()) + ':' + twoDigits(d.getSeconds())
+  const utcMilli = d.getMilliseconds()
   if (utcMilli > 0) {
     dStr += `.${utcMilli}`
   }

@@ -1,7 +1,7 @@
-import { CandleQuoteDto, IForexQuoteReadStore, IForexQuoteWriteStore } from 'hk-trading-contract'
+import { CandleQuoteDto, GetCandleTicksOption, ICandleQuoteReadStore, ICandleQuoteWriteStore } from 'hk-trading-contract'
 import { dateToMysqlFormat, MySQLTable, PoolPlus } from 'mysql-plus'
 
-export class SqlForexQuoteStore implements IForexQuoteReadStore, IForexQuoteWriteStore {
+export class SqlForexQuoteStore implements ICandleQuoteReadStore, ICandleQuoteWriteStore {
   private forexQuoteTable: MySQLTable
   constructor(private _poolPlus: PoolPlus) {
     this.forexQuoteTable = new MySQLTable('forex_quote', {}, this._poolPlus)
@@ -35,7 +35,7 @@ export class SqlForexQuoteStore implements IForexQuoteReadStore, IForexQuoteWrit
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  GetTicks(options: { symbol: string; fromTime: number; toTime?: number; limit?: number }): Promise<CandleQuoteDto[]> {
+  GetTicks(options: GetCandleTicksOption): Promise<CandleQuoteDto[]> {
     throw new Error('Method not implemented.')
   }
 }

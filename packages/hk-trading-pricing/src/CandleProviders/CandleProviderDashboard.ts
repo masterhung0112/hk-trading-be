@@ -42,7 +42,7 @@ export class CandleProviderDashboard implements ICandleProviderDashboard {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    getCandlesAfter(options: GetOhlcvOptions): CandleStickDTO[] {
+    async getCandlesAfter(options: GetOhlcvOptions): Promise<CandleStickDTO[]> {
         const e = isGetOhlcvOptionsValid(options)
         if (e != null) {
             throw e
@@ -61,7 +61,7 @@ export class CandleProviderDashboard implements ICandleProviderDashboard {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    getCandlesBefore(options: GetOhlcvOptions): CandleStickDTO[] {
+    async getCandlesBefore(options: GetOhlcvOptions): Promise<CandleStickDTO[]> {
         const e = isGetOhlcvOptionsValid(options)
         if (e != null) {
             throw e
@@ -78,5 +78,4 @@ export class CandleProviderDashboard implements ICandleProviderDashboard {
 
         return exchangeDataProvider.getOhlcvBeforeTime(options)
     }
-
 }

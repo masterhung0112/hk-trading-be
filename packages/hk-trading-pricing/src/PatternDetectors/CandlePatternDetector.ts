@@ -1,11 +1,11 @@
 import { from, mergeMap, Observable, map,  of, combineLatestWith } from 'rxjs'
-import { CandleStickDTO, IForexCandlesReadStore, PatternRecognitionDto } from 'hk-trading-contract'
+import { CandleStickDTO, ICandlesReadStore, PatternRecognitionDto } from 'hk-trading-contract'
 import { ICandlestickFinder } from 'hk-technical-indicators'
 
 export class CandlePatternDetector {
   constructor(
     protected supportedCandlePatternFinders: ICandlestickFinder[],
-    protected forexCandlesStore: IForexCandlesReadStore
+    protected forexCandlesStore: ICandlesReadStore
   ) {
 
   }

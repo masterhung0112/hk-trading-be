@@ -35,7 +35,7 @@ describe('SqlForexCandleStore', () => {
 
       const candles = await store.getCandles({
         resolutionType: '1m',
-        symbol: 'FM:EURUSD',
+        symbolId: 'FM:EURUSD',
         fromTime: fromTime,
         toTime: nowTime,
         num: num,

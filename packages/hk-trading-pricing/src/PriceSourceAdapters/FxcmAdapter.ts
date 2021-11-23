@@ -50,8 +50,9 @@ function resolutionTypeToFxcmPeriod(resolution: ResolutionType): string {
       return 'D1'
     case '1w':
       return 'W1'
+    default:
+      throw new Error(`unsupported period for FXCM ${resolution}`)
   }
-  throw new Error(`unsupported period for FXCM ${resolution}`)
 }
 
 //Reference: https://apiwiki.fxcorporate.com/api/RestAPI/Socket%20REST%20API%20Specs.pdf

@@ -58,4 +58,89 @@ describe('DataFrame', () => {
 		expect(df.getColumnNames()).toEqual(['A', 'B'])
 		expect(modified.getColumnNames()).toEqual(['X', 'Y'])
     })
+
+    it('can generate series - function version', () => {
+
+		const df = new DataFrame({
+                columnNames: ['Column1', 'Column2'], 
+                rows: [
+					[1, 10],
+					[2, 20],
+					[3, 30],
+				],
+				index: [10, 11, 12]
+            })
+
+		const modified = df.generateSeries(row => ({
+                NewColumn: row.Column1 + row.Column2,
+			}))
+
+		expect(df.getColumnNames()).toEqual(['Column1', 'Column2'])
+		expect(modified.getColumnNames()).toEqual(['Column1', 'Column2', 'NewColumn'])
+		expect(modified.getSeries('NewColumn').toArray()).toEqual([11, 22, 33])
+	})
+
+	it('can generate series - object version', () => {
+
+		const df = new DataFrame({
+                columnNames: ['Column1', 'Column2'], 
+                rows: [
+                    [1, 10],
+                    [2, 20],
+                    [3, 30],
+                ],
+                index:[10, 11, 12]
+            })
+
+		const modified = df.generateSeries({
+				NewColumn: row => row.Column1 + row.Column2
+			})
+			
+		expect(df.getColumnNames()).toEqual(['Column1', 'Column2'])
+		expect(modified.getColumnNames()).toEqual(['Column1', 'Column2', 'NewColumn'])
+		expect(modified.getSeries('NewColumn').toArray()).toEqual([11, 22, 33])
+    })    
+    
+	it('can generate series - function with static values', () => {
+
+		const df = new DataFrame({
+                columnNames: ['Column1', 'Column2'], 
+                rows: [
+					[1, 10],
+					[2, 20],
+					[3, 30],
+				],
+				index: [10, 11, 12]
+            })
+
+		const modified = df.generateSeries(row => ({
+                NewColumn: 22,
+			}))
+
+        expect(df.getColumnNames()).toEqual(['Column1', 'Column2'])
+		expect(modified.getColumnNames()).toEqual(['Column1', 'Column2', 'NewColumn'])
+		expect(modified.getSeries('NewColumn').toArray()).toEqual([22, 22, 22])
+	})
+    
+
+	it('can generate series - object with static values', () => {
+
+		const df = new DataFrame({
+                columnNames: ['Column1', 'Column2'], 
+                rows: [
+                    [1, 10],
+                    [2, 20],
+                    [3, 30],
+                ],
+                index:[10, 11, 12]
+            })
+
+		const modified = df.generateSeries({
+				NewColumn: () => 5,
+			}) 
+			
+		expect(df.getColumnNames()).toEqual(['Column1', 'Column2'])
+		expect(modified.getColumnNames()).toEqual(['Column1', 'Column2', 'NewColumn'])
+		expect(modified.getSeries('NewColumn').toArray()).toEqual([5, 5, 5])
+	})    
 })
