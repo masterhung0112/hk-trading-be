@@ -24,6 +24,7 @@
   "dependencies": {
     "jest": "^27.0.6",
     "hk-pd": "^0.0.1",
+    "hk-utils": "^0.0.1",
     "hk-trading-contract": "^0.0.1",
     "uplot": "^1.6.16"
   },

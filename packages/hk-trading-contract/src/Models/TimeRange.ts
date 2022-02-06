@@ -9,3 +9,8 @@ export interface TimeRange {
 }
 
 export type TimeRangeCreator = (from: number, to: number, exp?: boolean) => TimeRange
+
+export interface TimeRangeChanged {
+    timeRange: TimeRange
+    indexOhlvc?: [number,  number]
+}

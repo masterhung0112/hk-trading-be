@@ -1,4 +1,4 @@
-import { ResolutionType, resolutionTypeToSeconds } from 'hk-trading-contract'
+import { ResolutionType } from 'hk-trading-contract'
 import { CandleProvider } from './CandleProvider'
 
 export class DataPulseProvider {

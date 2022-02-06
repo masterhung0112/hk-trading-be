@@ -1,4 +1,5 @@
 export * from './assign'
+export * from './callCallback'
 export * from './determineType'
 export * from './copy'
 export * from './fastIsObj'

@@ -1,34 +1,60 @@
-import { IDataFrame, ISeries } from 'hk-pd'
 import { CandleStickDTO } from '../Models/CandleStickDto'
 import { ResolutionType } from '../Models/ResolutionType'
 import { SymbolInfo } from '../Models/SymbolInfo'
+import { TimeRangeChanged } from '../Models/TimeRange'
+import { ChartType, DefaultDataPoint, ITradingSubplotDataset, IChartSubplotData, ITradingSubplot } from '../Models/TradingChartData'
+import { DeepPartial } from '../Utils/DeepPartial'
 
-export enum ITradingChartHookKeys {
-    init = 'init',
-    destroy = 'destroy',
-    draw = 'draw',
-    setSize = 'setSize',
-    setData = 'setData',
-    drawClear = 'drawClear',
-    ready = 'ready',
-    setSelect = 'setSelect',
-    setSeries = 'setSeries',
-    setLegend = 'setLegend',
-    setCursor = 'setCursor',
-    syncRect = 'syncRect',
-    rangeChange = 'rangeChange',
+export type ITradingChartHookCallback = (chart: ITradingChart, args: any[]) => void
+export type RangeChangedCallback = (chart: ITradingChart, args: [TimeRangeChanged]) => void
+
+export interface ITradingChartHook {
+    init: {
+        callbackType: () => void
+    }
+    destroy: {
+        callbackType: () => void
+    }
+    draw: {
+        callbackType: () => void
+    }
+    setSize: {
+        callbackType: () => void
+    }
+    setData: {
+        callbackType: () => void
+    }
+    drawClear: {
+        callbackType: () => void
+    }
+    ready: {
+        callbackType: () => void
+    }
+    setSelect: {
+        callbackType: () => void
+    }
+    setSeries: {
+        callbackType: () => void
+    }
+    setLegend: {
+        callbackType: () => void
+    }
+    setCursor: {
+        callbackType: () => void
+    }
+    syncRect: {
+        callbackType: () => void
+    }
+    rangeChanged: {
+        callbackType: RangeChangedCallback
+    }
 }
 
-export interface ITradingChartOverlayData {
-    type: string
-    name: string
-    data: ISeries<any, any>
-    settings: Record<string, string>
-}
+export type ITradingChartHookType = keyof ITradingChartHook
 
 export interface TradingChartPeriodParams {
     from?: string
-    to?: string 
+    to?: string
     firstDataRequest?: boolean
 }
 
@@ -57,18 +83,12 @@ export interface TradingChartConfig {
     minimumLen?: number
 }
 
-export type ITradingChartHookCb = (a: {
-    ctx: CanvasRenderingContext2D,
-    setData(data: any[])
-}, args1?: any | null, args2?: any | null) => void
+export type ITradingChartHookCallbacksType = DeepPartial<{ [key in ITradingChartHookType]: ITradingChartHook[key]['callbackType'] }>
 
-export interface IChartItem {
-    name: string // 'RSI, 20', 'EMA, 43'
-    type: string // 'EMA', 'RSI'
-    data: IDataFrame
-    settings: Record<string, string>
+export interface ITradingChartItem<TType extends ChartType = ChartType, TData = DefaultDataPoint<TType>> {
+    readonly data: ITradingSubplotDataset<TType, TData>[]
     loading?: boolean | null
-    hooks: Record<string, ITradingChartHookCb>
+    hooks: ITradingChartHookCallbacksType
 }
 
 export interface GetBarsReply {
@@ -76,7 +96,7 @@ export interface GetBarsReply {
     isLast?: boolean
 }
 
-export interface ITradingChartDataProvider {
+export interface ITradingChartDataProvider<TType extends ChartType = ChartType, TData = DefaultDataPoint<TType>> {
     // This is the first method of the datafeed that is called
     onReady(): Promise<TradingChartConfig>
 
@@ -102,14 +122,25 @@ export interface ITradingChartDataProvider {
     resolveSymbol(
         symbol: string
     ): Promise<SymbolInfo>
+
+    addSubplot(nrows: number, ncols: number, index: number, chartSubplotData: IChartSubplotData<TType, TData>): ITradingSubplot<TType, TData>
+    subplot(index: number): ITradingSubplot<TType, TData>
 }
 
-export interface ITradingChart {
-    add(side: 'onchart' | 'offchart', chartItem: IChartItem): string
+export interface ITradingChart<TType extends ChartType = ChartType, TData = DefaultDataPoint<TType>> {
+    // add(side: 'onchart' | 'offchart', chartItem: ITradingSubplotDataset<TType, TData>): string
+    // readonly data: ITradingSubplotDataset<TType, TData>
 
     // Show/hide all overlays
-    showOverlay(overlayId: string)
-    hideOverlay(overlayId: string)
+    // showOverlay(overlayId: string)
+    // hideOverlay(overlayId: string)
+
+    update(mode?: string)
+}
+
+export interface ITradingChartPluginService {
+    notify<TType extends ChartType, TData>(chart: ITradingChart<TType, TData>, hook: ITradingChartHookType, ...args)
+    allPlugins(): ITradingChartItem
 }
 
 export interface IStepChart {

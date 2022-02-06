@@ -1,15 +1,17 @@
-import { createTimeRange, fmtUSD, ITradingChart, ITradingChartDataProvider, ResolutionType, TradingChartConfig, detectIntervalMsFromCandles, IChartItem } from 'hk-trading-contract'
+import { createTimeRange, fmtUSD, ITradingChart, ITradingChartDataProvider, ResolutionType, TradingChartConfig, detectIntervalMsFromCandles, IChartItem, ITradingChartPluginService, ICandleDataPoint, ITradingSubplotDataset, IChartTypeRegistry, IChartSubplotMeta, ChartType, DefaultDataPoint, ITradingSubplot } from 'hk-trading-contract'
 import uPlot from 'uplot'
 import { candlestickPlugin } from './ChartPlugins/candlestickPlugin'
 import { columnHighlightPlugin } from './ChartPlugins/columnHighlightPlugin'
 import { legendAsTooltipPlugin } from './ChartPlugins/legendAsTooltipPlugin'
 import { wheelZoomPlugin } from './ChartPlugins/wheelZoomPlugin'
 import { TRADINGVIEW_DEFAULT_LEN, TRADINGVIEW_MINIMUM_LEN } from './TradingViewConstants'
+import { IChartSubplotData } from 'hk-trading-contract'
 
 export interface TradingViewWidgetConfig {
     // symbol: string
     // resolution: ResolutionType
     containerId: string
+    data: IChartSubplotData
     datafeed: ITradingChartDataProvider
     fullscreen?: boolean | null
     autosize?: boolean | null
@@ -31,29 +33,74 @@ export interface PlotInfo {
 }
 
 /**
+ * View Widget support multiple sub-chart
+ * Each sub-chart can have mainchart, onchart dataset, offchart dataset
+ * 
  * Initial flow:
  *  - Caldulate the default time range
  *    + From the data
  */
-export class TradingViewWidget implements ITradingChart {
+export class TradingViewWidget<TType extends ChartType = ChartType, TData = DefaultDataPoint<TType>> implements ITradingChart<TType, TData> {
     mainChart: PlotInfo
     onChartMap = new Map<string, PlotInfo>()
     offChartMap = new Map<string, PlotInfo>()
     datafeedConfig?: TradingChartConfig | null
     atomicCount = 0
 
+    protected subplotMap = new Map<number, ITradingSubplot<TType, TData>>()
+
     currentSymbolInfo?: string
     currentResolution?: ResolutionType
     currentTimeRange = createTimeRange(-Infinity, Infinity)
 
     ohlcvData: uPlot.AlignedData = [] as any as uPlot.AlignedData //IDataFrame<number, CandleStickDTO> = new DataFrame<number, CandleStickDTO>()
-
+    // chartData: ITradingSubplotDataset<keyof IChartTypeRegistry, (ICandleDataPoint | [number, number])[]>
+    
     intervalMs = 0
     interval = 0
 
-    constructor(protected config: TradingViewWidgetConfig) {
+    // get data(): ITradingSubplotDataset<keyof IChartTypeRegistry, (ICandleDataPoint | [number, number])[]> {
+    //     return this.chartData
+    // }
+
+
+    constructor(protected config: TradingViewWidgetConfig, protected pluginService: ITradingChartPluginService) {
         validateTradingViewWidgetConfig(config)
         this.init()
+    }
+
+    update(mode?: string) {
+        // buildOrUpdateScales
+    }
+
+    getSubplot(subplotIndex: number) {
+        const sublot = this.subplotMap.get(subplotIndex)
+        if (!sublot) {
+            throw new Error(`No subplot for index ${subplotIndex}`)
+        }
+
+        return sublot
+        
+    }
+
+    protected updateSubplot(index: number, mode?: string) {
+        const subplot = this.getSubplot(index)
+        subplot.update(mode)
+    }
+
+    protected updateSubplots(mode?: string) {
+        // for(const subplotMeta of this.subplotMetaMap.entries()) {
+        //     subplotMeta.controller.configure()
+        // }
+
+        for(const subplotMetaIndex of this.subplotMap.keys()) {
+            this.updateSubplot(subplotMetaIndex, mode)
+        }
+    }
+
+    render() {
+        // notify 'beforeRender'
+        this.draw()
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -167,9 +214,63 @@ export class TradingViewWidget implements ITradingChart {
                 throw new Error(`no container DOM for offset ${offchartEntry[0]}`)
             }
 
+            const offchartOpts: uPlot.Options = {
+                width: 1920,
+                height: 300,
+                mode: 1,
+                tzDate,
+                plugins: [
+                ],
+                scales: {
+                    x: {
+                        distr: 2,
+                    },
+                    vol: {
+                        range: [0, 2000],
+                    },
+                },
+                series: [
+                    {
+                        label: 'Date',
+                        value: (u, ts) => fmtDate(tzDate(ts)),
+                    },
+                    {
+                        label: 'Open',
+                        value: (u, v) => fmtUSD(v, 2),
+                    },
+                    {
+                        label: 'High',
+                        value: (u, v) => fmtUSD(v, 2),
+                    },
+                    {
+                        label: 'Low',
+                        value: (u, v) => fmtUSD(v, 2),
+                    },
+                    {
+                        label: 'Close',
+                        value: (u, v) => fmtUSD(v, 2),
+                    },
+                    {
+                        label: 'Volume',
+                        scale: 'vol',
+                    },
+                ],
+                axes: [
+                    {},
+                    {
+                        values: (u, vals) => vals.map(v => fmtUSD(v, 0)),
+                    },
+                    {
+                        side: 1,
+                        scale: 'vol',
+                        grid: { show: false },
+                    }
+                ]
+            }
+
             this.offChartMap.set(offchartEntry[0], {
                 ...offchartEntry[1],
-                uplot: new uPlot(mainchartOpts, undefined, offchartEntry[1].containerDomNode)
+                uplot: new uPlot(offchartOpts, undefined, offchartEntry[1].containerDomNode)
             })
         }
     }
@@ -259,7 +360,7 @@ export class TradingViewWidget implements ITradingChart {
         }
 
         // Performance the first draw
-        this.draw()
+        this.update()
     }
 
     draw() {
@@ -268,6 +369,14 @@ export class TradingViewWidget implements ITradingChart {
         // Draw the onchart
 
         // Draw the offchart
+    }
+
+    drawDatasets() {
+        // Clear the canvas of each grid
+
+        // Sort overlay by z-index
+
+        // Call draw of dataset
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars

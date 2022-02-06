@@ -10,14 +10,14 @@ export class ForexiteCandleProvider implements ICandleStickProvider {
 
     getSymbols(): SymbolInfo[] {
         return [{
-            exchange: 'forexlite',
-            id: 'forexlite:xauusd',
+            exchange: 'forexite',
+            id: 'Forexite:XAUUSD',
             supportedResolutions: ['1m'],
             name: 'XAU/USD',
             hasIntraday: true,
             volumePrecision: 2,
             hasNoVolume: false,
-            description: 'XAUUSD from Forexlite',
+            description: 'XAUUSD from Forexite',
             pricescale: 3,
             timezone: 'UTC',
             session: '',
