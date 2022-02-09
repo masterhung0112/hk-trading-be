@@ -35,6 +35,33 @@ Axe can use a defined scale type.
 1. updateCursor
 1. Fire `ready` event
 
+# Layout Structure
+
+Container
+- center
+    - chart toolbar
+    - chart container
+        - chart border
+            - chart table
+                - Row
+                    - Chart pane
+                    - Axis Container
+                - Divider
+                - Row
+                    - Chart pane
+                    - Axis Container
+                - Row
+                    - Time Axis
+                    - Axis Container
+        - spinner
+- top
+    - toolbar
+- topleft
+- left
+    - drawing bar
+- right
+- bottom
+
 # Draw Flow
 - Transform the raw data to the render data
 
@@ -98,10 +125,15 @@ When the chart data or options are changed, the chart will animate to the new da
 
 ## Add or Removing data
 ```js
+// Update main grid
 chart.data.datasets[0].data.push([1, 2, 3])
 chart.update()
 
 chart.data.datasets[0].data.pop()
+chart.update()
+
+// Update offchart grid
+chart.data.offchart[0].data.push([3, 4, 5])
 chart.update()
 ```
 ## Updating Options
@@ -117,10 +149,13 @@ chart.update()
 - [Chart Grid API](#chart-grid-api)
 - [Controller for Dataset](#controller-for-dataset)
 - [Plugin](#plugin)
-- [Scale](#scale)
+- [Scale](docs/scales.md)
 - [Symbol Store]()
 - [Realtime Provider]()
 - [History Provider]()
+- [Axes](#axes)
+- [Dragging](#dragging)
+- [Zooming](#zooming)
 
 ChartController hold a chart UI so it can draw multiple frames.
 Chart UI is a window that can draw multiple chart frame.
@@ -190,6 +225,7 @@ or you can pass explicit dimensions.
     + Drawable area
     + Sidebar
 - Call `draw` of controller to draw the elements.
+- Accept multiple datasets
 
 ## Controller for dataset
 Each dataset need the following basics:
@@ -199,8 +235,13 @@ Each dataset need the following basics:
 - 
 
 ## Plugins
+Able to load plugin
 
 ## Axes
+- [Set Axe Title](#set-axe-title)
+- [Set Axe Tick Label](#set-axe-tick-label)
+
+### Overview
 
 Axes are used to determine how data maps to a pixel value on the chart.
 The default `scaleId` for caterian charts are 'x' and 'y', for fadial charts is 'r'.
@@ -210,6 +251,7 @@ In a cartesian charts, there is 1 or more X-axis and 1 or more Y-axis to map poi
 In a radial charts, such as a radar chart, or a polar area chart, there is a single axis that map points into angular and radial directions.
 
 - [ ] Multiple X & Y axes are supported
+- [ ] Multiple scales and grids
 - [ ] A built-in label auto-skip feature detects would-be overlapping ticks and labels and removes every nth label to keep things displaying normally
 - [ ] Scale titles are supported
 - [ ] New scale types can be exteded without writing an entirely new chart type
@@ -270,16 +312,25 @@ getPixelForValue: (value: number, index?: number) => number
 getValueForPixel: (pixel) => number
 ```
 
-## Data Format
+## Dataset Format
+Dataset can contains data for constructing the drawing, the options for the plugin...
 
-`datasets.data` can be one of:
+`data` field in `dataset` contains raw data for constructing the drawing.
+
+`dataset.scales` 
+
+`dataset.series`
+
+`dataset.axes`
+
+`dataset.data` can be one of:
 - **array of number**
 - **array of object with `x` and `y` as properties**
 - **array of object using custom properties**.
 
 
 ```ts
-const data = {
+const dataset = {
     type: 'bar',
     data: {
         datasets: [{
@@ -294,8 +345,11 @@ const data = {
     }
 }
 
-const dataList = [{x: 'Jan', net: 100, cogs: 50, gm: 50}, {x: 'Feb', net: 120, cogs: 55, gm: 55}]
-const data1 = {
+const dataList = [
+    {x: 'Jan', net: 100, cogs: 50, gm: 50}, 
+    {x: 'Feb', net: 120, cogs: 55, gm: 55}
+]
+const dataset1 = {
     type: 'bar':
     data: {
         datasets: [{
@@ -313,6 +367,14 @@ const data1 = {
         }]
     }
 }
+
+// x axis: product, y axis: sales, series: location
+const productData = [
+    { location: "Naperville", product: "Hammer", sales: 10 },
+    { location: "Naperville", product: "Ladder", sales: 4 },
+    { location: "Darien", product: "Hammer", sales: 12 },
+    { location: "Darien", product: "Ladder", sales: 23 },
+]
 ```
 
 # Line Chart
@@ -321,7 +383,14 @@ const data1 = {
 const data = {
     datasets: [{
         data: [65, 59, 80],
-
     }]
 }
 ```
+
+# Convert the raw data to the drawing model data
+
+# Dragging
+Drag and drop SVG, HTML or Canvas using mouse or touch input
+
+# Zooming
+Pan and zoom SVG, HTML or Canvas using mouse or touch input
