@@ -1,4 +1,4 @@
-import { isNumber } from 'hk-utils'
+import { isNumber } from '@hungknow/utils'
 import { ISeries } from './ISeries'
 import { Series } from './Series'
 

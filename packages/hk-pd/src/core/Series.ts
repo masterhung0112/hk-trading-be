@@ -1,5 +1,5 @@
 import { EmptyIterable } from '../iterables/EmptyIterable'
-import { isFunction, isDate, isNumber, determineType, isArray, isString } from 'hk-utils'
+import { isFunction, isDate, isNumber, determineType, isArray, isString } from '@hungknow/utils'
 import { CountIterable } from '../iterables/CountIterable'
 import { MultiIterable } from '../iterables/MultiTerable'
 import { ExtractElementIterable } from '../iterables/ExtractElementIterable'

@@ -2,7 +2,7 @@ import { IDataFrame } from '../core'
 import { ICsvFileReader } from './ICsvFileReader'
 import { ICsvOption } from './ICsvOption'
 import { fromCSV } from './fromCSV'
-import { isObject } from 'hk-utils'
+import { isObject } from '@hungknow/utils'
 import { readFileDataByFs } from './readFileDataByFs'
 
 export class CsvFileReader implements ICsvFileReader {

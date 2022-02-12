@@ -1,4 +1,4 @@
-import { makeDistinct, isString, isObject, isNumber, isFunction, isArray, determineType } from 'hk-utils'
+import { makeDistinct, isString, isObject, isNumber, isFunction, isArray, determineType } from '@hungknow/utils'
 import { ColumnNamesIterable } from '../iterables/ColumnNamesIterable'
 import { ConcatIterable } from '../iterables/ConcatIterable'
 import { CountIterable } from '../iterables/CountIterable'

@@ -1,4 +1,4 @@
-import { isArray, isFunction, isObject, isString } from 'hk-utils'
+import { isArray, isFunction, isObject, isString } from '@hungknow/utils'
 import { ICsvOption } from './ICsvOption'
 import { DataFrame } from '../core/DataFrame'
 
