@@ -7,6 +7,11 @@
 [] Customizable colors and fonts
 [] Scripts (make your own indicators)
 
+# Implement steps
+- [ ] General API for pane, Grid
+- [ ] The responsive containers for chart, pane, grid
+- [ ] Grid load data and draw
+
 # uplot
 
 1. Place div with `uplot` class as root
@@ -40,20 +45,23 @@ Axe can use a defined scale type.
 Container
 - center
     - chart toolbar
-    - chart container
-        - chart border
-            - chart table
-                - Row
-                    - Chart pane
+    - Chart container
+        - Chart container border
+            - Chart Window Pane
+                - Chart Pane
+                    - Chart Main Area
                     - Axis Container
                 - Divider
-                - Row
-                    - Chart pane
+                - Chart Pane
+                    - Chart Main area
                     - Axis Container
-                - Row
+                - Chart Pane
                     - Time Axis
                     - Axis Container
+                - Chart control bar
+            - Chart Window Pane...
         - spinner
+        
 - top
     - toolbar
 - topleft
@@ -145,8 +153,8 @@ chart.update()
 # API
 - [Chart Controller](#chart-controller)
 - [Chart UI API](#chart-ui-api)
-- [Chart Frame API](#chart-frame-api)
-- [Chart Grid API](#chart-grid-api)
+- [Chart Window Pane](docs/chart-window-pane.md)
+- [Chart Pane](docs/chart-pane.md)
 - [Controller for Dataset](#controller-for-dataset)
 - [Plugin](#plugin)
 - [Scale](docs/scales.md)
@@ -157,20 +165,9 @@ chart.update()
 - [Dragging](#dragging)
 - [Zooming](#zooming)
 
-ChartController hold a chart UI so it can draw multiple frames.
-Chart UI is a window that can draw multiple chart frame.
-Each chart frame contains one 'main grid', several offchart grids.
-Chart Grid can 
-
-Tree of objects:
-- ChartController
-    - Chart UI
-        - Chart Frame 1
-            - Main Grid
-            - Offchart Grid 1
-            - Offchart Grid 2
-        - Chart Frame 2
-            - Main Grid
+ChartController hold a chart UI so it can draw multiple panes.
+Chart UI is a window that can draw multiple chart pane.
+Each chart pane contains one 'main grid', several offchart grids.
 
 ## How
 - [ ] Where to contains the data of multiple symbols with multiple time resolutions
@@ -178,54 +175,22 @@ Tree of objects:
 
 ## Chart Controller
 - Load the plugin
-- Keep track the list of plugins and register the plugin to the target Frame
+- Keep track the list of plugins and register the plugin to the target pane
 
 Chart Controller mainly work with data.
 Chart UI API will handle the UI
 
 ## Chart UI API
 
-Chart UI may consists of multiple Chart Frame
+Chart UI may consists of multiple Chart pane
 
-- [ ] Choose the frame layout
-- [ ] Sync betweens frames
+- [ ] Choose the pane layout
+- [ ] Sync betweens panes
     - [ ] Symbol
     - [ ] Interval
     - [ ] Crosshair
     - [ ] Time
     - [ ] Drawings
-
-## Chart Frame API
-Frame contains one main grid and mulitiple offchart grids.
-Data of frame consists of:
-- Setting of the frame
-- Datasets for main grid and all offchart grids
-
-Frame collects the sidebar width and drawable area from all child Grids,
-then reserve the appropriate width and height for drawable area and sidebar width.
-
-- [ ] Choose the symbol
-- [ ] Choose time resolution
-- [ ] Choose the chart type (line, candlestick...)
-- [ ] Export grids to image
-
-### update()
-With the modified data, this will update all scales, then re-render the chart.
-
-### render()
-Redraw all chart elements. This doesn't update elements for new data. use `.update()` in that case.
-
-### resize(width?, height?)
-Resize the canvas element.
-You can call with no parameters to have the chart take the size of its container elements,
-or you can pass explicit dimensions.
-
-## Chart Grid API
-- Calculate the height and width for several components in canvas
-    + Drawable area
-    + Sidebar
-- Call `draw` of controller to draw the elements.
-- Accept multiple datasets
 
 ## Controller for dataset
 Each dataset need the following basics:

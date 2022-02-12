@@ -1,5 +1,5 @@
 import { ChartType, IChartSubplotData, ITradingSubplot, IChartRegistry, IChartSubplotDataMeta, ITradingChartItem } from 'hk-trading-contract'
-import { isArray } from 'hk-utils'
+import { isArray } from '@hungknow/utils'
 import { TradingGridChartItem } from './TradingGridChartItem'
 
 export class TradingChartSubplot<TType extends ChartType, TData> implements ITradingSubplot<TType, TData> {

@@ -1,5 +1,5 @@
 import { CandleStickDTO, GetOhlcvOptions, ICandleStickProvider, ICandleProviderDashboard, isGetOhlcvOptionsValid, SymbolInfo } from 'hk-trading-contract'
-import { isArray } from 'hk-utils'
+import { isArray } from '@hungknow/utils'
 
 /*
 *

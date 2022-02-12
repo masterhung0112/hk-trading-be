@@ -1,4 +1,4 @@
-import { isObject } from 'hk-utils'
+import { isObject } from '@hungknow/utils'
 import { ResolutionType } from './ResolutionType'
 
 export interface GetOhlcvOptions {

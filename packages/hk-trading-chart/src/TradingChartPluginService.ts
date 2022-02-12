@@ -1,5 +1,5 @@
 import { ICandleDataPoint, IChartTypeRegistry, ITradingChart, ITradingChartHookType, ITradingChartItem, ITradingChartPluginService } from 'hk-trading-contract'
-import { callCallback, isFunction } from 'hk-utils'
+import { callCallback, isFunction } from '@hungknow/utils'
 
 export class TradingChartPluginService implements ITradingChartPluginService {
 

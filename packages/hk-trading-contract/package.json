@@ -19,7 +19,7 @@
     "jest": "^27.0.6",
     "protobufjs": "^6.11.2",
     "hk-pd": "^0.0.1",
-    "hk-utils": "^0.0.1"
+    "@hungknow/utils": "^0.0.1"
   },
   "devDependencies": {
     "nestjs-proto-gen-ts": "^1.0.18",
