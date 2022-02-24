@@ -7,6 +7,8 @@
 
 Encodings that map abstract data to visual representation.
 
+Scale will draw grid, generate ticks, draw label in axis.
+
 ## Continuous Scales
 Continuous scales map a continuous, quantitative input domain to a continuous output range. If the range is also numeric, the mapping may be inverted. A continuous scale is not constructed directly; instead, try a linear, power, log, identity, radial, time or sequential color scale.
 
