@@ -1,5 +1,5 @@
-import { isArray } from './isArray'
-import { isObject } from './isObject'
+import { isArray } from './primitives/isArray'
+import { isObject } from './primitives/isObject'
 
 export function copy<T = any>(o: T, isObj = isObject): T {
     let out: any

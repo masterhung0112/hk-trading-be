@@ -2,6 +2,7 @@ import {babel} from '@rollup/plugin-babel'
 import {nodeResolve} from '@rollup/plugin-node-resolve'
 import path from 'path'
 import commonjs from '@rollup/plugin-commonjs'
+import dts from 'rollup-plugin-dts'
 
 const extensions = ['.js', '.ts']
 
@@ -48,4 +49,9 @@ export default [
         plugins,
         watch
     },
+    {
+        input: './src/index.ts',
+        output: [{ file: 'dist/hk-utils.d.ts', format: 'es' }],
+        plugins: [dts()],
+      },
 ]
