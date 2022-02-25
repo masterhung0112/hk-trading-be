@@ -51,10 +51,6 @@ axes = [
     }
 ]
 ```
-## Scales
-Define a list of scale type.
-Axe can use a defined scale type.
-
 ## Commit function
 1. setScales
 1. convergeSize
@@ -179,6 +175,27 @@ chart.update()
 chart.options.reponsive = false
 chart.update()
 ```
+
+# How data can be edit
+Data can be defined in dataset. Then the dataset controller will render the data.
+Data can be edited by one of following means:
+- Programmingly Edit the data directly in dataset.
+- Display a control, then edit the data in dataset.
+
+Dataset controller must able to detect the changes in dataset.
+
+Drawable object might have the attribute that can be edited.
+- `x`, `y` of line can be edited
+- A indicator can have a list of properties that can be updated.
+
+## Use cases
+- Change `x`, `y` of a line
+- Edit the properties of a indicator, indicator create a new dataset, then draw that dataset to the canvas
+
+## Type of data
+- a element in the array
+- a option
+- add/remove element in array
 
 # API
 - [Chart Controller](#chart-controller)
