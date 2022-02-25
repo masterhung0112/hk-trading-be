@@ -1,10 +1,23 @@
 Pan and zoom SVG, HTML or Canvas using mouse or touch input
 
+- [ ] Zoom by x, y, or both directions
+- [ ] Clamp by limits
+
+# Flow
+- zoom logic set new min/max to the scale
+- The scale fire the range changed event
+- Dataset controller listen to the event and calculate new elements with new scale's range
+- Axis listen to the event and calculate with new scale's range
+
+# Dependency variables
+- Center point of chart area
+- min/max value of the scale
+
 ## Zoom State
 | Field | Description |
 | ----- |-- |
-| originalScaleLimits | |
-| updatedScaleLimits | Map from `scale.id` to `{min, max}` |
+| originalScaleLimits | Keep the `{min, max}` of scale before doing any zoom |
+| updatedScaleLimits | Map from `scale.id` to `{min, max}`, keep the current value of zoom |
 | handlers | |
 | panDelta | |
 
@@ -13,6 +26,9 @@ const scale = chart.scales[scaleId];
 zoomScale(scale, range, limits=undefined, zoom=true))
 chart.update('none')
 ```
+
+## Undoable zoom
+Save the min/max value of scale, we can restore later by setting the saved min/max to the scale.
 
 ## Imperative Zoom/Pan API
 
@@ -38,3 +54,10 @@ Zooms the current chart by the specified amount in one more axes. the value of `
 Zooms the specified scale to the range given by `newRange`.
 This is an object in the form `{min, max}` and represents the new bounds of that scale.
 The value of `mode` should be one of [Tramsition Mode]
+
+
+# Implementation with Hammer
+
+Listen to the following of hammer
+- `pinchstart`, `pinch`, `pinchend`
+- `panstart`, `pan`, `panend`
