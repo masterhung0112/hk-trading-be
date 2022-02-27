@@ -3,7 +3,8 @@
 Each dataset must have a dataset controller.
 
 The purpose of dataset controller is:
-- Convert the raw data to the drawable data
+- Convert the array of the raw data to the array of drawable data
+- Keep track the changed raw data and update the correpsonding drawable data
 - Drawable data (x, y, width, height...) need to consider the scale
 - Response to the changes in option of dataset
 
@@ -13,3 +14,8 @@ renderer will draw the drawable data to the canvas
 - [ ] Map the drawable data to each data element in dataset
 - [ ] Listen to the added/updated/removed data of dataset
 - [ ] Listen to the changes of scale, then update the drawable data
+
+# Keep Display Object
+Data can be greater than the display object.
+Because it's expensive to create display object
+I want to reuse the display object for the data that is in scale range.

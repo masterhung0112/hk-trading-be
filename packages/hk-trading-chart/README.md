@@ -427,8 +427,6 @@ const data = {
 }
 ```
 
-# Convert the raw data to the drawing model data
-
 # Dragging
 Drag and drop SVG, HTML or Canvas using mouse or touch input
 

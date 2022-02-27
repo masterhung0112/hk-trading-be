@@ -31,3 +31,17 @@ pane.legend({
 
 pane.axis(scaledAxis)
 ```
+
+# API
+
+```ts
+interface IChartPane {
+    addSeries(series: ISeriesAPI): string
+    getAllShapes()
+    getAllStudies()
+    createShape(point: Position, options)
+    createMultipointShape(points: []Position, options)
+    getShapeById(entityId: string): ShapeApi
+    removeEntity(entityId: string)
+}
+```

@@ -8,23 +8,13 @@ Drawable object consists of model and view.
 
 Model define the data that can be exported to JSON.
 
-View describe 
+
+Component Trait describe the property that can be altered.
+Renderable Object 
+Display object is the base class for all objects that are rendered on the screne.
+
 
 ```ts
-interface ComponentTrait {
-    id: string // the id of attribute
-    label: string // The label you will see in settings
-    valueType: string // bool | color | integer | float | string | symbol | resolution | session | source | time
-    defval?: any
-    options?: []{id: string, name: string}
-    group?: string
-    minval?: number
-    maxval?: number
-    step?: number
-    confirm?: bool
-    inline?: string
-}
-
 interface Component {
     // tagname?: string
     id: string
@@ -59,8 +49,145 @@ interface Component {
 A cell contains geometry.
 
 Geometry define the location of cell, width, height, control point.
+# Display Object
+
+## Transforms
+The [transform]{@link DisplayObject#transform} of a display object describes the project from its local coordinate space to its parent's local coordinate space.
+
+- position
+- scale
+- rotation
+- skew
+- pivot
+
+## Bounds
+The bounds of a display object is defined by the minimum axis-aligned rectangle in world space that can fit around it.
+
+## Renderable vs Visible
+The `renderable` and `visible` properties can be used to prevent a display object from being rendered to the screen.
+
+When using `renderable`, the transforms of the display object (and its children subtree) will continue to be calculated.
+
+When using `visible`, the transformwill not be calculated.
+
+## Alpha
+This alpha sets a display object's **relative opacity** w.r.t its parent. For example, if the alpha of a display object is 0.5 and its parent's alpha is 0.5, then it will be rendered with 25% opacity (assuming alpha is not applied on any ancestor further up the chain).
+
+The alpha with which the display object will be rendered is called the `worldAlpha`
+
+## API
+```ts
+interface IDisplayObject {
+    calculateBounds(): void
+    render(render: Renderer): void
+    zIndex: number
+    pivot: ObservablePoint
+    visible: bool
+    renderable: bool
+
+    worldAlpha: number
+    alpha: number
+}
+```
+
+# Renderer object
+
+```ts
+interface IRenderableContainer extends IRenderableObject {
+    /** Retrieves the local bounds of the displayObject as a rectangle object */
+    getLocalBounds(rect?: Rectangle, skipChildrenUpdate?: boolean): Rectangle;
+}
+
+interface IRenderableObject {
+    /** Object must have a parent container */
+    parent: IRenderableContainer;
+    /** Before method for transform updates */
+    enableTempParent(): IRenderableContainer;
+    /** Update the transforms */
+    updateTransform(): void;
+    /** After method for transform updates */
+    disableTempParent(parent: IRenderableContainer): void;
+    /** Render object directly */
+    render(renderer: Renderer): void;
+}
+
+interface IRenderer {
+    width: number
+    height: number
+    resize(desiredWidth: number, desiredHeight: number): void
+    render(displayObject: IRenderableObject, options?: IRendererRenderOptions): void
+}
+```
+
+## GraphicData
+
+GraphicData contains shape, fillStyole, lineStyle, color, matrix
+
+## Render for display object
+    - setContextTransform
+    - setBlendMode
+    - Set the canvas context
+        - lineWidth
+        - lineCap
+        - lineJoin
+        - miterLimit
+        - globalAlpha
+        - fillStyle
+        - strokeStyle
+
+## Render of Canvas renderer
+- [ ] Render the canvas in by tick
+- [ ] Render the canvas immediately
+
+- If not request skipping update Transform, call `updateTransform` of display object
+- Reset transform of context
+- Reset global alpha to context
+- Set globalCompositeOperation (blend mode) to context
+- call `renderCanvas` for display object 
+
+## Update of stage
+- Reset the transformation
+- Clear the canvas if necessary
+- Clip the rectangle if request
+- Call draw of container
+
+## Render for animation
+- [ ] How animation can trigger the render
+
+## Draggable object
+- create a shape
+- Add that shape to the container
+- Add dragable mixin to that shape, listen for `drag` event
+
+## How the event generated for canvas element
+
+
+### hitTest
+If display Object has the hitArea, return true
+If not, check the geometry of the display object if it contains the point
+If the display object has mask and mask contains the point, return false
+
+# Control Z-layer
+- Each dataset must have a layer, each layer must have a default z-index
+- When dragging, the object is moved to `drag group` temporarily
 
 # Component Trait
+
+```ts
+interface ComponentTrait {
+    id: string // the id of attribute
+    label: string // The label you will see in settings
+    valueType: string // bool | color | integer | float | string | symbol | resolution | session | source | time
+    defval?: any
+    options?: []{id: string, name: string}
+    group?: string
+    minval?: number
+    maxval?: number
+    step?: number
+    confirm?: bool
+    inline?: string
+}
+```
 
 ```ts
 // Update the value of trait at run-time
@@ -83,6 +210,9 @@ TraitManager.addType('href-next', {
     }
 })
 ```
+
+## Event
+### `componenttrait:propertyChanged`
 
 ## Create edit model for trait
 Display a form to input/edit the attributes of the model

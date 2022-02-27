@@ -35,6 +35,8 @@ then reserve the appropriate width and height for drawable area and sidebar widt
         - Chart Pane Main
         - Axis Container
 
+
+
 # Data Requirements
 - Datasets for all charts
 - The current cursor

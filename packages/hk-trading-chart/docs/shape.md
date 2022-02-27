@@ -1,3 +1,8 @@
+Shape comprises of the following item
+- the drawable definition
+- API related to chart (bringToFront, isSelectionEnabled, isUserEditEnabled, isSavingEnabled...)
+- 
+
 - [Line](#line)
 - [Arcs]()
 - [Pies]()
@@ -8,6 +13,9 @@
 - [Symbols]()
 - [Custom Symbol Types](#custom-symbol-types)
 - [Stacks]()
+- [Financial](#financial)
+
+Reference for Tradingview chart: https://github.com/serdimoa/charting/wiki/Shapes-and-Overrides
 
 # Line
 
@@ -41,3 +49,13 @@ d3.area()
 ```ts
 symbolType.draw(context, size)
 ```
+
+# Financial
+
+| Shape | |
+|-- | -- |
+| abcd_pattern | |
+| trend_line | |
+| parallel_channel | |
+| fib_retracement | |
+| head_and_shoulders | |
