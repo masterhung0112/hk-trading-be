@@ -3,6 +3,11 @@
 - [ ] Merge the list of components by JSON
 - [ ] Map the attribute to the edit viewmodel
 - [ ] Indicate the renderable object for the component
+- [ ] Cascade the property set
+    - [ ] Default property
+    - [ ] Overrided property
+- [ ] For drawable that have text, we need a dedicated attribute
+- [ ] Support layers
 
 Drawable object consists of model and view.
 
@@ -11,11 +16,11 @@ Model define the data that can be exported to JSON.
 
 Component Trait describe the property that can be altered.
 Renderable Object 
-Display object is the base class for all objects that are rendered on the screne.
+Display object is the base class for all objects that are rendered on the scene.
 
 
 ```ts
-interface Component {
+interface DisplayObjectDef {
     // tagname?: string
     id: string
     type?: string // "trendline"
@@ -161,7 +166,6 @@ GraphicData contains shape, fillStyole, lineStyle, color, matrix
 
 ## How the event generated for canvas element
 
-
 ### hitTest
 If display Object has the hitArea, return true
 If not, check the geometry of the display object if it contains the point
@@ -171,59 +175,10 @@ If the display object has mask and mask contains the point, return false
 - Each dataset must have a layer, each layer must have a default z-index
 - When dragging, the object is moved to `drag group` temporarily
 
-# Component Trait
 
-```ts
-interface ComponentTrait {
-    id: string // the id of attribute
-    label: string // The label you will see in settings
-    valueType: string // bool | color | integer | float | string | symbol | resolution | session | source | time
-    defval?: any
-    options?: []{id: string, name: string}
-    group?: string
-    minval?: number
-    maxval?: number
-    step?: number
-    confirm?: bool
-    inline?: string
-}
-```
-
-```ts
-// Update the value of trait at run-time
-component.getTrait('trigger').set('options', [
-    { id: 'opt1', name: 'New option 1' },
-    { id: 'opt2', name: 'New option 2' },
-])
-component.getTrait('trigger').set({
-    label: 'hello',
-    options: [
-    { id: 'opt1', name: 'New option 1' },
-    { id: 'opt2', name: 'New option 2' },
-]})
-
-// Define new trait
-TraitManager.addType('href-next', {
-    // Expects as return a simple HTML string or an HTML element
-    createInput({ trait }) {
-        return '<div></div>'
-    }
-})
-```
 
 ## Event
 ### `componenttrait:propertyChanged`
-
-## Create edit model for trait
-Display a form to input/edit the attributes of the model
-
-## Bind edit model to component model
-Copy the value from edit model to the model
-
-## Bind component model to edit model
-
-## Built-in trait types
-bool | color | integer | float | string | symbol | resolution | session | source | time
 
 # What is a chart layout
 

@@ -1,6 +1,5 @@
-Shape comprises of the following item
+Shape define the basic geometry that can be drawn on canvas
 - the drawable definition
-- API related to chart (bringToFront, isSelectionEnabled, isUserEditEnabled, isSavingEnabled...)
 - 
 
 - [Line](#line)

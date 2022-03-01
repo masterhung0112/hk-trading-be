@@ -8,6 +8,12 @@
 [] Scripts (make your own indicators)
 [] Allow to select candlestick in chart
 [] Allow to control the tool (line, rectangle) or edit text
+[ ] [Autosave Manager](docs/autosave-manager.md)
+
+# Mixins
+- [ ] Event Emitter
+- [ ] Draggable
+- [ ] Undoable
 
 # Implement steps
 - [ ] General API for pane, Grid

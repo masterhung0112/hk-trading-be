@@ -6,6 +6,9 @@
 - Call `draw` of controller to draw the elements.
 - Accept multiple datasets
 
+# Overview of Trading Chart Pane Item
+- API related to chart (bringToFront, isSelectionEnabled, isUserEditEnabled, isSavingEnabled...)
+
 # Container Layout
 
 - Chart Pane Main
@@ -32,16 +35,58 @@ pane.legend({
 pane.axis(scaledAxis)
 ```
 
-# API
+# Trading Chart Pane API
 
 ```ts
-interface IChartPane {
+interface ITradingChartPane {
     addSeries(series: ISeriesAPI): string
-    getAllShapes()
-    getAllStudies()
+    allShapes()
+    allStudies()
+    shapeById(entityId: string): IChartPaneShape
+
     createShape(point: Position, options)
     createMultipointShape(points: []Position, options)
-    getShapeById(entityId: string): ShapeApi
+    createStudy(indicatorName: string, forceOverlay: bool, inputs: any[]): Promise<void>
     removeEntity(entityId: string)
+
+    timeScale() IScale
+    priceScale() IScale
+}
+
+// Base class for all items of IChartPane
+interface ITradingChartPaneItem {
+    id(): string
+    itemType(): string
+
+    // For object tree
+    isDisplayedInObjectTree(): bool
+
+    // The root display object for renderer
+    // displayObject(): DisplayObject
+
+    visible(): bool
+    setVisible(isShow: bool)
+    
+    bringToFront()
+    sendToBack()
+
+    render(render: IRenderer)
+}
+
+interface ITradingChartPaneShape extends IChartPaneItem {
+
+}
+```
+
+# Event
+
+## `tradingchartpaneitem:added`
+
+# Trading Chart Area API
+
+```ts
+interface ITradingChartCanvasArea {
+    // the root container of canvas
+    displayObject(): DisplayObject
 }
 ```
