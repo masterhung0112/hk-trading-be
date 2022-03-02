@@ -10,6 +10,8 @@
 [] Allow to control the tool (line, rectangle) or edit text
 [ ] [Autosave Manager](docs/autosave-manager.md)
 
+All technical documents are written in `docs` folder.
+
 # Mixins
 - [ ] Event Emitter
 - [ ] Draggable
