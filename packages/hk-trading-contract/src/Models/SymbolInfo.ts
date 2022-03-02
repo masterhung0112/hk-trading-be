@@ -1,7 +1,7 @@
 import { ResolutionType } from './ResolutionType'
 
 export interface SymbolInfo {
-    ticket: string,
+    id: string,
     name: string,
     description: string,
     type: string,
@@ -13,5 +13,5 @@ export interface SymbolInfo {
     hasNoVolume: boolean
     supportedResolutions: ResolutionType[]
     volumePrecision: number // 2
-    dataStatus: string // 'streaming'
+    // dataStatus: string // 'streaming'
 }

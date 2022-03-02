@@ -1,4 +1,4 @@
-import { CandleMultiStickReversedDto } from '../Models'
+import { CandleStickDTO } from 'hk-trading-contract'
 import { CandlestickFinder } from './CandlestickFinder'
 
 export class BullishSpinningTop extends CandlestickFinder {
@@ -10,11 +10,11 @@ export class BullishSpinningTop extends CandlestickFinder {
         })
     }
 
-    logic(data: CandleMultiStickReversedDto) {
-        const daysOpen = data.bo[0]
-        const daysClose = data.bc[0]
-        const daysHigh = data.bh[0]
-        const daysLow = data.bl[0]
+    logic(data: CandleStickDTO[]) {
+        const daysOpen = data[0].bo
+        const daysClose = data[0].bc
+        const daysHigh = data[0].bh
+        const daysLow = data[0].bl
 
         const bodyLength = Math.abs(daysClose - daysOpen)
         const upperShadowLength = Math.abs(daysHigh - daysClose)

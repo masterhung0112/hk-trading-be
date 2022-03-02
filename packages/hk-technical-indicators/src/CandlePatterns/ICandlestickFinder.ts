@@ -1,8 +1,8 @@
-import { CandleMultiStickReversedDto } from '../Models/CandleMultiStickReversedDto'
+import { CandleStickDTO } from 'hk-trading-contract'
 
 export interface ICandlestickFinder {
   get name(): string
   get id(): string
   get requiredBarNum(): number
-  hasPattern(data: CandleMultiStickReversedDto): boolean
+  hasPattern(data: CandleStickDTO[]): boolean
 }

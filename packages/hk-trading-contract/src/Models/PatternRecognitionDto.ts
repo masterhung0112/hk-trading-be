@@ -1,9 +1,9 @@
+import { ResolutionType } from './ResolutionType'
+
 export interface PatternRecognitionDto {
     patternSymbol: string
     patternDisplayName: string
-    resolutionType: string
-    sts: number
+    resolutionType: ResolutionType
+    sts: Date
     symbol: string
-    firstStickSts: number
-    lastStickSts: number
 }

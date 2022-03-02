@@ -1,4 +1,14 @@
-export function benchmark(method) {
+export type BenchMarkCallback = (start: number, end: number, obj: {
+    milliseconds: number,
+    ms: number,
+    seconds: number,
+    minutes: number,
+    hours: number,
+}) => void
+
+export type BenchMarkCallbackMethod = (callback: (c: BenchMarkCallback) => void) => void
+
+export function benchmark(method: BenchMarkCallbackMethod) {
     const start = +(new Date)
 
     method && method(function (callback) {
@@ -14,7 +24,7 @@ export function benchmark(method) {
     })
 }
 
-export function timeBenchmark(toMeasure, repeatTimes = 1) {
+export function timeBenchmark(toMeasure: () => void, repeatTimes = 1) {
     if(typeof(repeatTimes) != 'number'){
         repeatTimes = 1
     }
@@ -22,7 +32,7 @@ export function timeBenchmark(toMeasure, repeatTimes = 1) {
     if(typeof(toMeasure) === 'function'){
         const startTime = new Date().getTime()
         for (let i = 0; i < repeatTimes; ++i) {
-            toMeasure.call()
+            toMeasure.call(undefined)
         }
         const endTime = new Date().getTime()
         return {

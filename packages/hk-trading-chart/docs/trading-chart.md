@@ -1,0 +1,34 @@
+Trading Chart is a object that is related to the Financial chart
+
+# Methods
+- Subscribing to the Chart Events
+    - onDataLoaded()
+    - OnSymbolChanged()
+    - dataReady(callback)
+    - crossHairMoved(callback)
+    - onVisibleRangeChanged()
+- Chart Actions
+    - setVisibleRange(range, callback)
+    - setSymbol(symbol, callback)
+    - setResolution(resolution, callback)
+    - resetData()
+    - executeActionById(action)
+    - getCheckableActionState(action)
+    - refreshMarks()
+    - clearMarks()
+    - setChartType(type)
+    - setTimezone(timeone)
+- Studies and Shapes
+    - getPanes()
+- Study Templates   
+- Trading Primitives
+    - createOrderLine()
+    - createPositionLine()
+    - createExecutionShape()
+- Getters
+    - getVisibleRange()
+    - getVisiblePriceRange()
+    - resolution()
+    - symbol()
+    - chartType()
+- Other

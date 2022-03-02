@@ -1,0 +1,1 @@
+export const microTask = typeof queueMicrotask == 'undefined' ? (fn: any) => Promise.resolve().then(fn) : queueMicrotask

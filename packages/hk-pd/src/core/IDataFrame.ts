@@ -45,6 +45,7 @@ export interface IDataFrame<IndexT = any, ValueT = any> extends Iterable<ValueT>
     cast<NewValueT>(): IDataFrame<IndexT, NewValueT>
     concat(...dataframes: (IDataFrame<IndexT, ValueT>[] | IDataFrame<IndexT, ValueT>)[]): IDataFrame<IndexT, ValueT>
     count(): number
+    convertColumnsToArrays(columnNames: string[]): any[][] 
     defaultIfEmpty(defaultDataFrame: ValueT[] | IDataFrame<IndexT, ValueT>): IDataFrame<IndexT, ValueT>
     deflate<ToT = ValueT>(selector?: SelectorWithIndexFn<ValueT, ToT>): ISeries<IndexT, ToT>
     detectTypes(): IDataFrame<number, ITypeFrequency>
@@ -53,7 +54,7 @@ export interface IDataFrame<IndexT = any, ValueT = any> extends Iterable<ValueT>
     dropSeries<NewValueT = ValueT>(columnOrColumns: string | string[]): IDataFrame<IndexT, NewValueT>
     endAt(indexValue: IndexT): IDataFrame<IndexT, ValueT>
     ensureSeries<SeriesValueT> (columnNameOrSpec: string | IColumnGenSpec, series?: ISeries<IndexT, SeriesValueT> | SeriesSelectorFn<IndexT, ValueT, SeriesValueT>): IDataFrame<IndexT, ValueT>
-    except<InnerIndexT = IndexT, InnerValueT = ValueT, KeyT = ValueT>(inner: IDataFrame<InnerIndexT, InnerValueT>, outerSelector?: SelectorFn<ValueT, KeyT>, innerSelector?: SelectorFn<InnerValueT, KeyT>)
+    except<InnerIndexT = IndexT, InnerValueT = ValueT, KeyT = ValueT>(inner: IDataFrame<InnerIndexT, InnerValueT>, outerSelector?: SelectorFn<ValueT, KeyT>, innerSelector?: SelectorFn<InnerValueT, KeyT>): IDataFrame<IndexT, ValueT>
     expectSeries<SeriesValueT> (columnName: string): ISeries<IndexT, SeriesValueT>
     fillGaps(comparer: ComparerFn<[IndexT, ValueT], [IndexT, ValueT]>, generator: GapFillFn<[IndexT, ValueT], [IndexT, ValueT]>): IDataFrame<IndexT, ValueT> 
     first(): ValueT
@@ -70,10 +71,10 @@ export interface IDataFrame<IndexT = any, ValueT = any> extends Iterable<ValueT>
     inflateSeries(columnName: string, selector?: SelectorWithIndexFn<IndexT, any>): IDataFrame<IndexT, ValueT>
     insertPair(pair: [IndexT, ValueT]): IDataFrame<IndexT, ValueT>
     intersection<InnerIndexT = IndexT, InnerValueT = ValueT, KeyT = ValueT>(inner: IDataFrame<InnerIndexT, InnerValueT>, outerSelector?: SelectorFn<ValueT, KeyT>, innerSelector?: SelectorFn<InnerValueT, KeyT>): IDataFrame<IndexT, ValueT>
-    join<KeyT, InnerIndexT, InnerValueT, ResultValueT>(inner: IDataFrame<InnerIndexT, InnerValueT>, outerKeySelector: SelectorFn<ValueT, KeyT>, innerKeySelector: SelectorFn<InnerValueT, KeyT>, resultSelector: JoinFn<ValueT, InnerValueT, ResultValueT>)
-    joinOuter<KeyT, InnerIndexT, InnerValueT, ResultValueT>(inner: IDataFrame<InnerIndexT, InnerValueT>, outerKeySelector: SelectorFn<ValueT, KeyT>, innerKeySelector: SelectorFn<InnerValueT, KeyT>, resultSelector: JoinFn<ValueT | null, InnerValueT | null, ResultValueT>)
-    joinOuterLeft<KeyT, InnerIndexT, InnerValueT, ResultValueT>(inner: IDataFrame<InnerIndexT, InnerValueT>, outerKeySelector: SelectorFn<ValueT, KeyT>, innerKeySelector: SelectorFn<InnerValueT, KeyT>, resultSelector: JoinFn<ValueT | null, InnerValueT | null, ResultValueT>)
-    joinOuterRight<KeyT, InnerIndexT, InnerValueT, ResultValueT>(inner: IDataFrame<InnerIndexT, InnerValueT>, outerKeySelector: SelectorFn<ValueT, KeyT>, innerKeySelector: SelectorFn<InnerValueT, KeyT>, resultSelector: JoinFn<ValueT | null, InnerValueT | null, ResultValueT>)
+    join<KeyT, InnerIndexT, InnerValueT, ResultValueT>(inner: IDataFrame<InnerIndexT, InnerValueT>, outerKeySelector: SelectorFn<ValueT, KeyT>, innerKeySelector: SelectorFn<InnerValueT, KeyT>, resultSelector: JoinFn<ValueT, InnerValueT, ResultValueT>): IDataFrame<number, ResultValueT>
+    joinOuter<KeyT, InnerIndexT, InnerValueT, ResultValueT>(inner: IDataFrame<InnerIndexT, InnerValueT>, outerKeySelector: SelectorFn<ValueT, KeyT>, innerKeySelector: SelectorFn<InnerValueT, KeyT>, resultSelector: JoinFn<ValueT | null, InnerValueT | null, ResultValueT>): IDataFrame<number, ResultValueT>
+    joinOuterLeft<KeyT, InnerIndexT, InnerValueT, ResultValueT>(inner: IDataFrame<InnerIndexT, InnerValueT>, outerKeySelector: SelectorFn<ValueT, KeyT>, innerKeySelector: SelectorFn<InnerValueT, KeyT>, resultSelector: JoinFn<ValueT | null, InnerValueT | null, ResultValueT>): IDataFrame<number, ResultValueT>
+    joinOuterRight<KeyT, InnerIndexT, InnerValueT, ResultValueT>(inner: IDataFrame<InnerIndexT, InnerValueT>, outerKeySelector: SelectorFn<ValueT, KeyT>, innerKeySelector: SelectorFn<InnerValueT, KeyT>, resultSelector: JoinFn<ValueT | null, InnerValueT | null, ResultValueT>): IDataFrame<number, ResultValueT>
     last(): ValueT
     melt(idColumnOrColumns: string | Iterable<string>, valueColumnOrColumns: string | Iterable<string>): IDataFrame<IndexT, ValueT>
     merge<MergedValueT = ValueT>(...otherDataFrames: IDataFrame<IndexT, any>[]): IDataFrame<IndexT, MergedValueT>
@@ -112,7 +113,7 @@ export interface IDataFrame<IndexT = any, ValueT = any> extends Iterable<ValueT>
     toStrings(columnNames: string | string[] | IFormatSpec, formatString?: string): IDataFrame<IndexT, ValueT>
     transformSeries<NewValueT = ValueT>(columnSelectors: IColumnTransformSpec): IDataFrame<IndexT, NewValueT>
     truncateStrings(maxLength: number): IDataFrame<IndexT, ValueT>
-    union<KeyT = ValueT>(other: IDataFrame<IndexT, ValueT>, selector?: SelectorFn<ValueT, KeyT>)
+    union<KeyT = ValueT>(other: IDataFrame<IndexT, ValueT>, selector?: SelectorFn<ValueT, KeyT>): IDataFrame<IndexT, ValueT>
     variableWindow(comparer: ComparerFn<ValueT, ValueT>): ISeries<number, IDataFrame<IndexT, ValueT>>
     where(predicate: PredicateFn<ValueT>): IDataFrame<IndexT, ValueT>
     window(period: number): ISeries<number, IDataFrame<IndexT, ValueT>>

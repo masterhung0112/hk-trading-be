@@ -1,0 +1,17 @@
+{
+    "compilerOptions": {
+        "moduleResolution": "node",
+        "module": "commonjs",
+        "target": "es6",
+        "esModuleInterop": true,
+        "declaration": true,
+        "importHelpers": true,
+        "rootDir": "src",
+        "outDir": "dist",
+        "lib": [ "es2015", "dom" ],
+        "skipLibCheck": true,
+        "sourceMap": true
+    },
+    "include": ["src/**/*", "../hk-trading-contract/src/Services/IMarketDataAdapter.ts"],
+    "exclude": ["dist", "node_modules"]
+}

@@ -1,4 +1,4 @@
-import { CandleMultiStickReversedDto } from '../Models'
+import { CandleStickDTO } from 'hk-trading-contract'
 import { approximateEqual } from '../utils'
 import { CandlestickFinder } from './CandlestickFinder'
 
@@ -11,14 +11,14 @@ export class BullishHaramiCross extends CandlestickFinder {
         })
     }
 
-    logic(data: CandleMultiStickReversedDto) {
-        const firstdaysOpen = data.bo[0]
-        const firstdaysClose = data.bc[0]
-        const firstdaysHigh = data.bh[0]
-        const seconddaysOpen = data.bo[1]
-        const seconddaysClose = data.bc[1]
-        const seconddaysHigh = data.bh[1]
-        const seconddaysLow = data.bl[1]
+    logic(data: CandleStickDTO[]) {
+        const firstdaysOpen = data[0].bo
+        const firstdaysClose = data[0].bc
+        const firstdaysHigh = data[0].bh
+        const seconddaysOpen = data[1].bo
+        const seconddaysClose = data[1].bc
+        const seconddaysHigh = data[1].bh
+        const seconddaysLow = data[1].bl
 
         const isBullishHaramiCrossPattern = ((firstdaysOpen > seconddaysOpen) &&
             (firstdaysClose < seconddaysOpen) &&

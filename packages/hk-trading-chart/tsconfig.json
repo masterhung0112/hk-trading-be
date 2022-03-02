@@ -1,0 +1,18 @@
+{
+    "compilerOptions": {
+        "moduleResolution": "node",
+        "target": "ESNext",
+        "outDir": "./dist",
+        "declaration": true,
+        "sourceMap": true,
+        "allowJs": false,
+        "allowSyntheticDefaultImports": true,
+    },
+    "include": [
+        "src/**/*.ts"
+    ],
+    "exclude": [
+        "node_modules",
+        "dist"
+    ]
+}

@@ -1,4 +1,5 @@
-import { CandleMultiStickReversedDto } from '../Models/CandleMultiStickReversedDto'
+import { DataFrame } from 'hk-pd'
+import { CandleStickDTO } from 'hk-trading-contract'
 import { AverageGain } from '../utils/AverageGain'
 import { AverageLoss } from '../utils/AverageLoss'
 import { hasBearishHammerStick } from './BearishHammerStick'
@@ -16,37 +17,41 @@ export class HammerPattern extends CandlestickFinder {
         })
     }
 
-    logic(data: CandleMultiStickReversedDto) {
+    logic(data: CandleStickDTO[]) {
         let isPattern = this.downwardTrend(data)
         isPattern = isPattern && this.includesHammer(data)
         isPattern = isPattern && this.hasConfirmation(data)
         return isPattern
     }
 
-    downwardTrend(data: CandleMultiStickReversedDto, confirm = true) {
+    downwardTrend(data: CandleStickDTO[], confirm = true) {
         const end = confirm ? 3 : 4
+        const dataDf = new DataFrame<number, CandleStickDTO>(data)
+        const bcValue = dataDf.getSeries<number>('bc').take(end)
         // Analyze trends in closing prices of the first three or four candlesticks
-        const gains = AverageGain.calculate({ values: data.bc.take(end), period: end - 1 })
-        const losses = AverageLoss.calculate({ values: data.bc.take(end), period: end - 1 })
+        const gains = AverageGain.calculate({ values: bcValue, period: end - 1 })
+        const losses = AverageLoss.calculate({ values: bcValue, period: end - 1 })
         // Downward trend, so more losses than gains
         return losses > gains
     }
 
-    includesHammer(data: CandleMultiStickReversedDto, confirm = true) {
+    includesHammer(data: CandleStickDTO[], confirm = true) {
         const start = confirm ? 3 : 4
         const end = confirm ? 4 : undefined
-        const possibleHammerData: CandleMultiStickReversedDto = {
-            resolutionType: data.resolutionType,
-            firstStickSts: data.firstStickSts,
-            lastStickSts: data.lastStickSts,
-            sym: data.sym,
-            sts: data.sts,
-            bo: data.bo.between(start, end),
-            bc: data.bc.between(start, end),
-            bl: data.bl.between(start, end),
-            bh: data.bh.between(start, end),
-            reversedInput: data.reversedInput
-        }
+        
+        const possibleHammerData = new DataFrame(data).between(start, end).toArray()
+        // const possibleHammerData: CandleStickDTO[] = {
+        //     resolutionType: data[0].resolutionType,
+        //     firstStickSts: data[0].firstStickSts,
+        //     lastStickSts: data[0].lastStickSts,
+        //     sym: data[0].sym,
+        //     sts: data[0].sts,
+        //     bo: data[0].bo.between(start, end),
+        //     bc: data[0].bc.between(start, end),
+        //     bl: data[0].bl.between(start, end),
+        //     bh: data[0].bh.between(start, end),
+        //     reversedInput: data[0].reversedInput
+        // }
 
         let isPattern = hasBearishHammerStick(possibleHammerData)
         isPattern = isPattern || hasBearishInvertedHammerStick(possibleHammerData)
@@ -56,18 +61,18 @@ export class HammerPattern extends CandlestickFinder {
         return isPattern
     }
 
-    hasConfirmation(data: CandleMultiStickReversedDto) {
+    hasConfirmation(data: CandleStickDTO[]) {
         const possibleHammer = {
-            bo: data.bo[3],
-            bc: data.bc[3],
-            bl: data.bl[3],
-            bh: data.bh[3],
+            bo: data[3].bo,
+            bc: data[3].bc,
+            bl: data[3].bl,
+            bh: data[3].bh,
         }
         const possibleConfirmation = {
-            bo: data.bo[4],
-            bc: data.bc[4],
-            bl: data.bl[4],
-            bh: data.bh[4],
+            bo: data[3].bo,
+            bc: data[3].bc,
+            bl: data[3].bl,
+            bh: data[3].bh,
         }
         // Confirmation candlestick is bullish
         const isPattern = possibleConfirmation.bo < possibleConfirmation.bc
@@ -75,6 +80,6 @@ export class HammerPattern extends CandlestickFinder {
     }
 }
 
-export function hasHammerPattern(data: CandleMultiStickReversedDto) {
+export function hasHammerPattern(data: CandleStickDTO[]) {
     return new HammerPattern().hasPattern(data)
 }

@@ -1,4 +1,4 @@
-import { Series } from '..'
+import { Series } from '../core/Series'
 import { ISeries } from '../core/ISeries'
 import { WhichIndex } from '../core/WhichIndex'
 

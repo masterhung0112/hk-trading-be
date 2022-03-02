@@ -6,6 +6,7 @@
   "license": "MIT",
   "scripts": {
     "build": "tsc",
+    "build:dev": "tsc",
     "lint": "eslint .",
     "proto:gen": "yarn run proto:js:gen && yarn run proto:ts:gen",
     "proto:js:gen": "pbjs --es6 -t static-module -o ./src/protodef.js ./protos/*.proto",
@@ -17,14 +18,14 @@
     "@types/jest": "^27.0.1",
     "jest": "^27.0.6",
     "protobufjs": "^6.11.2",
-    "hk-pd": "^0.0.1"
+    "hk-pd": "^0.0.1",
+    "@hungknow/utils": "^0.0.1"
   },
   "devDependencies": {
     "nestjs-proto-gen-ts": "^1.0.18",
     "typescript": "^4.3.5",
     "eslint-config-hk": "^1.0.0",
     "@rushstack/eslint-patch": "^1.0.6",
-    "eslint": "^7.32.0",
-    "jest-mock-extended": "^2.0.4"
+    "eslint": "^7.32.0"
   }
 }

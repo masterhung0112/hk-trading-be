@@ -1,0 +1,55 @@
+{
+  "name": "hk-trading-chart",
+  "version": "0.0.1",
+  "main": "./dist/hk-trading-chart.cjs.js",
+  "module": "./dist/hk-trading-chart.esm.js",
+  "types": "./dist/hk-trading-chart.d.ts",
+  "license": "MIT",
+  "scripts": {
+    "build": "cross-env NODE_ENV=production rollup -c",
+    "build:dev": "cross-env NODE_ENV=development rollup -c",
+    "build:dev:watch": "cross-env NODE_ENV=development rollup -c -w",
+    "lint": "eslint ."
+  },
+  "files": [
+    "package.json",
+    "README.md",
+    "dist"
+  ],
+  "jest": {
+    "testEnvironment": "jsdom",
+    "setupFiles": ["jest-canvas-mock"],
+    "setupFilesAfterEnv": ["./test/setup.js"]
+  },
+  "dependencies": {
+    "jest": "^27.0.6",
+    "hk-pd": "^0.0.1",
+    "@hungknow/utils": "^0.0.1",
+    "hk-trading-contract": "^0.0.1",
+    "uplot": "^1.6.16"
+  },
+  "devDependencies": {
+    "@types/jest": "^27.0.1",
+    "@babel/preset-env": "^7.16.0",
+    "@babel/preset-typescript": "^7.16.0",
+    "typescript": "^4.3.5",
+    "eslint-config-hk": "^1.0.0",
+    "@rushstack/eslint-patch": "^1.0.6",
+    "eslint": "^7.32.0",
+    "jest-mock-extended": "^2.0.4",
+    "wait-for-expect": "^3.0.2",
+    "jest-canvas-mock": "^2.3.1",
+    "@rollup/plugin-babel": "^5.3.0",
+    "rollup": "^2.59.0",
+    "@rollup/plugin-commonjs": "^21.0.1",
+    "@rollup/plugin-typescript": "^8.3.0",
+    "@rollup/plugin-json": "^4.1.0",
+    "cross-env": "^7.0.3",
+    "@rollup/plugin-node-resolve": "^13.0.6",
+    "@babel/preset-react": "^7.16.0",
+    "@babel/plugin-transform-async-to-generator": "^7.16.0",
+    "@babel/plugin-proposal-class-properties": "^7.16.0",
+    "@babel/plugin-proposal-object-rest-spread": "^7.16.0",
+    "@babel/plugin-transform-classes": "^7.16.0"
+  }
+}

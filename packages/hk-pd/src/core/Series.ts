@@ -1,6 +1,5 @@
 import { EmptyIterable } from '../iterables/EmptyIterable'
-import { isFunction } from '../utils/isFunction'
-import { isArray } from '../utils/isArray'
+import { isFunction, isDate, isNumber, determineType, isArray, isString } from '@hungknow/utils'
 import { CountIterable } from '../iterables/CountIterable'
 import { MultiIterable } from '../iterables/MultiTerable'
 import { ExtractElementIterable } from '../iterables/ExtractElementIterable'
@@ -11,18 +10,13 @@ import { SeriesConfigFn } from './SeriesConfigFn'
 import { ISeriesConfig } from './ISeriesConfig'
 import { SelectorWithIndexFn } from './SelectorWithIndexFn'
 import { IDataFrame } from './IDataFrame'
-import { DataFrame } from '.'
+import { DataFrame } from './DataFrame'
 import { SelectIterable } from '../iterables/SelectIterable'
 import { PredicateFn } from './PredicateFn'
 import { SelectManyIterable } from '../iterables/SelectManyIterable'
-import { isString } from '../utils/isString'
 import moment from 'dayjs'
-import { isDate } from '../utils/isDate'
-import { isNumber } from '../utils/isNumber'
 import { toMap } from '../utils/toMap'
 import { WhichIndex } from './WhichIndex'
-import { Index } from './IndexT'
-import { IIndex } from './IIndex'
 import { SeriesWindowIterable } from '../iterables/SeriesWindowIterable'
 import { SeriesRollingWindowIterable } from '../iterables/SeriesRollingWindowIterable'
 import { ComparerFn } from './ComparerFn'
@@ -54,6 +48,8 @@ import { JoinFn } from './JoinFn'
 import { IFrequencyTableEntry } from './IFrequencyTableEntry'
 import { IFrequencyTableOptions } from './IFrequencyTableOptions'
 import { GapFillFn } from './GapFillFn'
+import { IIndex, IIndexPredicateFn } from './IIndex'
+// import { Index } from './IndexT'
 
 /**
  * One-dimensional ndarray with axis labels (including time series).
@@ -370,7 +366,7 @@ export class Series<IndexT = number, ValueT = any> implements ISeries<IndexT, Va
         else {
             // Just check if empty.
             const iterator = this[Symbol.iterator]()
-            return iterator.next().done
+            return !!iterator.next().done
         }
 
         return true // Nothing failed the predicate.
@@ -683,7 +679,7 @@ export class Series<IndexT = number, ValueT = any> implements ISeries<IndexT, Va
             .concat(this.tail(1))
     }
 
-    frequency (options?: IFrequencyTableOptions): IDataFrame<number, IFrequencyTableEntry> {
+    frequency(options?: IFrequencyTableOptions): IDataFrame<number, IFrequencyTableEntry> {
         if (this.none()) {
             return new DataFrame()
         }
@@ -1423,7 +1419,7 @@ export class Series<IndexT = number, ValueT = any> implements ISeries<IndexT, Va
         } else {
             selector = (value: ValueT): ToT => <ToT><any>value
         }
-        return this.variableWindow((a, b) => selector(a) === selector(b))
+        return this.variableWindow((a, b) => selector!(a) === selector!(b))
             .select((window): [IndexT, ValueT] => {
                 return [window.getIndex().first(), window.first()]
             })
@@ -1821,5 +1817,62 @@ class OrderedSeries<IndexT = number, ValueT = any, SortT = any>
             direction: Direction.Descending,
             parent: this
         })
+    }
+}
+
+export class Index<IndexT> extends Series<number, IndexT> implements IIndex<IndexT> {
+    private _type?: string
+
+    constructor(config?: any | SeriesConfigFn<number, IndexT>) {
+        super(config)
+    }
+
+    getType(): string {
+        if (!this._type) {
+            if (this.any()) {
+                this._type = determineType(this.first())
+            } else {
+                this._type = 'empty'
+            }
+        }
+        return this._type
+    }
+
+    getLessThan(): IIndexPredicateFn {
+        switch (this.getType()) {
+            case 'date':
+                return (d1: Date, d2: Date) => moment(d1).isBefore(d2)
+
+            case 'string':
+            case 'number':
+                return (v1: any, v2: any) => v1 < v2
+
+            case 'empty':
+                return () => true // Series is empty, so this makes no difference.
+
+            default:
+                throw new Error('No less than operation available for type: ' + this.getType())
+        }
+    }
+
+    getLessThanOrEqualTo(): IIndexPredicateFn {
+        return (v1: any, v2: any) => !this.getGreaterThan()(v1, v2) //TODO: Should expand  this out.
+    }
+
+    getGreaterThan(): IIndexPredicateFn {
+        switch (this.getType()) {
+            case 'date':
+                return (d1: Date, d2: Date) => moment(d1).isAfter(d2)
+
+            case 'string':
+            case 'number':
+                return (v1: any, v2: any) => v1 > v2
+
+            case 'empty':
+                return () => true // Series is empty, so this makes no difference.
+
+            default:
+                throw new Error('No greater than operation available for type: ' + this.getType())
+        }
     }
 }
