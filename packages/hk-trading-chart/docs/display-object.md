@@ -1,5 +1,7 @@
 # Overview
-- [ ] Able to alter the value of several attributes
+
+Display Object
+- [ ] Able to alter the value of several attributes in one call
 - [ ] Merge the list of components by JSON
 - [ ] Map the attribute to the edit viewmodel
 - [ ] Indicate the renderable object for the component
@@ -7,17 +9,96 @@
     - [ ] Default property
     - [ ] Overrided property
 - [ ] For drawable that have text, we need a dedicated attribute
-- [ ] Support layers
+- [ ] [Support layers](#control-z-layer)
+- [ ] Architecture for controls of display object
+
+Renderable Object
+- [ ] Hit test for the Renderable Object
+- [ ] Map the hit test to the Display Object event
 
 Drawable object consists of model and view.
 
 Model define the data that can be exported to JSON.
 
-
 Component Trait describe the property that can be altered.
 Renderable Object 
 Display object is the base class for all objects that are rendered on the scene.
 
+# Display Object
+
+Display object is the object that is accessible by other tools.
+It should only contain the state, e.g. position, size...
+For the shape, we should use `Shape` API
+
+## Transforms
+The [transform]{@link DisplayObject#transform} of a display object describes the project from its local coordinate space to its parent's local coordinate space.
+
+- position
+- scale
+- rotation
+- skew
+- pivot
+
+## Bounds
+The bounds of a display object is defined by the minimum axis-aligned rectangle in world space that can fit around it.
+
+## Renderable vs Visible
+The `renderable` and `visible` properties can be used to prevent a display object from being rendered to the screen.
+
+When using `renderable`, the transforms of the display object (and its children subtree) will continue to be calculated.
+
+When using `visible`, the transformwill not be calculated.
+
+## Alpha
+This alpha sets a display object's **relative opacity** w.r.t its parent. For example, if the alpha of a display object is 0.5 and its parent's alpha is 0.5, then it will be rendered with 25% opacity (assuming alpha is not applied on any ancestor further up the chain).
+
+The alpha with which the display object will be rendered is called the `worldAlpha`.
+
+```ts
+interface Alpha {
+    alpha: number
+    worldAlpha: number
+}
+```
+
+If the display object has the parent, `worldAlpha` is the multiply of this object's `alpha` and the parent's `worldAlpha`.
+
+## Display Object API
+```ts
+interface IDisplayObject extends ZIndex, Alpha {
+    calculateBounds(): void
+    render(render: Renderer): void
+
+    parent: IDisplayObjectContainer
+
+    pivot: ObservablePoint
+    visible: bool
+    renderable: bool
+}
+
+interface IDisplayObjectContainer extends IDisplayObject {
+    children: IDisplayObject[]
+
+    addChild<T extends IDisplayObject[]>(...children: T): T[0]
+    addChildAt<T extends IDisplayObject>(child: T, index: number): T
+    getChildAt(index: number): IDisplayObject
+    removeChild<T extends IDisplayObject[]>(...children: T): T[0]
+    removeChildAt(index: number): IDisplayObject
+    removeChildren(beginIndex = 0, endIndex = this.children.length): IDisplayObject[]
+
+    swapChildren(child: IDisplayObject, child2: IDisplayObject): void
+
+    sortChildren(): void
+}
+```
+
+| Field | Description |
+| -- | -- |
+| parent | The display object container that contains this display object |
+| visible | indicating if this object is visible |
+| | |
+
+# Display Object Definition
 
 ```ts
 interface DisplayObjectDef {
@@ -46,52 +127,6 @@ interface DisplayObjectDef {
         "id": "2",
         "type": "group",
     }]
-}
-```
-
-## Cell
-
-A cell contains geometry.
-
-Geometry define the location of cell, width, height, control point.
-# Display Object
-
-## Transforms
-The [transform]{@link DisplayObject#transform} of a display object describes the project from its local coordinate space to its parent's local coordinate space.
-
-- position
-- scale
-- rotation
-- skew
-- pivot
-
-## Bounds
-The bounds of a display object is defined by the minimum axis-aligned rectangle in world space that can fit around it.
-
-## Renderable vs Visible
-The `renderable` and `visible` properties can be used to prevent a display object from being rendered to the screen.
-
-When using `renderable`, the transforms of the display object (and its children subtree) will continue to be calculated.
-
-When using `visible`, the transformwill not be calculated.
-
-## Alpha
-This alpha sets a display object's **relative opacity** w.r.t its parent. For example, if the alpha of a display object is 0.5 and its parent's alpha is 0.5, then it will be rendered with 25% opacity (assuming alpha is not applied on any ancestor further up the chain).
-
-The alpha with which the display object will be rendered is called the `worldAlpha`
-
-## API
-```ts
-interface IDisplayObject {
-    calculateBounds(): void
-    render(render: Renderer): void
-    zIndex: number
-    pivot: ObservablePoint
-    visible: bool
-    renderable: bool
-
-    worldAlpha: number
-    alpha: number
 }
 ```
 
@@ -175,7 +210,23 @@ If the display object has mask and mask contains the point, return false
 - Each dataset must have a layer, each layer must have a default z-index
 - When dragging, the object is moved to `drag group` temporarily
 
+Sorts children by zIndex. Previous order is maintained for 2 children with the same zIndex.
 
+```ts
+interface ZIndex {
+    // A higher value will mean it will be rendered on top of other displayObjects within the same container.
+    zIndex: number
+}
+
+interface ZIndexContainer {
+    // Should children be sorted by zIndex at the next updateTransform call
+    abstract sortDirty: bool
+
+    // Indicate whether to sort layer even if sortDirty is true
+    sortableChildren: boolean
+    sortChildren(): void
+}
+```
 
 ## Event
 ### `componenttrait:propertyChanged`

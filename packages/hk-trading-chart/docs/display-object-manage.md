@@ -1,5 +1,10 @@
 Each dataset can create a list of display objects.
 
+- [ ] Chart Pane has a list of Chart Item
+- [ ] Object tree display a list of Chart Item
+- [ ] Multiple source can trigger the update of chart
+- [ ] [Multiple source can request the new render of chart](#request-render-from-the-display-object-from-subtree)
+
 # Structure
 
 ## Canvas structure
@@ -34,3 +39,7 @@ The item in object tree can be
 # Layer of Canvas Stage
 - [ ] Display canvas container by the defined z-index
 - [ ] The object of drag must display on top of other container
+
+# Request render from the display object from subtree
+The display object fire the `displayobject:renderRequest` event.
+The parent display object listen for it and judge if it need to propagate `displayobject:renderRequest` event to the upper parent display object.

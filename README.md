@@ -14,3 +14,7 @@ hk-trading-contract
 hk-tradng-pricing
 |-
 ```
+
+Main concern:
+- [ ] Implement the system that can analyze the news, the candlesticks between the market
+- [ ] Implement the chart like TradingView. [Ref](packages/hk-trading-chart/README.md)
