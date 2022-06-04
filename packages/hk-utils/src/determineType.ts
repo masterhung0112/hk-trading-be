@@ -1,7 +1,7 @@
-import { isBoolean } from './isBoolean'
-import { isDate } from './isDate'
-import { isNumber } from './isNumber'
-import { isString } from './isString'
+import { isBoolean } from './primitives/isBoolean'
+import { isDate } from './primitives/isDate'
+import { isNumber } from './primitives/isNumber'
+import { isString } from './primitives/isString'
 
 export function determineType (value: any): string {
     if (value === undefined) {

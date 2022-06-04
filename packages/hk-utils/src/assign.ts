@@ -1,5 +1,5 @@
 import { copy } from './copy'
-import { isObject } from './isObject'
+import { isObject } from './primitives/isObject'
 
 export function assign(targ: Record<string, any>, ...args: any[]): any {
 	for (let i = 1; i < args.length; i++) {

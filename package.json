@@ -12,7 +12,8 @@
     "build:dev:hk-trading-pricing": "lerna run build:dev --scope hk-trading-pricing --stream",
     "build:dev:hk-trading-chart": "lerna run build:dev --scope hk-trading-chart --stream",
     "build:dev:mysql-plus": "lerna run build:dev --scope mysql-plus --stream",
-    "build:dev:hk-utils": "lerna run build:dev --scope hk-utils --stream"
+    "dev:build:utils": "lerna run build:dev --scope @hungknow/utils --stream",
+    "build:utils": "lerna run build --scope @hungknow/utils --stream"
 
   },
   "dependencies": {
